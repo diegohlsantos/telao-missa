@@ -136,6 +136,8 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .lista-eq li:first-child{border-top:0}
 .so-leitura .editar{display:none!important}
+body.modo-telao{padding:0;background:#000;overflow:hidden}
+body.modo-telao .wrap{display:none}
 .campos{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px 12px;align-items:start}
 .campos label{padding-top:9px}
 .campos .match{display:block;font-size:.8rem;color:var(--muted);margin-top:3px;min-height:1.1em;overflow-wrap:anywhere}
@@ -275,6 +277,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
+      <div class="aviso" id="ctl-telao" hidden>
+        <span style="min-width:0"><b>Telão aberto em outra guia</b><br><span class="hint" id="ctl-onde">—</span></span>
+        <span class="row"><button class="btn" type="button" id="ctl-ant" aria-label="Slide anterior">◀</button><button class="btn" type="button" id="ctl-preta">Tela preta</button><button class="btn" type="button" id="ctl-prox" aria-label="Próximo slide">▶</button></span>
+      </div>
       <ol class="roteiro" id="roteiro"></ol>
       <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>Esc</b> sai. Passadores de slide funcionam.</p>
     </div>
@@ -399,6 +405,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 </dialog>
 
 <div id="proj" hidden>
+  <button type="button" id="proj-cheia" hidden style="position:absolute;z-index:3;inset:auto 0 0 0;margin:0 auto 6vh;width:max-content;padding:14px 22px;border-radius:999px;border:1px solid rgb(255 255 255 / .3);background:rgb(20 24 32 / .9);color:#fff;font:16px var(--body);cursor:pointer">Clique para tela cheia — ou leve esta guia ao projetor e aperte F11</button>
   <div class="stage" id="stage"><div class="sbox" id="sbox"></div></div>
   <div class="hud"><span class="where" id="hud-where"></span><span class="row"><button type="button" id="hud-prev">◀</button><button type="button" id="hud-next">▶</button><button type="button" id="hud-full">Tela cheia</button><button type="button" id="hud-exit">Sair</button></span></div>
 </div>
@@ -407,6 +414,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 "use strict";
+const PARAMS = new URLSearchParams(location.search);
+const MODO_TELAO = PARAMS.get("telao") === "1";
+const canal = "BroadcastChannel" in window ? new BroadcastChannel("telao-missa") : null;
+let janelaTelao = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -774,6 +785,7 @@ function montar(){
   const soltos = porMom._ || [];
   soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
   S.itens = linhas; S.slides = slides;
+  if (MODO_TELAO && !$("proj").hidden) mostrar();
   if (typeof previa==="function" && !$("v-layout").hidden) previa();
   { const ok = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && l.song).length, falta = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && !l.song).length;
     const r = $("cantos-resumo"); if (r) r.textContent = ok||falta ? `· ${ok} canto${ok===1?"":"s"}${falta?` · ${falta} não encontrado${falta>1?"s":""}`:""}` : "· nenhum preenchido"; }
@@ -838,19 +850,59 @@ function mostrar(){
   if (!s || S.black || s.blank){ box.innerHTML=""; box.className="sbox"; }
   else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
   ajustar();
+  avisarPosicao();
   $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${s.rotulo}` : "";
 }
 function ir(d){ S.black=false; S.idx = Math.max(0, Math.min(S.slides.length-1, S.idx+d)); mostrar(); }
+if (canal){
+  canal.onmessage = ({data:m})=>{
+    if (!m) return;
+    if (MODO_TELAO){
+      if (m.tipo==="ir" && m.data && m.data!==S.date){ $("data").value=m.data; carregarData(m.data); S.idx=Math.max(0,m.idx|0); return; }
+      if (m.data && m.data!==S.date) return;
+      if (m.tipo==="ir"){ S.black=false; S.idx=Math.max(0,m.idx|0); mostrar(); }
+      else if (m.tipo==="passo") ir(m.d);
+      else if (m.tipo==="preta"){ S.black=!S.black; mostrar(); }
+      else if (m.tipo==="quem") avisarPosicao();
+    } else if (m.tipo==="pos" && m.data===S.date){
+      $("ctl-telao").hidden = false;
+      $("ctl-onde").textContent = `${m.preta?"TELA PRETA · ":""}slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
+      $("ctl-preta").textContent = m.preta ? "Voltar a mostrar" : "Tela preta";
+    }
+  };
+  if (!MODO_TELAO) setTimeout(()=>canal.postMessage({tipo:"quem"}), 800);
+}
+$("ctl-ant").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:-1});
+$("ctl-prox").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:1});
+$("ctl-preta").onclick = ()=>canal?.postMessage({tipo:"preta", data:S.date});
 let wake=null, hudT=null;
+function avisarPosicao(){
+  if (!MODO_TELAO || !canal) return;
+  const s = S.slides[S.idx];
+  canal.postMessage({tipo:"pos", data:S.date, idx:S.idx, total:S.slides.length, rotulo: s ? s.rotulo : "", preta:S.black});
+}
 function abrirProjecao(i=0){
   if (!S.slides.length) return;
+  if (!MODO_TELAO){
+    // abre (ou reaproveita) a guia do telão e manda ir para o slide escolhido
+    const url = `${location.pathname}?data=${encodeURIComponent(S.date)}&telao=1&slide=${i}`;
+    if (janelaTelao && !janelaTelao.closed){ canal?.postMessage({tipo:"ir", data:S.date, idx:i}); janelaTelao.focus(); return; }
+    janelaTelao = window.open(url, "telao-missa");
+    if (janelaTelao){ $("ctl-telao").hidden = false; canal?.postMessage({tipo:"ir", data:S.date, idx:i}); return; }
+    // navegador bloqueou a nova guia: projeta aqui mesmo
+  }
+  abrirLocal(i);
+}
+function abrirLocal(i=0){
   S.idx = Math.max(0,Math.min(i,S.slides.length-1)); S.black=false;
   $("proj").hidden = false; document.body.style.overflow="hidden"; mostrar();
   try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   telaCheia(true);
 }
-function fechar(){ $("proj").hidden = true; document.body.style.overflow=""; try{wake?.release()}catch{} wake=null; if (document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
-function telaCheia(on){ try{ if (on && !document.fullscreenElement) $("proj").requestFullscreen?.().catch(()=>{}); }catch{} }
+function fechar(){ if (MODO_TELAO){ window.close(); return; } $("proj").hidden = true; document.body.style.overflow=""; try{wake?.release()}catch{} wake=null; if (document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+function telaCheia(on){ try{ if (on && !document.fullscreenElement) $("proj").requestFullscreen?.().then(()=>{ $("proj-cheia").hidden=true; }).catch(()=>{}); }catch{} }
+$("proj-cheia").onclick = e=>{ e.stopPropagation(); telaCheia(true); $("proj-cheia").hidden = true; };
+document.addEventListener("fullscreenchange", ()=>{ if (document.fullscreenElement) $("proj-cheia").hidden = true; });
 document.addEventListener("keydown", e=>{
   if ($("proj").hidden) return;
   const k = e.key;
@@ -1434,6 +1486,12 @@ $("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("
 
 function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
 (async function iniciar(){
+  if (MODO_TELAO){
+    document.body.classList.add("modo-telao"); document.title = "Telão — projeção";
+    S.idx = Math.max(0, parseInt(PARAMS.get("slide")||"0",10)||0);
+    $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
+    try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
+  }
   aba(["acervo","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
   const q = new URLSearchParams(location.search).get("data");
   $("data").value = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? q : proximoDomingo();
