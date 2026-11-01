@@ -259,7 +259,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
           <summary class="hint" style="cursor:pointer">Ajustar as aclamações desta oração</summary>
           <p class="hint">Uma aclamação por linha, na ordem. Use a linha <b>[MISTÉRIO]</b> onde entra o “Mistério da fé”. Vale para todas as missas.</p>
           <textarea id="oe-ed" rows="9"></textarea>
-          <div class="row"><button class="btn" type="button" id="oe-ed-salvar">Salvar aclamações</button><button class="btn" type="button" id="oe-ed-padrao">Voltar ao texto do Missal</button><span class="status" id="st-oe"></span></div>
+          <label class="label" for="oe-txt" style="margin-top:8px">Texto do padre — só para quem opera o telão</label>
+          <p class="hint">Cole aqui o texto completo desta oração eucarística, do Missal de vocês, com as respostas do povo. Ele nunca aparece no telão: serve para o controle remoto mostrar o que o padre está rezando e quando avançar.</p>
+          <textarea id="oe-txt" rows="7"></textarea>
+          <div class="row"><button class="btn" type="button" id="oe-ed-salvar">Salvar aclamações e texto</button><button class="btn" type="button" id="oe-ed-padrao">Voltar ao texto do Missal</button><span class="status" id="st-oe"></span></div>
         </details>
       </fieldset>
       <fieldset class="bloco">
@@ -282,6 +285,11 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
+      <div class="aviso" id="ctl-deixa" hidden style="flex-direction:column;align-items:stretch;background:var(--sunk)">
+        <span class="label" id="ctl-deixa-tit"></span>
+        <span id="ctl-deixa-txt" style="max-height:9.5em;overflow:auto;font-size:.95rem;line-height:1.45"></span>
+        <span class="hint" id="ctl-deixa-prox"></span>
+      </div>
       <div class="aviso" id="ctl-telao" hidden>
         <span style="min-width:0"><b>Telão aberto em outra guia</b><br><span class="hint" id="ctl-onde">—</span></span>
         <span class="row"><button class="btn" type="button" id="ctl-ant" aria-label="Slide anterior">◀</button><button class="btn" type="button" id="ctl-preta">Tela preta</button><button class="btn" type="button" id="ctl-prox" aria-label="Próximo slide">▶</button></span>
@@ -355,6 +363,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <h3>Fundo das orações eucarísticas</h3>
       <div class="ctl">
         <span></span><label class="chk"><input type="checkbox" id="ly-fundoOE"> usar imagem de fundo no Prefácio e nas aclamações</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-oeImagem"> mostrar só a imagem enquanto o padre reza (a resposta entra no slide seguinte)</label>
         <label for="ly-fundoOEescuro">Escurecimento</label><input type="range" id="ly-fundoOEescuro" min="30" max="95" step="5"><output id="o-fundoOEescuro"></output>
         <span></span>
         <div style="grid-column:2/4;display:flex;flex-direction:column;gap:8px">
@@ -643,7 +652,24 @@ const OES_PADRAO = {
   "R1":  {nome:"Oração Eucarística sobre a Reconciliação I", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Amém!"]},
   "R2":  {nome:"Oração Eucarística sobre a Reconciliação II", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Lembrai-vos, ó Pai, da vossa Igreja!","Amém!"]},
 };
-S.oesAjustes = {};
+S.oesAjustes = {}; S.oesTexto = {};
+function textoBusca(t){ return Array.from(String(t||"")).map(c=>{ const b=c.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); return /^[a-z0-9]$/.test(b)?b:" "; }).join(""); }
+function deixas(id){
+  const txt = S.oesTexto[id]; const acls = aclamacoes(id);
+  if (!txt) return acls.map(()=>"");
+  const busca = textoBusca(txt); let cur = 0;
+  return acls.map(a=>{
+    const chave = a.trim()==="[MISTÉRIO]" ? "misterio da fe" : a;
+    const pal = textoBusca(chave).split(" ").filter(Boolean);
+    if (!pal.length) return "";
+    const re = new RegExp(pal.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("[^a-z0-9]+"), "g");
+    re.lastIndex = cur; const m = re.exec(busca);
+    if (!m) return "";
+    const trecho = txt.slice(cur, m.index).replace(/\s+/g," ").replace(/^[\s!?.,;:»”"’—–-]+/,"").trim();
+    cur = m.index + m[0].length;
+    return trecho;
+  });
+}
 function aclamacoes(id){ return S.oesAjustes[id] || OES_PADRAO[id]?.ac || []; }
 const PREFACIO = [["O Senhor esteja convosco.","Ele está no meio de nós."],["Corações ao alto.","O nosso coração está em Deus."],["Demos graças ao Senhor, nosso Deus.","É nosso dever e nossa salvação."]];
 
@@ -694,6 +720,7 @@ function atualizarOeUI(c){
   $("c-misterio").disabled = !S.editor || !oe || !!oe.proprio;
   $("det-oe-ed").hidden = !oe;
   if (oe && document.activeElement!==$("oe-ed")) $("oe-ed").value = aclamacoes(c.oe).join("\n");
+  if (oe && document.activeElement!==$("oe-txt")) $("oe-txt").value = S.oesTexto[c.oe] || "";
 }
 function lerCampos(){
   const c = {...camposVazios(), ...(S.missa.campos||{})};
@@ -758,11 +785,17 @@ function montar(){
       }
       const curto = oe.nome.replace("Oração Eucarística","Oração eucarística");
       const mist = MISTERIO[+c.misterio||0];
-      const arr = aclamacoes(c.oe).map((a,i)=> a.trim()==="[MISTÉRIO]"
-        ? {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p style="margin:0 0 .3em">Mistério da fé!</p><p class="s-strong">${esc(mist)}</p>`, mid:true, rotulo:"Mistério da fé"}
-        : {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p class="s-strong">${esc(a)}</p>`, mid:true, rotulo:a});
+      const dx = deixas(c.oe); const comImagem = S.layout?.oeImagem !== false;
+      const arr = [];
+      aclamacoes(c.oe).forEach((a,i)=>{
+        const resp = a.trim()==="[MISTÉRIO]" ? mist : a;
+        if (comImagem) arr.push({html:"", mid:true, oeImagem:true, rotulo:"Imagem — padre rezando", deixa:dx[i], proxima:resp});
+        arr.push(a.trim()==="[MISTÉRIO]"
+          ? {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p style="margin:0 0 .3em">Mistério da fé!</p><p class="s-strong">${esc(mist)}</p>`, mid:true, rotulo:"Mistério da fé", deixa:dx[i], proxima:resp}
+          : {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p class="s-strong">${esc(a)}</p>`, mid:true, rotulo:a, deixa:dx[i], proxima:resp});
+      });
       push("oe", arr);
-      linhas.push({m:"oe", nome:"Oração eucarística", t:oe.nome, s:`${arr.length} aclamações`, first:start});
+      linhas.push({m:"oe", nome:"Oração eucarística", t:oe.nome, s:`${aclamacoes(c.oe).length} aclamações${comImagem?" · imagem entre elas":""}`, first:start});
       continue;
     }
     if (mo.id==="avisos"){
@@ -869,7 +902,7 @@ function ajustar(box=$("sbox"), stage=$("stage")){
 function aplicarFundo(stage, box, s){
   const L = S.layout || {};
   const usa = L.fundoOE && L.fundoOEurl && s && !s.blank && (s.grupo==="oe" || s.grupo==="prefacio");
-  if (usa){ const a = (L.fundoOEescuro ?? 88)/100; stage.style.background = `linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})), url("${L.fundoOEurl}") center/cover no-repeat, var(--s-bg)`; }
+  if (usa){ let a = (L.fundoOEescuro ?? 88)/100; if (s.oeImagem) a = Math.max(0.1, a - 0.6); stage.style.background = `linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})), url("${L.fundoOEurl}") center/cover no-repeat, var(--s-bg)`; }
   else stage.style.background = "";
   box.classList.toggle("com-fundo", !!usa);
 }
@@ -900,12 +933,27 @@ if (canal){
       else if (m.tipo==="preta"){ S.black=!S.black; mostrar(); }
       else if (m.tipo==="quem") avisarPosicao();
     } else if (m.tipo==="pos" && m.data===S.date){
+      mostrarDeixa(m.idx);
       $("ctl-telao").hidden = false;
       $("ctl-onde").textContent = `${m.preta?"TELA PRETA · ":""}slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
       $("ctl-preta").textContent = m.preta ? "Voltar a mostrar" : "Tela preta";
     }
   };
   if (!MODO_TELAO) setTimeout(()=>canal.postMessage({tipo:"quem"}), 800);
+}
+function mostrarDeixa(idx){
+  const s = S.slides[idx], box = $("ctl-deixa");
+  if (!s || s.grupo!=="oe"){ box.hidden = true; return; }
+  box.hidden = false;
+  const seg = S.slides[idx+1];
+  const alvo = s.oeImagem ? s : (seg && seg.grupo==="oe" ? seg : null);
+  if (s.blank){ $("ctl-deixa-tit").textContent = "Pausa — a oração eucarística começa a seguir:"; }
+  const prox = s.oeImagem ? s.proxima : (seg?.grupo==="oe" ? (seg.oeImagem ? "imagem (padre volta a rezar)" : seg.proxima) : "fim da oração eucarística");
+  if (!s.blank) $("ctl-deixa-tit").textContent = s.oeImagem ? "O padre está rezando — avance quando ele terminar:" : "No telão: resposta do povo. Próxima parte do padre:";
+  const d = alvo?.deixa || "";
+  $("ctl-deixa-txt").textContent = d ? (d.length > 420 ? "… " + d.slice(-420) : d) : "Cole o texto do padre em “Ajustar as aclamações desta oração” para acompanhar aqui.";
+  $("ctl-deixa-prox").textContent = prox ? "Próximo slide: " + prox : "";
+  $("ctl-deixa-txt").scrollTop = 1e6;
 }
 $("ctl-ant").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:-1});
 $("ctl-prox").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:1});
@@ -1399,7 +1447,7 @@ const FONTES = [
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
 const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
-  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true,
+  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true, oeImagem:true,
   fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
@@ -1437,7 +1485,7 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","fundoOE"],
+const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","fundoOE"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
 const fmtCtl = {fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
@@ -1499,14 +1547,15 @@ function previa(){
   escreverControles(S.layout);
 })();
 async function carregarOracoes(){
-  const {data} = await sb.from("config").select("valor").eq("id","oracoes").maybeSingle();
-  S.oesAjustes = data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar();
+  const [a, t] = await Promise.all([sb.from("config").select("valor").eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_texto").maybeSingle()]);
+  S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar();
 }
 async function salvarOracoes(){
-  const {error} = await sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes});
+  const [r1, r2] = await Promise.all([sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes}), sb.from("config").upsert({id:"oracoes_texto", valor:S.oesTexto})]);
+  const error = r1.error || r2.error;
   setSt("st-oe", error ? erroAmigavel(error) : "Salvo.", error?"err":"ok"); montar();
 }
-$("oe-ed-salvar").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const ls=$("oe-ed").value.split("\n").map(x=>x.trim()).filter(Boolean); S.oesAjustes={...S.oesAjustes,[id]:ls}; salvarOracoes(); };
+$("oe-ed-salvar").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const ls=$("oe-ed").value.split("\n").map(x=>x.trim()).filter(Boolean); S.oesAjustes={...S.oesAjustes,[id]:ls}; S.oesTexto={...S.oesTexto,[id]:$("oe-txt").value.trim()}; salvarOracoes(); };
 $("oe-ed-padrao").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const a={...S.oesAjustes}; delete a[id]; S.oesAjustes=a; $("oe-ed").value=OES_PADRAO[id].ac.join("\n"); salvarOracoes(); };
 async function carregarLayout(){
   const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
