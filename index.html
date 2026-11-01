@@ -108,6 +108,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .s-head{display:flex;flex-direction:column;align-items:var(--s-items);gap:.05em;margin-bottom:.55em}
 .s-title{color:var(--s-tc);text-decoration:var(--s-ul);text-underline-offset:.15em;text-transform:var(--s-tt);font-weight:400;font-size:calc(1em * var(--s-tsc))}
 .s-ref{color:var(--s-fg);font-size:.9em}
+.s-autor{display:var(--s-autor,none);color:var(--s-fg);font-size:.75em;opacity:.7}
 .s-sub{margin:0 0 .25em}
 .sbox p{margin:0 0 .35em}
 .s-resp{color:var(--s-hc)}
@@ -334,6 +335,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-escalaTitulo">Tamanho do título</label><input type="range" id="ly-escalaTitulo" min="60" max="180" step="5"><output id="o-escalaTitulo"></output>
         <span></span><label class="chk"><input type="checkbox" id="ly-sublinhar"> sublinhado</label>
         <span></span><label class="chk"><input type="checkbox" id="ly-tituloMaiusc"> em maiúsculas</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-mostrarAutor"> mostrar o grupo/autor do canto (ex.: “baladinha”, “Shalom”)</label>
       </div>
       <h3>Cores</h3>
       <div class="ctl">
@@ -769,7 +771,7 @@ function montar(){
       const escolhido = fixo || cands[0]?.song || null;
       const st = slides.length + (sep && slides.length ? 1 : 0);
       if (escolhido){
-        const cab = n => `<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n}</span>${escolhido.autor?`<span class="s-ref">${esc(escolhido.autor)}</span>`:""}</div>`;
+        const cab = n => `<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n}</span>${escolhido.autor?`<span class="s-autor">${esc(escolhido.autor)}</span>`:""}</div>`;
         const headMed = cab(" (9/9)");
         const units = unidadesLetra(escolhido.partes, headMed);
         // respeita as divisões originais quando cabem; senão quebra pela altura
@@ -1362,7 +1364,7 @@ const FONTES = [
   ["Montserrat","Montserrat",true],["Open Sans","Open Sans",true],["Roboto","Roboto",true],["Lato","Lato",true],
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
-  negrito:false, letraMaiusc:false, sombra:false, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
+  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
   "Padrão da paróquia": {},
@@ -1391,7 +1393,7 @@ function aplicarLayout(L){
     "--s-ar":`${a}/${b}`,"--s-arn":String(a/b),"--s-mx":L.margem+"%","--s-lh":String(L.entrelinha/100),
     "--s-align":L.alinhamento,"--s-items":L.alinhamento==="left"?"flex-start":"center","--s-just":L.vertical==="centro"?"center":"flex-start",
     "--s-tsc":String(L.escalaTitulo/100),"--s-ul":L.sublinhar?"underline":"none","--s-tt":L.tituloMaiusc?"uppercase":"none",
-    "--s-lt":L.letraMaiusc?"uppercase":"none","--s-fw":L.negrito?"700":"400",
+    "--s-lt":L.letraMaiusc?"uppercase":"none","--s-autor":L.mostrarAutor?"block":"none","--s-fw":L.negrito?"700":"400",
     "--s-sh":L.sombra?"0 0 .08em #000, 0 0 .08em #000, .03em .03em .06em #000":"none"};
   for (const [k,v] of Object.entries(vars)) r.setProperty(k, v);
   escreverControles(L);
@@ -1399,7 +1401,7 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc"],
+const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
 const fmtCtl = {margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
@@ -1422,7 +1424,7 @@ function salvarLayout(){
   }, 600);
 }
 const AMOSTRAS = [
-  {html:`<div class="s-head"><span class="s-title">Canto de exemplo (1/2)</span><span class="s-ref">Grupo</span></div><div class="s-lyr">Primeira linha da estrofe de exemplo\nSegunda linha da estrofe de exemplo\nTerceira linha da estrofe\n\nLinha do refrão de exemplo\nOutra linha do refrão</div>`, rotulo:"Canto (exemplo)"},
+  {html:`<div class="s-head"><span class="s-title">Canto de exemplo (1/2)</span><span class="s-autor">Grupo</span></div><div class="s-lyr">Primeira linha da estrofe de exemplo\nSegunda linha da estrofe de exemplo\nTerceira linha da estrofe\n\nLinha do refrão de exemplo\nOutra linha do refrão</div>`, rotulo:"Canto (exemplo)"},
   {html:`<div class="s-head"><span class="s-title">Primeira leitura</span><span class="s-ref">(Ref 1,1-5)</span></div><p class="s-sub">Leitura do livro de exemplo</p><p>Este é um texto de exemplo com o tamanho típico de um slide de leitura, para você conferir a fonte, o espaçamento e as margens antes da celebração.</p><p class="s-resp" style="margin-top:.6em">Palavra do Senhor.<br>Graças a Deus.</p>`, rotulo:"Leitura (exemplo)"},
   {html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">Senhor, escutai a nossa prece!</p>`, mid:true, rotulo:"Preces (exemplo)"},
 ];
