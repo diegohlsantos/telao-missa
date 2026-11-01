@@ -175,6 +175,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <nav class="tabs" role="tablist">
         <button role="tab" id="tab-montar" aria-selected="true">Montar a missa</button>
         <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
+        <button role="tab" id="tab-oracoes" aria-selected="false">Orações</button>
         <button role="tab" id="tab-layout" aria-selected="false">Layout</button>
         <button role="tab" id="tab-equipe" aria-selected="false" hidden>Equipe</button>
       </nav>
@@ -255,15 +256,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
           <select id="c-misterio"></select>
         </div>
         <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-prefacio"> incluir o diálogo do Prefácio antes do Santo</label>
-        <details class="editar" id="det-oe-ed">
-          <summary class="hint" style="cursor:pointer">Ajustar as aclamações desta oração</summary>
-          <p class="hint">Uma aclamação por linha, na ordem. Use a linha <b>[MISTÉRIO]</b> onde entra o “Mistério da fé”. Vale para todas as missas.</p>
-          <textarea id="oe-ed" rows="9"></textarea>
-          <label class="label" for="oe-txt" style="margin-top:8px">Texto do padre — só para quem opera o telão</label>
-          <p class="hint">Cole aqui o texto completo desta oração eucarística, do Missal de vocês, com as respostas do povo. Ele nunca aparece no telão: serve para o controle remoto mostrar o que o padre está rezando e quando avançar.</p>
-          <textarea id="oe-txt" rows="7"></textarea>
-          <div class="row"><button class="btn" type="button" id="oe-ed-salvar">Salvar aclamações e texto</button><button class="btn" type="button" id="oe-ed-padrao">Voltar ao texto do Missal</button><span class="status" id="st-oe"></span></div>
-        </details>
+        <p class="hint" id="oe-atalho">Textos e aclamações das orações ficam na aba <a href="#oracoes" class="btn link">Orações</a>.</p>
       </fieldset>
       <fieldset class="bloco">
         <legend class="label">Preces da assembleia</legend>
@@ -313,6 +306,30 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     </div>
     <p class="hint" id="acervo-info"></p>
     <div class="songs" id="songs"></div>
+  </section>
+
+  <!-- ============ ORAÇÕES ============ -->
+  <section id="v-oracoes" class="grid" hidden style="grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr)">
+    <div class="panel">
+      <h2>Orações eucarísticas</h2>
+      <p class="hint">Escolha uma oração e cole o texto do padre, copiado do Missal de vocês. O texto nunca vai para o telão: serve para o controle remoto mostrar o que o padre está rezando e quando avançar.</p>
+      <ul class="lista-eq" id="or-lista"></ul>
+    </div>
+    <div class="panel">
+      <h2 id="or-nome">—</h2>
+      <div class="field">
+        <label class="label" for="or-txt">Texto do padre (com as respostas do povo)</label>
+        <textarea id="or-txt" rows="14" placeholder="Cole aqui o texto completo desta oração eucarística, do início do Prefácio até o Amém final."></textarea>
+      </div>
+      <div class="field">
+        <label class="label" for="or-ac">Respostas do povo, na ordem — uma por linha ([MISTÉRIO] marca o Mistério da fé)</label>
+        <textarea id="or-ac" rows="8"></textarea>
+      </div>
+      <div class="row editar"><button class="btn primary" type="button" id="or-salvar">Salvar</button><button class="btn" type="button" id="or-padrao">Respostas padrão do Missal</button><span class="status" id="st-or" aria-live="polite"></span></div>
+      <h3 class="label" style="margin-top:6px">Conferência</h3>
+      <p class="hint">Cada resposta precisa aparecer no texto colado. As que ficarem com ✗ não terão a parte do padre no controle remoto: ajuste a resposta para ficar igual à do texto.</p>
+      <ol class="lista-eq" id="or-conf"></ol>
+    </div>
   </section>
 
   <!-- ============ LAYOUT ============ -->
@@ -718,9 +735,7 @@ function desenharCampos(){
 function atualizarOeUI(c){
   const oe = OES_PADRAO[c.oe];
   $("c-misterio").disabled = !S.editor || !oe || !!oe.proprio;
-  $("det-oe-ed").hidden = !oe;
-  if (oe && document.activeElement!==$("oe-ed")) $("oe-ed").value = aclamacoes(c.oe).join("\n");
-  if (oe && document.activeElement!==$("oe-txt")) $("oe-txt").value = S.oesTexto[c.oe] || "";
+  $("oe-atalho").hidden = !oe;
 }
 function lerCampos(){
   const c = {...camposVazios(), ...(S.missa.campos||{})};
@@ -1350,6 +1365,7 @@ function modoEdicao(){
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
   $("who").textContent = S.user ? S.user.email + (S.editor ? " · equipe" : "") : "";
   if (!S.editor && $("tab-equipe").getAttribute("aria-selected")==="true") aba("montar");
+  if (typeof desenharOracoes==="function" && !$("v-oracoes").hidden) desenharOracoes();
   montar();
 }
 function mostrarAviso(txt, botao, acao){
@@ -1548,30 +1564,66 @@ function previa(){
 })();
 async function carregarOracoes(){
   const [a, t] = await Promise.all([sb.from("config").select("valor").eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_texto").maybeSingle()]);
-  S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar();
+  S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar(); desenharOracoes();
 }
 async function salvarOracoes(){
   const [r1, r2] = await Promise.all([sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes}), sb.from("config").upsert({id:"oracoes_texto", valor:S.oesTexto})]);
   const error = r1.error || r2.error;
-  setSt("st-oe", error ? erroAmigavel(error) : "Salvo.", error?"err":"ok"); montar();
+  setSt("st-or", error ? erroAmigavel(error) : "Salvo para todas as missas.", error?"err":"ok"); montar(); desenharOracoes();
 }
-$("oe-ed-salvar").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const ls=$("oe-ed").value.split("\n").map(x=>x.trim()).filter(Boolean); S.oesAjustes={...S.oesAjustes,[id]:ls}; S.oesTexto={...S.oesTexto,[id]:$("oe-txt").value.trim()}; salvarOracoes(); };
-$("oe-ed-padrao").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const a={...S.oesAjustes}; delete a[id]; S.oesAjustes=a; $("oe-ed").value=OES_PADRAO[id].ac.join("\n"); salvarOracoes(); };
 async function carregarLayout(){
   const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
   aplicarLayout(data?.valor || LAYOUT_PADRAO);
   sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); }).subscribe();
 }
 
+/* ---------- aba Orações ---------- */
+let orSel = "II";
+function desenharOracoes(){
+  if (!$("or-lista")) return;
+  $("or-lista").innerHTML = Object.entries(OES_PADRAO).map(([k,v])=>{
+    const tem = !!S.oesTexto[k];
+    return `<li><button class="btn link" type="button" data-or="${k}" style="text-align:left;${k===orSel?"text-decoration:underline":""}">${esc(v.nome)}</button><span class="chip ${tem?"":"miss"}">${tem?"texto colado":"sem texto"}</span></li>`;
+  }).join("");
+  $("or-nome").textContent = OES_PADRAO[orSel].nome;
+  if (document.activeElement!==$("or-txt")) $("or-txt").value = S.oesTexto[orSel] || "";
+  if (document.activeElement!==$("or-ac")) $("or-ac").value = aclamacoes(orSel).join("\n");
+  conferirOracao();
+  ["or-txt","or-ac"].forEach(id=>$(id).readOnly = !S.editor);
+}
+function conferirOracao(){
+  const salvo = {t:S.oesTexto[orSel], a:S.oesAjustes[orSel]};
+  S.oesTexto[orSel] = $("or-txt").value.trim();
+  S.oesAjustes[orSel] = $("or-ac").value.split("\n").map(x=>x.trim()).filter(Boolean);
+  const dx = deixas(orSel), acs = aclamacoes(orSel), tem = !!S.oesTexto[orSel];
+  S.oesTexto[orSel] = salvo.t; if (salvo.a) S.oesAjustes[orSel] = salvo.a; else delete S.oesAjustes[orSel];
+  $("or-conf").innerHTML = acs.map((a,i)=>{
+    const ok = tem && dx[i]; const r = a==="[MISTÉRIO]" ? "Mistério da fé" : a;
+    return `<li style="display:block"><b>${ok?"✓":tem?"✗":"·"} ${esc(r)}</b>${ok?`<br><span class="hint">…${esc(dx[i].slice(-140))}</span>`:""}</li>`;
+  }).join("") || `<li><span class="hint">Sem respostas cadastradas.</span></li>`;
+}
+$("or-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-or]"); if (b){ orSel=b.dataset.or; $("or-txt").value=""; $("or-ac").value=""; desenharOracoes(); $("or-txt").value=S.oesTexto[orSel]||""; $("or-ac").value=aclamacoes(orSel).join("\n"); conferirOracao(); setSt("st-or","",""); } });
+let tConf=null; ["or-txt","or-ac"].forEach(id=>$(id).addEventListener("input", ()=>{ clearTimeout(tConf); tConf=setTimeout(conferirOracao, 300); }));
+$("or-salvar").onclick = ()=>{
+  if (!S.editor) return;
+  const ls = $("or-ac").value.split("\n").map(x=>x.trim()).filter(Boolean);
+  const padrao = OES_PADRAO[orSel].ac.join("\n") === ls.join("\n");
+  const a = {...S.oesAjustes}; if (padrao) delete a[orSel]; else a[orSel]=ls; S.oesAjustes = a;
+  S.oesTexto = {...S.oesTexto, [orSel]: $("or-txt").value.trim()};
+  setSt("st-or","Salvando…",""); salvarOracoes();
+};
+$("or-padrao").onclick = ()=>{ if (!S.editor) return; $("or-ac").value = OES_PADRAO[orSel].ac.join("\n"); conferirOracao(); setSt("st-or","Clique em Salvar para confirmar.",""); };
+
 /* ---------- abas e início ---------- */
 function aba(qual){
-  ["montar","acervo","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  ["montar","acervo","oracoes","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
   if (qual==="layout") previa();
+  if (qual==="oracoes"){ if (S.missa?.campos?.oe && OES_PADRAO[S.missa.campos.oe]) orSel = S.missa.campos.oe; desenharOracoes(); }
 }
-$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-equipe").onclick=()=>aba("equipe");
-window.addEventListener("hashchange", ()=>aba(["acervo","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["acervo","oracoes","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
@@ -1593,7 +1645,7 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
     $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
     try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   }
-  aba(["acervo","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
+  aba(["acervo","oracoes","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
   const q = new URLSearchParams(location.search).get("data");
   $("data").value = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? q : proximoDomingo();
   desenharAcervo(); modoEdicao();
