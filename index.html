@@ -193,12 +193,14 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </details>
 
-      <div class="field">
-        <span class="label">Cantos da celebração</span>
-        <div class="campos" id="campos"></div>
-        <datalist id="lista-cantos"></datalist>
-        <p class="hint">Digite o nome do canto, o grupo (shalom, capella, pe zezinho) ou um trecho da letra; o acervo vai sugerindo. Deixe vazio o que não for cantado.</p>
-      </div>
+      <details class="leit" id="det-cantos" open>
+        <summary>Cantos da celebração <span class="hint" id="cantos-resumo" style="font-weight:400"></span></summary>
+        <div class="field" style="margin-top:12px">
+          <div class="campos" id="campos"></div>
+          <p class="hint">Digite o nome do canto, o grupo (shalom, capella, pe zezinho) ou um trecho da letra; o acervo vai sugerindo. Deixe vazio o que não for cantado.</p>
+        </div>
+      </details>
+      <datalist id="lista-cantos"></datalist>
       <fieldset class="bloco">
         <legend class="label">Preces da assembleia</legend>
         <input type="text" id="c-preces_refrao" placeholder="Refrão — ex.: Senhor, escutai a nossa prece!">
@@ -545,6 +547,8 @@ function montar(){
   const soltos = porMom._ || [];
   soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
   S.itens = linhas; S.slides = slides;
+  { const ok = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && l.song).length, falta = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && !l.song).length;
+    const r = $("cantos-resumo"); if (r) r.textContent = ok||falta ? `· ${ok} canto${ok===1?"":"s"}${falta?` · ${falta} não encontrado${falta>1?"s":""}`:""}` : "· nenhum preenchido"; }
   for (const k of CAMPOS_CANTO){
     const el = $("mt-"+k); if (!el) continue;
     const ls = linhas.filter(l=>l.m===k);
@@ -1009,6 +1013,8 @@ function aba(qual){
 $("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-equipe").onclick=()=>aba("equipe");
 window.addEventListener("hashchange", ()=>aba(["acervo","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
+try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
+$("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
 document.querySelector("#v-montar").addEventListener("input", e=>{
   if (!e.target.id || !e.target.id.startsWith("c-")) return;
   S.missa.campos = lerCampos(); montar(); salvarMissa();
