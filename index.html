@@ -126,6 +126,13 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .lista-eq li:first-child{border-top:0}
 .so-leitura .editar{display:none!important}
+.campos{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px 12px;align-items:start}
+.campos label{padding-top:9px}
+.campos .match{display:block;font-size:.8rem;color:var(--muted);margin-top:3px;min-height:1.1em;overflow-wrap:anywhere}
+.campos .match.ok{color:var(--ok)} .campos .match.miss{color:var(--warn)}
+.campos textarea{min-height:0}
+@media (max-width:520px){.campos{grid-template-columns:minmax(0,1fr);gap:2px}.campos label{padding-top:8px}}
+fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 </style>
 </head>
 <body>
@@ -187,21 +194,19 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
       </details>
 
       <div class="field">
-        <label class="label" for="texto">Cantos e avisos — escreva do seu jeito</label>
-        <textarea id="texto" spellcheck="false" placeholder="entrada: noites traiçoeiras
-ato penitencial: perdão senhor
-glória: glória a deus nas alturas shalom
-aclamação: tua palavra
-preces: Senhor, escutai a nossa prece!
-ofertório: a mesa santa
-santo shalom
-cordeiro: padre marcelo rossi
-comunhão: milagre de amor, corpo santo
-final: maria passa à frente
-avisos:
-Reunião do dízimo na terça, às 19h30
-Inscrições abertas para a catequese"></textarea>
-        <p class="hint">Um momento por linha: “momento: nome do canto”. Pode usar o grupo/autor (shalom, capella, pe zezinho) ou um trecho da letra. Depois de “avisos:”, cada linha vira um slide.</p>
+        <span class="label">Cantos da celebração</span>
+        <div class="campos" id="campos"></div>
+        <datalist id="lista-cantos"></datalist>
+        <p class="hint">Digite o nome do canto, o grupo (shalom, capella, pe zezinho) ou um trecho da letra; o acervo vai sugerindo. Deixe vazio o que não for cantado.</p>
+      </div>
+      <fieldset class="bloco">
+        <legend class="label">Preces da assembleia</legend>
+        <input type="text" id="c-preces_refrao" placeholder="Refrão — ex.: Senhor, escutai a nossa prece!">
+        <textarea id="c-preces" rows="6" placeholder="Cole aqui as preces do folheto, uma por parágrafo. Cada prece vira um slide com o refrão embaixo."></textarea>
+      </fieldset>
+      <div class="field">
+        <label class="label" for="c-avisos">Avisos — um por linha</label>
+        <textarea id="c-avisos" rows="3" placeholder="Reunião do dízimo na terça, às 19h30"></textarea>
       </div>
       <p class="status" id="st-missa" aria-live="polite"></p>
     </div>
@@ -426,9 +431,61 @@ function slidesLeitura(nome, l, resp, evangelho){
 const CORES = {verde:"#2e8b3e", branco:"#f4f4f4", roxo:"#6b3fa0", vermelho:"#c0262d", rosa:"#e58bb5", preto:"#555", dourado:"#d4a017", azul:"#2b6cb0"};
 function corHex(c){ return CORES[norm(c).split(" ")[0]] || "transparent"; }
 
+/* ---------------- Campos fixos ---------------- */
+const CAMPOS_CANTO = MOMENTOS.filter(m=>m.kw && !m.texto).map(m=>m.id);
+const MULTI = new Set(["comunhao","acaodegracas"]);
+function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; return c; }
+function camposDoTexto(texto){ // converte o formato antigo (texto livre)
+  const c = camposVazios(); const {itens, avisos} = interpretar(texto);
+  for (const it of itens){
+    if (!it.m) continue;
+    if (it.m==="preces"){ c.preces_refrao = it.texto||""; continue; }
+    if (c[it.m]===undefined) continue;
+    c[it.m] = c[it.m] ? c[it.m] + "\n" + (it.q||"") : (it.q||"");
+  }
+  c.avisos = avisos.join("\n"); return c;
+}
+function separarPreces(t, refrao){
+  const nr = norm(refrao);
+  let blocos = String(t||"").split(/\n\s*\n/);
+  if (blocos.length < 2) blocos = String(t||"").split(/\n/);
+  return blocos.map(b=>b.split("\n").filter(l=>{ const n=norm(l); return n && !/^(r|t|todos|assembleia)\b/.test(n) && !(nr && n===nr); }).join(" ").replace(/^\s*(\d+[.)-]|[–—•*-])\s*/,"").replace(/\s+/g," ").trim()).filter(Boolean);
+}
+function doCampos(c){
+  c = c || camposVazios(); const itens=[];
+  for (const k of CAMPOS_CANTO){
+    const v = String(c[k]||"");
+    const partes = MULTI.has(k) ? v.split(/\n|;/) : [v];
+    partes.map(x=>x.trim()).filter(Boolean).forEach(q=>itens.push({m:k, q, raw:q}));
+  }
+  const avisos = String(c.avisos||"").split(/\n/).map(x=>x.replace(/^[\s•\-*–]+/,"").trim()).filter(Boolean);
+  return {itens, avisos, preces:{refrao:String(c.preces_refrao||"").trim(), intencoes:separarPreces(c.preces, c.preces_refrao)}};
+}
+function desenharCampos(){
+  const box = $("campos"); if (box.dataset.ok) return; box.dataset.ok="1";
+  box.innerHTML = CAMPOS_CANTO.map(k=>{
+    const multi = MULTI.has(k);
+    const ctl = `<input type="text" id="c-${k}" list="lista-cantos" autocomplete="off">` + (multi ? `<input type="text" id="c-${k}__2" list="lista-cantos" autocomplete="off" placeholder="segundo canto (opcional)" style="margin-top:6px">` : "");
+    return `<label class="mom" for="c-${k}">${esc(MOM[k].nome)}</label><div>${ctl}<span class="match" id="mt-${k}"></span></div>`;
+  }).join("");
+}
+function lerCampos(){
+  const c = camposVazios();
+  Object.keys(c).forEach(k=>{ const el=$("c-"+k); if (!el) return; c[k]=el.value; const el2=$("c-"+k+"__2"); if (el2 && el2.value.trim()) c[k] = (c[k]+"\n"+el2.value).trim(); });
+  return c;
+}
+function escreverCampos(c){
+  c = {...camposVazios(), ...(c||{})};
+  const put=(el,v)=>{ if (el && document.activeElement!==el && el.value!==v) el.value=v; };
+  Object.keys(c).forEach(k=>{
+    if (MULTI.has(k)){ const [a,...r]=String(c[k]||"").split("\n"); put($("c-"+k), a||""); put($("c-"+k+"__2"), r.join("; ")); }
+    else put($("c-"+k), c[k]);
+  });
+}
+
 /* ---------------- Montagem do roteiro ---------------- */
 function montar(){
-  const {itens, avisos} = interpretar(S.missa.texto);
+  const {itens, avisos, preces} = doCampos(S.missa.campos);
   const L = S.leit;
   const porMom = {}; itens.forEach(it=>{ (porMom[it.m||"_"] ||= []).push(it); });
   const linhas = []; // para a lista do roteiro
@@ -461,17 +518,22 @@ function montar(){
       continue;
     }
     if (mo.id==="preces"){
-      const p = (porMom.preces||[]).map(x=>x.texto).filter(Boolean)[0];
-      if (!p) continue;
-      push("preces",[{html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">${esc(p)}</p>`, mid:true, rotulo:"Preces"}]);
-      linhas.push({m:"preces", nome:"Preces", t:p, first:start});
+      const p = preces.refrao, ints = preces.intencoes;
+      if (!p && !ints.length) continue;
+      const cab = `<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div>`;
+      const arr = [{html:`${cab}<p class="s-strong">${esc(p)}</p>`, mid:true, rotulo:"Preces — refrão"}];
+      ints.forEach((t,i)=>arr.push({html:`${cab}<p>${esc(t)}</p>${p?`<p class="s-strong" style="margin-top:.6em">${esc(p)}</p>`:""}`, mid:true, rotulo:`Prece ${i+1}/${ints.length}`}));
+      push("preces", arr);
+      linhas.push({m:"preces", nome:"Preces", t:p||"Preces", s:ints.length?`${ints.length} prece${ints.length>1?"s":""}`:"", first:start});
       continue;
     }
     const lista = porMom[mo.id] || [];
     lista.forEach((it, k)=>{
       const chave = `${mo.id}:${k}`;
       const cands = candidatos(it.q, mo.id);
-      const escolhido = S.missa.escolhas?.[chave] && S.songById.get(S.missa.escolhas[chave]) || cands[0]?.song || null;
+      const esc0 = S.missa.escolhas?.[chave];
+      const fixo = esc0 && typeof esc0==="object" && esc0.q===norm(it.q) ? S.songById.get(esc0.id) : null;
+      const escolhido = fixo || cands[0]?.song || null;
       const st = slides.length + (sep && slides.length ? 1 : 0);
       if (escolhido){
         const n = escolhido.partes.length;
@@ -483,6 +545,14 @@ function montar(){
   const soltos = porMom._ || [];
   soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
   S.itens = linhas; S.slides = slides;
+  for (const k of CAMPOS_CANTO){
+    const el = $("mt-"+k); if (!el) continue;
+    const ls = linhas.filter(l=>l.m===k);
+    if (!ls.length){ el.textContent=""; el.className="match"; continue; }
+    const falta = ls.some(l=>!l.song);
+    el.textContent = ls.map(l=>l.song ? "→ "+l.song.titulo+(l.song.autor?" · "+l.song.autor:"") : `não achei “${l.q}” no acervo`).join("   ");
+    el.className = "match " + (falta ? "miss" : "ok");
+  }
   desenharRoteiro();
 }
 
@@ -515,7 +585,8 @@ function desenharRoteiro(){
 $("roteiro").addEventListener("change", e=>{
   const sel = e.target.closest("select[data-chave]"); if (!sel) return;
   if (!S.editor) return;
-  S.missa.escolhas = {...(S.missa.escolhas||{}), [sel.dataset.chave]: sel.value};
+  const it = S.itens.find(x=>x.chave===sel.dataset.chave);
+  S.missa.escolhas = {...(S.missa.escolhas||{}), [sel.dataset.chave]: {q:norm(it?.q||""), id:sel.value}};
   salvarMissa(); montar();
 });
 $("roteiro").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if (b) abrirProjecao(+b.dataset.go); });
@@ -728,6 +799,8 @@ function aplicarSongs(rows){
   const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem}; indexar(s); return s; });
   all.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR"));
   S.songs = all; S.songById = new Map(all.map(s=>[s.id,s]));
+  const nomes = [...new Set(all.map(s=>s.titulo + (s.autor ? " — " + s.autor : "")))];
+  $("lista-cantos").innerHTML = nomes.map(n=>`<option value="${esc(n)}"></option>`).join("");
   desenharAcervo(); montar();
 }
 async function carregarAcervo(){
@@ -764,13 +837,15 @@ async function execSalvar(){
   if (!S.date || !S.editor) return;
   if (salvando){ pendente=true; return; }
   salvando=true; setSt("st-missa","Salvando…","");
-  const {error} = await sb.from("missas").upsert({data:S.date, texto:S.missa.texto||"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
+  const {error} = await sb.from("missas").upsert({data:S.date, campos:S.missa.campos||camposVazios(), texto:"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
   if (error) setSt("st-missa", erroAmigavel(error), "err"); else setSt("st-missa","Salvo — o telão de qualquer aparelho já mostra esta versão.","ok");
   salvando=false; if (pendente){ pendente=false; execSalvar(); }
 }
 function aplicarMissa(d){
-  S.missa = d ? {texto:d.texto||"", escolhas:{...(d.escolhas||{})}, separadores:d.separadores} : {texto:"", escolhas:{}};
-  if (document.activeElement !== $("texto") && $("texto").value !== S.missa.texto) $("texto").value = S.missa.texto;
+  let campos = d && d.campos && Object.keys(d.campos).length ? d.campos : (d && d.texto ? camposDoTexto(d.texto) : camposVazios());
+  const escolhas = {}; Object.entries(d?.escolhas||{}).forEach(([k,v])=>{ if (v && typeof v==="object") escolhas[k]=v; });
+  S.missa = {campos:{...camposVazios(), ...campos}, escolhas, separadores:d?.separadores};
+  escreverCampos(S.missa.campos);
   if (d && typeof d.separadores==="boolean") $("sep").checked = d.separadores;
   montar();
 }
@@ -791,7 +866,7 @@ async function buscarLeituras(forcar){
 }
 async function carregarData(date){
   S.date = date; try{ localStorage.setItem("telao-data", date); }catch{}
-  S.leit = null; S.missa = {texto:"", escolhas:{}}; $("texto").value=""; preencherLeituras(); montar();
+  S.leit = null; S.missa = {campos:camposVazios(), escolhas:{}}; escreverCampos(S.missa.campos); preencherLeituras(); montar();
   setSt("st-leit","Carregando…",""); setSt("st-missa","","");
   if (canalData){ sb.removeChannel(canalData); canalData=null; }
   const [m, l] = await Promise.all([
@@ -858,7 +933,7 @@ $("arq").addEventListener("change", async e=>{
 /* ---------- login e equipe ---------- */
 function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
-  ["texto","sep"].forEach(id=>$(id).disabled=!S.editor);
+  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #sep").forEach(el=>el.disabled=!S.editor);
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
@@ -933,7 +1008,11 @@ function aba(qual){
 }
 $("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-equipe").onclick=()=>aba("equipe");
 window.addEventListener("hashchange", ()=>aba(["acervo","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
-$("texto").addEventListener("input", ()=>{ S.missa.texto = $("texto").value; montar(); salvarMissa(); });
+desenharCampos();
+document.querySelector("#v-montar").addEventListener("input", e=>{
+  if (!e.target.id || !e.target.id.startsWith("c-")) return;
+  S.missa.campos = lerCampos(); montar(); salvarMissa();
+});
 $("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("data").value); });
 
 function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
