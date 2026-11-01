@@ -277,7 +277,14 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <div class="field"><label class="label" for="ed-tit">Título</label><input type="text" id="ed-tit" required></div>
       <div class="field"><label class="label" for="ed-aut">Grupo ou autor</label><input type="text" id="ed-aut"></div>
     </div>
-    <div class="field"><label class="label" for="ed-partes">Letra — separe os slides com uma linha só com ---</label><textarea id="ed-partes"></textarea></div>
+    <div class="field">
+      <label class="label" for="ed-partes">Letra — cole a letra inteira; o sistema divide em slides (separados por ---)</label>
+      <textarea id="ed-partes" placeholder="Cole aqui a letra copiada do site ou do folheto. Ela é formatada sozinha: estrofes viram slides, linhas de cifra saem e o texto fica em maiúsculas."></textarea>
+      <div class="row editar" style="justify-content:space-between">
+        <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="ed-mai" checked> tudo em maiúsculas</label>
+        <span class="row"><span class="status" id="ed-fmt-st"></span><button class="btn" type="button" id="ed-fmt">Formatar de novo</button></span>
+      </div>
+    </div>
     <div class="row" style="justify-content:space-between">
       <div class="row"><button class="btn" type="button" id="ed-del">Excluir</button><span class="status err" id="ed-conf" hidden>Clique de novo para confirmar</span></div>
       <div class="row"><button class="btn" type="button" id="ed-cancel">Cancelar</button><button class="btn primary" type="submit" id="ed-save">Salvar</button></div>
@@ -760,10 +767,52 @@ $("songs").addEventListener("click", e=>{ const b=e.target.closest(".song"); if 
 
 $("btn-nova").onclick = ()=>editar(null);
 let editando=null;
+/* ---------- formatar letra colada ---------- */
+const ACORDE = /^[A-G](#|b)?(m|maj|min|dim|aug|sus|add)?\d*(\([^)]*\))?(\/[A-G](#|b)?)?$/;
+function linhaDeCifra(l){ const t = l.trim().split(/\s+/).filter(Boolean); return t.length>0 && t.every(x=>ACORDE.test(x.replace(/[|]/g,""))); }
+function formatarLetra(texto, maiusc){
+  let linhas = String(texto||"").replace(/\r/g,"").replace(/\u00a0/g," ").split("\n").map(l=>l.replace(/\s+$/,""));
+  linhas = linhas.filter(l=>!linhaDeCifra(l) && !/^\s*-{3,}\s*$/.test(l))
+    .map(l=>l.replace(/^\s*\[[^\]]*\]\s*$/,"").replace(/^\s*(refr[aã]o|coro|estrofe|ponte|intro|final)\s*\d*\s*:?\s*$/i,"").trim());
+  // estrofes (blocos separados por linha em branco)
+  const estrofes=[]; let cur=[];
+  for (const l of linhas){ if (!l){ if (cur.length){ estrofes.push(cur); cur=[]; } } else cur.push(l); }
+  if (cur.length) estrofes.push(cur);
+  // título/autor: primeiro bloco com 1-2 linhas curtas, seguido de mais texto
+  let titulo="", autor="";
+  if (estrofes.length>1 && estrofes[0].length<=2 && estrofes[0].every(l=>l.length<=60)){ [titulo, autor=""] = estrofes.shift(); }
+  // junta estrofes em slides de até ~9 linhas / 430 caracteres
+  const partes=[]; let atual=[];
+  const tam = b => b.reduce((n,l)=>n+l.length,0);
+  for (const e of estrofes){
+    if (atual.length && (atual.flat().length + e.length > 9 || tam(atual.flat()) + tam(e) > 430)){ partes.push(atual); atual=[]; }
+    atual.push(e);
+  }
+  if (atual.length) partes.push(atual);
+  const up = t => maiusc ? t.toLocaleUpperCase("pt-BR") : t;
+  return {titulo: up(titulo), autor, partes: partes.map(p=>up(p.map(e=>e.join("\n")).join("\n\n")))};
+}
+function aplicarFormato(texto){
+  const f = formatarLetra(texto, $("ed-mai").checked);
+  if (!f.partes.length) return;
+  if (!$("ed-tit").value.trim() && f.titulo) $("ed-tit").value = f.titulo;
+  if (!$("ed-aut").value.trim() && f.autor) $("ed-aut").value = f.autor;
+  $("ed-partes").value = f.partes.join("\n---\n");
+  setSt("ed-fmt-st", `Formatado em ${f.partes.length} slide${f.partes.length>1?"s":""}.`, "ok");
+}
+$("ed-partes").addEventListener("paste", e=>{
+  if (!S.editor) return;
+  const vazio = !$("ed-partes").value.trim();
+  const txt = e.clipboardData?.getData("text") || "";
+  if (vazio && txt.trim()){ e.preventDefault(); aplicarFormato(txt); }
+});
+$("ed-fmt").onclick = ()=>aplicarFormato($("ed-partes").value.replace(/\n\s*-{3,}\s*\n/g,"\n\n"));
+$("ed-mai").addEventListener("change", ()=>{ if ($("ed-partes").value.trim()) $("ed-fmt").click(); });
+
 function editar(song){
   editando = song; $("ed-h").textContent = !S.editor ? "Letra do canto" : song ? "Editar canto" : "Novo canto";
   ["ed-tit","ed-aut","ed-partes"].forEach(id=>$(id).readOnly=!S.editor); $("ed-save").hidden=!S.editor;
-  $("ed-tit").value = song?.titulo||""; $("ed-aut").value=song?.autor||""; $("ed-partes").value = (song?.partes||[]).join("\n---\n");
+  setSt("ed-fmt-st","",""); $("ed-tit").value = song?.titulo||""; $("ed-aut").value=song?.autor||""; $("ed-partes").value = (song?.partes||[]).join("\n---\n");
   $("ed-del").hidden = !song || !S.editor; $("ed-conf").hidden = true; $("ed-del").dataset.arm="";
   $("dlg").showModal();
 }
