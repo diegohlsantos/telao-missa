@@ -98,21 +98,23 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .kbd{font-size:.8rem;color:var(--muted)}
 .kbd b{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;margin:0 2px;font-weight:700;color:var(--ink)}
 /* ===== projeção (visual dos slides da paróquia: fundo preto, branco e amarelo) ===== */
-#proj{position:fixed;inset:0;z-index:50;background:#000;display:flex;align-items:center;justify-content:center;cursor:none}
+:root{--s-bg:#000;--s-fg:#fff;--s-tc:#ffe500;--s-hc:#ffe500;--s-font:"Atkinson Hyperlegible",Arial,sans-serif;--s-ar:16/9;--s-arn:1.7778;--s-mx:4%;--s-lh:1.28;--s-align:center;--s-items:center;--s-just:flex-start;--s-tsc:1;--s-ul:underline;--s-tt:uppercase;--s-lt:none;--s-fw:400;--s-sh:none}
+#proj{position:fixed;inset:0;z-index:50;background:var(--s-bg);display:flex;align-items:center;justify-content:center;cursor:none}
 #proj.cursor{cursor:default}
-.stage{position:relative;width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;max-width:100%;background:#000;color:#fff;overflow:hidden;font-family:"Atkinson Hyperlegible",Arial,sans-serif}
-.sbox{position:absolute;inset:3.2% 4% 4.5%;display:flex;flex-direction:column;align-items:center;text-align:center;overflow:hidden;line-height:1.28}
+.stage{position:relative;width:min(100vw,calc(100vh*var(--s-arn)));aspect-ratio:var(--s-ar);max-width:100%;background:var(--s-bg);color:var(--s-fg);overflow:hidden;font-family:var(--s-font)}
+.stage.prev{width:100%;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
+.sbox{position:absolute;inset:3.2% var(--s-mx) 4.5%;display:flex;flex-direction:column;align-items:var(--s-items);justify-content:var(--s-just);text-align:var(--s-align);overflow:hidden;line-height:var(--s-lh);font-weight:var(--s-fw);text-shadow:var(--s-sh)}
 .sbox.mid{justify-content:center}
-.s-head{display:flex;flex-direction:column;align-items:center;gap:.05em;margin-bottom:.55em}
-.s-title{color:#ffe500;text-decoration:underline;text-underline-offset:.15em;text-transform:uppercase;font-weight:400}
-.s-ref{color:#fff;font-size:.9em}
+.s-head{display:flex;flex-direction:column;align-items:var(--s-items);gap:.05em;margin-bottom:.55em}
+.s-title{color:var(--s-tc);text-decoration:var(--s-ul);text-underline-offset:.15em;text-transform:var(--s-tt);font-weight:400;font-size:calc(1em * var(--s-tsc))}
+.s-ref{color:var(--s-fg);font-size:.9em}
 .s-sub{margin:0 0 .25em}
 .sbox p{margin:0 0 .35em}
-.s-resp{color:#ffe500}
-.s-strong{color:#ffe500;font-weight:700;font-size:1.25em}
-.s-lyr{white-space:pre-line;text-transform:none}
+.s-resp{color:var(--s-hc)}
+.s-strong{color:var(--s-hc);font-weight:700;font-size:1.25em}
+.s-lyr{white-space:pre-line;text-transform:var(--s-lt)}
 .capa-nome{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.9em;line-height:1.1;text-wrap:balance}
-.capa-data{color:#ffe500;margin-top:.6em;font-size:.8em;letter-spacing:.12em;text-transform:uppercase}
+.capa-data{color:var(--s-hc);margin-top:.6em;font-size:.8em;letter-spacing:.12em;text-transform:uppercase}
 .capa-cor{width:18%;height:.22em;border-radius:99px;margin:.9em auto 0}
 .hud{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgb(0 0 0 / .85));color:#cfd6e2;font:14px var(--body);opacity:0;transition:opacity .25s}
 #proj.cursor .hud{opacity:1}
@@ -132,6 +134,17 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .campos .match.ok{color:var(--ok)} .campos .match.miss{color:var(--warn)}
 .campos textarea{min-height:0}
 @media (max-width:520px){.campos{grid-template-columns:minmax(0,1fr);gap:2px}.campos label{padding-top:8px}}
+.lay{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px;align-items:start}
+@media (max-width:860px){.lay{grid-template-columns:minmax(0,1fr)}}
+.lay-prev{position:sticky;top:12px;display:flex;flex-direction:column;gap:10px}
+.ctl{display:grid;grid-template-columns:150px minmax(0,1fr) 54px;gap:8px 10px;align-items:center}
+.ctl label{font-size:.88rem}
+.ctl output{font-size:.82rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.ctl input[type=color]{width:100%;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:2px}
+.ctl input[type=range]{width:100%}
+.ctl .chk{grid-column:2/4;display:flex;gap:6px;align-items:center;font-size:.88rem}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.lay h3{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
 fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 </style>
 </head>
@@ -147,6 +160,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <nav class="tabs" role="tablist">
         <button role="tab" id="tab-montar" aria-selected="true">Montar a missa</button>
         <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
+        <button role="tab" id="tab-layout" aria-selected="false">Layout</button>
         <button role="tab" id="tab-equipe" aria-selected="false" hidden>Equipe</button>
       </nav>
       <span class="who" id="who"></span>
@@ -240,6 +254,58 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     </div>
     <p class="hint" id="acervo-info"></p>
     <div class="songs" id="songs"></div>
+  </section>
+
+  <!-- ============ LAYOUT ============ -->
+  <section id="v-layout" class="lay" hidden>
+    <div class="panel">
+      <h2>Slide mestre</h2>
+      <p class="hint">Vale para todos os slides do telão. Ajuste conforme o tamanho da tela e a distância do público; tudo é salvo para a paróquia.</p>
+      <h3>Modelos prontos</h3>
+      <div class="presets editar" id="presets"></div>
+      <h3>Tela</h3>
+      <div class="ctl">
+        <label for="ly-proporcao">Formato da tela</label>
+        <select id="ly-proporcao" style="grid-column:2/4"><option value="16:9">16:9 — TV e projetor moderno</option><option value="16:10">16:10 — projetor de notebook</option><option value="4:3">4:3 — projetor antigo</option></select>
+        <label for="ly-margem">Margem lateral</label><input type="range" id="ly-margem" min="1" max="15" step="0.5"><output id="o-margem"></output>
+      </div>
+      <h3>Texto</h3>
+      <div class="ctl">
+        <label for="ly-fonte">Fonte</label>
+        <select id="ly-fonte" style="grid-column:2/4"></select>
+        <label for="ly-escala">Tamanho máximo</label><input type="range" id="ly-escala" min="60" max="170" step="5"><output id="o-escala"></output>
+        <label for="ly-entrelinha">Espaço entre linhas</label><input type="range" id="ly-entrelinha" min="100" max="170" step="2"><output id="o-entrelinha"></output>
+        <label for="ly-alinhamento">Alinhamento</label>
+        <select id="ly-alinhamento" style="grid-column:2/4"><option value="center">Centralizado</option><option value="left">À esquerda</option></select>
+        <label for="ly-vertical">Posição na tela</label>
+        <select id="ly-vertical" style="grid-column:2/4"><option value="topo">Começa no alto</option><option value="centro">Centralizado na altura</option></select>
+        <span></span><label class="chk"><input type="checkbox" id="ly-negrito"> texto em negrito</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-letraMaiusc"> letras dos cantos sempre em maiúsculas</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-sombra"> contorno escuro nas letras</label>
+      </div>
+      <h3>Títulos</h3>
+      <div class="ctl">
+        <label for="ly-escalaTitulo">Tamanho do título</label><input type="range" id="ly-escalaTitulo" min="60" max="180" step="5"><output id="o-escalaTitulo"></output>
+        <span></span><label class="chk"><input type="checkbox" id="ly-sublinhar"> sublinhado</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-tituloMaiusc"> em maiúsculas</label>
+      </div>
+      <h3>Cores</h3>
+      <div class="ctl">
+        <label for="ly-fundo">Fundo</label><input type="color" id="ly-fundo"><span></span>
+        <label for="ly-texto">Texto</label><input type="color" id="ly-texto"><span></span>
+        <label for="ly-titulo">Títulos</label><input type="color" id="ly-titulo"><span></span>
+        <label for="ly-destaque">Respostas e refrões</label><input type="color" id="ly-destaque"><span></span>
+      </div>
+      <div class="row editar" style="justify-content:space-between"><button class="btn" type="button" id="ly-reset">Voltar ao padrão</button><span class="status" id="st-layout" aria-live="polite"></span></div>
+    </div>
+    <div class="lay-prev">
+      <div class="stage prev" id="pv-stage"><div class="sbox" id="pv-box"></div></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row"><button class="btn" type="button" id="pv-ant">◀</button><button class="btn" type="button" id="pv-prox">▶</button><span class="hint" id="pv-rot"></span></div>
+        <button class="btn primary" type="button" id="pv-telao">Ver no telão</button>
+      </div>
+      <p class="hint">A prévia usa os slides da missa que está aberta em “Montar a missa”. Para conferir de verdade, abra no telão e olhe do fundo da igreja.</p>
+    </div>
   </section>
 
   <!-- ============ EQUIPE ============ -->
@@ -554,6 +620,7 @@ function montar(){
   const soltos = porMom._ || [];
   soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
   S.itens = linhas; S.slides = slides;
+  if (typeof previa==="function" && !$("v-layout").hidden) previa();
   { const ok = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && l.song).length, falta = linhas.filter(l=>CAMPOS_CANTO.includes(l.m) && !l.song).length;
     const r = $("cantos-resumo"); if (r) r.textContent = ok||falta ? `· ${ok} canto${ok===1?"":"s"}${falta?` · ${falta} não encontrado${falta>1?"s":""}`:""}` : "· nenhum preenchido"; }
   for (const k of CAMPOS_CANTO){
@@ -604,9 +671,10 @@ $("roteiro").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"
 $("sep").addEventListener("change", ()=>{ S.missa.separadores = $("sep").checked; if (S.editor) salvarMissa(); montar(); });
 
 /* ---------------- Projeção ---------------- */
-function ajustar(){
-  const box = $("sbox"), stage=$("stage"); const H = stage.clientHeight; if (!H) return;
-  let lo = H*0.028, hi = H*(box.classList.contains("mid")?0.11:0.075);
+function ajustar(box=$("sbox"), stage=$("stage")){
+  const H = stage.clientHeight; if (!H) return;
+  const f = (S.layout?.escala || 100) / 100;
+  let lo = H*0.022, hi = H*(box.classList.contains("mid")?0.11:0.075)*f;
   box.style.fontSize = hi+"px";
   if (box.scrollHeight <= box.clientHeight+1) return;
   for (let i=0;i<14;i++){ const mid=(lo+hi)/2; box.style.fontSize=mid+"px"; if (box.scrollHeight <= box.clientHeight+1) lo=mid; else hi=mid; }
@@ -644,7 +712,7 @@ document.addEventListener("keydown", e=>{
 $("stage").addEventListener("click", e=>{ const r=$("stage").getBoundingClientRect(); ir(e.clientX < r.left + r.width*0.3 ? -1 : 1); });
 $("proj").addEventListener("mousemove", ()=>{ $("proj").classList.add("cursor"); clearTimeout(hudT); hudT=setTimeout(()=>$("proj").classList.remove("cursor"),1800); });
 $("hud-prev").onclick=()=>ir(-1); $("hud-next").onclick=()=>ir(1); $("hud-exit").onclick=fechar; $("hud-full").onclick=()=>telaCheia(true);
-window.addEventListener("resize", ()=>{ if (!$("proj").hidden) ajustar(); });
+window.addEventListener("resize", ()=>{ if (!$("proj").hidden) ajustar(); if (!$("v-layout").hidden) previa(); });
 $("btn-projetar").onclick=()=>abrirProjecao(0);
 
 /* ---------------- Importar PowerPoint ---------------- */
@@ -986,7 +1054,7 @@ $("arq").addEventListener("change", async e=>{
 /* ---------- login e equipe ---------- */
 function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
-  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #sep").forEach(el=>el.disabled=!S.editor);
+  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
@@ -1053,14 +1121,110 @@ $("v-equipe").addEventListener("click", async e=>{
   carregarEquipe();
 });
 
+/* ---------- layout (slide mestre) ---------- */
+const FONTES = [
+  ["Atkinson Hyperlegible","Atkinson Hyperlegible (muito legível)",true],["Arial","Arial",false],["Verdana","Verdana",false],
+  ["Montserrat","Montserrat",true],["Open Sans","Open Sans",true],["Roboto","Roboto",true],["Lato","Lato",true],
+  ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
+const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
+  negrito:false, letraMaiusc:false, sombra:false, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
+  fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
+const PRESETS = {
+  "Padrão da paróquia": {},
+  "Telão distante": {escala:140, escalaTitulo:90, entrelinha:118, negrito:true, margem:2.5},
+  "Alto contraste": {fundo:"#000000", texto:"#ffffff", titulo:"#ffffff", destaque:"#ffd400", negrito:true, sombra:false},
+  "Fundo claro": {fundo:"#ffffff", texto:"#111111", titulo:"#1d3f8f", destaque:"#9a1b1b"},
+  "Azul suave": {fundo:"#0b1d3a", texto:"#f3f6fb", titulo:"#9fd0ff", destaque:"#ffd76a"},
+};
+S.layout = {...LAYOUT_PADRAO};
+const fontesCarregadas = new Set(["Atkinson Hyperlegible"]);
+function carregarFonte(nome){
+  const f = FONTES.find(x=>x[0]===nome); if (!f || !f[2] || fontesCarregadas.has(nome)) return;
+  fontesCarregadas.add(nome);
+  const l = document.createElement("link"); l.rel="stylesheet";
+  l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(nome).replace(/%20/g,"+")}:wght@400;700&display=swap`;
+  l.onload = ()=>{ if (!$("proj").hidden) ajustar(); if (!$("v-layout").hidden) previa(); };
+  document.head.appendChild(l);
+}
+function aplicarLayout(L){
+  L = {...LAYOUT_PADRAO, ...(L||{})}; S.layout = L;
+  const r = document.documentElement.style;
+  const [a,b] = L.proporcao.split(":").map(Number);
+  carregarFonte(L.fonte);
+  const serif = /Merriweather|Georgia/.test(L.fonte) ? "Georgia,serif" : "Arial,sans-serif";
+  const vars = {"--s-bg":L.fundo,"--s-fg":L.texto,"--s-tc":L.titulo,"--s-hc":L.destaque,"--s-font":`"${L.fonte}",${serif}`,
+    "--s-ar":`${a}/${b}`,"--s-arn":String(a/b),"--s-mx":L.margem+"%","--s-lh":String(L.entrelinha/100),
+    "--s-align":L.alinhamento,"--s-items":L.alinhamento==="left"?"flex-start":"center","--s-just":L.vertical==="centro"?"center":"flex-start",
+    "--s-tsc":String(L.escalaTitulo/100),"--s-ul":L.sublinhar?"underline":"none","--s-tt":L.tituloMaiusc?"uppercase":"none",
+    "--s-lt":L.letraMaiusc?"uppercase":"none","--s-fw":L.negrito?"700":"400",
+    "--s-sh":L.sombra?"0 0 .08em #000, 0 0 .08em #000, .03em .03em .06em #000":"none"};
+  for (const [k,v] of Object.entries(vars)) r.setProperty(k, v);
+  escreverControles(L);
+  if (!$("proj").hidden) ajustar();
+  previa();
+}
+const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc"],
+      CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
+const fmtCtl = {margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
+function escreverControles(L){
+  CTL_NUM.forEach(k=>{ $("ly-"+k).value=L[k]; $("o-"+k).textContent=fmtCtl[k](L[k]); });
+  CTL_CHK.forEach(k=>$("ly-"+k).checked=!!L[k]);
+  CTL_TXT.forEach(k=>$("ly-"+k).value=L[k]);
+}
+function lerControles(){
+  const L = {...S.layout};
+  CTL_NUM.forEach(k=>L[k]=+$("ly-"+k).value); CTL_CHK.forEach(k=>L[k]=$("ly-"+k).checked); CTL_TXT.forEach(k=>L[k]=$("ly-"+k).value);
+  return L;
+}
+let tLayout=null;
+function salvarLayout(){
+  if (!S.editor) return; clearTimeout(tLayout);
+  tLayout = setTimeout(async ()=>{
+    setSt("st-layout","Salvando…","");
+    const {error} = await sb.from("config").upsert({id:"layout", valor:S.layout});
+    setSt("st-layout", error ? erroAmigavel(error) : "Salvo para todos os aparelhos.", error?"err":"ok");
+  }, 600);
+}
+const AMOSTRAS = [
+  {html:`<div class="s-head"><span class="s-title">Canto de exemplo (1/2)</span><span class="s-ref">Grupo</span></div><div class="s-lyr">Primeira linha da estrofe de exemplo\nSegunda linha da estrofe de exemplo\nTerceira linha da estrofe\n\nLinha do refrão de exemplo\nOutra linha do refrão</div>`, rotulo:"Canto (exemplo)"},
+  {html:`<div class="s-head"><span class="s-title">Primeira leitura</span><span class="s-ref">(Ref 1,1-5)</span></div><p class="s-sub">Leitura do livro de exemplo</p><p>Este é um texto de exemplo com o tamanho típico de um slide de leitura, para você conferir a fonte, o espaçamento e as margens antes da celebração.</p><p class="s-resp" style="margin-top:.6em">Palavra do Senhor.<br>Graças a Deus.</p>`, rotulo:"Leitura (exemplo)"},
+  {html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">Senhor, escutai a nossa prece!</p>`, mid:true, rotulo:"Preces (exemplo)"},
+];
+let pvIdx = 0;
+function slidesPrevia(){ const r = S.slides.filter(x=>!x.blank); return r.length ? r : AMOSTRAS; }
+function previa(){
+  const lista = slidesPrevia(); pvIdx = Math.max(0, Math.min(pvIdx, lista.length-1));
+  const s = lista[pvIdx], box = $("pv-box");
+  box.className = "sbox" + (s.mid ? " mid" : ""); box.innerHTML = s.html;
+  ajustar(box, $("pv-stage"));
+  $("pv-rot").textContent = `${pvIdx+1}/${lista.length} · ${s.rotulo}`;
+}
+(function montarLayoutUI(){
+  $("ly-fonte").innerHTML = FONTES.map(([v,n])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("");
+  $("presets").innerHTML = Object.keys(PRESETS).map(n=>`<button class="btn" type="button" data-preset="${esc(n)}">${esc(n)}</button>`).join("");
+  $("presets").addEventListener("click", e=>{ const b=e.target.closest("[data-preset]"); if (!b || !S.editor) return; aplicarLayout({...LAYOUT_PADRAO, ...PRESETS[b.dataset.preset]}); salvarLayout(); });
+  $("v-layout").addEventListener("input", e=>{ if (!e.target.id?.startsWith("ly-") || !S.editor) return; aplicarLayout(lerControles()); salvarLayout(); });
+  $("v-layout").addEventListener("change", e=>{ if (!e.target.id?.startsWith("ly-") || !S.editor) return; aplicarLayout(lerControles()); salvarLayout(); });
+  $("ly-reset").onclick = ()=>{ if (!S.editor) return; aplicarLayout({...LAYOUT_PADRAO}); salvarLayout(); };
+  $("pv-ant").onclick = ()=>{ pvIdx--; previa(); }; $("pv-prox").onclick = ()=>{ pvIdx++; previa(); };
+  $("pv-telao").onclick = ()=>{ const r = S.slides.findIndex(x=>!x.blank); if (r>=0) abrirProjecao(r); };
+  escreverControles(S.layout);
+})();
+async function carregarLayout(){
+  const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
+  aplicarLayout(data?.valor || LAYOUT_PADRAO);
+  sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); }).subscribe();
+}
+
 /* ---------- abas e início ---------- */
 function aba(qual){
-  ["montar","acervo","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  ["montar","acervo","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
+  if (qual==="layout") previa();
 }
-$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-equipe").onclick=()=>aba("equipe");
-window.addEventListener("hashchange", ()=>aba(["acervo","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["acervo","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
@@ -1072,11 +1236,12 @@ $("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("
 
 function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
 (async function iniciar(){
-  aba(location.hash==="#acervo" ? "acervo" : "montar");
+  aba(["acervo","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
   const q = new URLSearchParams(location.search).get("data");
   $("data").value = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? q : proximoDomingo();
   desenharAcervo(); modoEdicao();
   await verificarConta();
+  carregarLayout();
   carregarAcervo();
   carregarData($("data").value);
   sb.channel("acervo").on("postgres_changes",{event:"*",schema:"public",table:"musicas"}, recarregarAcervoEmBreve).subscribe();
