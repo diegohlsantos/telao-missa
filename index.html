@@ -116,11 +116,14 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .stage.med{position:fixed;left:-99999px;top:0;width:1600px;visibility:hidden;pointer-events:none}
 .sbox.full{inset:0}
 .sbox.com-fundo{text-shadow:0 0 .12em rgb(0 0 0 / .8)}
-.capa-bar{position:absolute;left:0;right:0;top:0;height:9%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.62em;letter-spacing:.06em;text-transform:uppercase;color:var(--s-fg);padding:0 4%;text-align:center;line-height:1.1;text-wrap:balance;overflow:hidden}
-.capa-img{position:absolute;left:0;right:0;top:9%;bottom:0}
-.capa-img img{width:100%;height:100%;object-fit:contain;display:block}
-.capa-img.cobrir img{object-fit:cover}
-.capa-frase{position:absolute;left:6%;right:6%;bottom:8%;text-align:center;font-family:"Fraunces",Georgia,serif;font-size:1.05em;line-height:1.2;color:#fff;text-shadow:0 0 .25em rgb(0 0 0 / .9),0 .05em .1em #000;text-wrap:balance}
+.capa-img{position:absolute;inset:0;overflow:hidden}
+.capa-img img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.capa-img .fundo{object-fit:cover;filter:blur(18px) brightness(.45);transform:scale(1.12)}
+.capa-img .frente{object-fit:contain}
+.capa-img.cobrir .frente{object-fit:cover}
+.capa-img.cobrir .fundo{display:none}
+.capa-bar{position:absolute;left:0;right:0;top:0;padding:1.4% 6% 4%;text-align:center;font-weight:700;font-size:.62em;letter-spacing:.08em;line-height:1.15;text-transform:uppercase;color:#fff;text-wrap:balance;background:linear-gradient(rgb(0 0 0 / .78),rgb(0 0 0 / 0));text-shadow:0 .05em .2em rgb(0 0 0 / .8)}
+.capa-frase{position:absolute;left:0;right:0;bottom:0;padding:7% 9% 4.5%;text-align:center;font-family:"Fraunces",Georgia,serif;font-size:1.05em;line-height:1.2;color:#fff;text-wrap:balance;background:linear-gradient(rgb(0 0 0 / 0),rgb(0 0 0 / .8));text-shadow:0 .04em .25em rgb(0 0 0 / .9)}
 .capa-thumb{width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--sunk)}
 .s-lyr{white-space:pre-line;text-transform:var(--s-lt)}
 .capa-nome{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.9em;line-height:1.1;text-wrap:balance}
@@ -721,7 +724,7 @@ function montar(){
   const dataTxt = S.date ? new Date(S.date+"T12:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}) : "";
   const cc = S.missa.campos || {};
   if (cc.capa_url){
-    push("capa",[{html:`<div class="capa-bar">${esc(nomeCel || dataTxt)}</div><div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img src="${esc(cc.capa_url)}" alt=""></div>${cc.capa_frase?`<div class="capa-frase">${esc(cc.capa_frase)}</div>`:""}`, full:true, rotulo:"Capa"}]);
+    push("capa",[{html:`<div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img class="fundo" src="${esc(cc.capa_url)}" alt=""><img class="frente" src="${esc(cc.capa_url)}" alt=""></div><div class="capa-bar">${esc(nomeCel || dataTxt)}</div>${cc.capa_frase?`<div class="capa-frase">${esc(cc.capa_frase)}</div>`:""}`, full:true, rotulo:"Capa"}]);
     linhas.push({m:"capa", nome:"Capa", t:nomeCel || "Imagem de capa", s:cc.capa_frase || dataTxt, first:0});
   } else if (nomeCel){
     push("capa",[{html:`<div class="capa-nome">${esc(nomeCel)}</div><div class="capa-data">${esc(dataTxt)}</div>${L.cor?`<div class="capa-cor" style="background:${corHex(L.cor)}"></div>`:""}`, mid:true, rotulo:"Capa"}]);
