@@ -240,6 +240,22 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       </details>
       <datalist id="lista-cantos"></datalist>
       <fieldset class="bloco">
+        <legend class="label">Oração eucarística</legend>
+        <div class="campos" style="grid-template-columns:132px minmax(0,1fr)">
+          <label class="mom" for="c-oe">Oração</label>
+          <select id="c-oe"></select>
+          <label class="mom" for="c-misterio">Mistério da fé</label>
+          <select id="c-misterio"></select>
+        </div>
+        <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-prefacio"> incluir o diálogo do Prefácio antes do Santo</label>
+        <details class="editar" id="det-oe-ed">
+          <summary class="hint" style="cursor:pointer">Ajustar as aclamações desta oração</summary>
+          <p class="hint">Uma aclamação por linha, na ordem. Use a linha <b>[MISTÉRIO]</b> onde entra o “Mistério da fé”. Vale para todas as missas.</p>
+          <textarea id="oe-ed" rows="9"></textarea>
+          <div class="row"><button class="btn" type="button" id="oe-ed-salvar">Salvar aclamações</button><button class="btn" type="button" id="oe-ed-padrao">Voltar ao texto do Missal</button><span class="status" id="st-oe"></span></div>
+        </details>
+      </fieldset>
+      <fieldset class="bloco">
         <legend class="label">Preces da assembleia</legend>
         <input type="text" id="c-preces_refrao" placeholder="Refrão — ex.: Senhor, escutai a nossa prece!">
         <textarea id="c-preces" rows="6" placeholder="Cole aqui as preces do folheto, uma por parágrafo. Cada prece vira um slide com o refrão embaixo."></textarea>
@@ -409,7 +425,9 @@ const MOMENTOS = [
   {id:"evangelho", nome:"Evangelho", leitura:true},
   {id:"preces", nome:"Preces", kw:["preces da assembleia","preces","oracao dos fieis"], texto:true},
   {id:"ofertorio", nome:"Ofertório", kw:["preparacao das oferendas","ofertorio","oferendas","ofertas"]},
+  {id:"prefacio", nome:"Prefácio", liturgico:true},
   {id:"santo", nome:"Santo", kw:["santo"]},
+  {id:"oe", nome:"Oração eucarística", liturgico:true},
   {id:"cordeiro", nome:"Cordeiro", kw:["cordeiro de deus","cordeiro","fracao do pao"]},
   {id:"comunhao", nome:"Comunhão", kw:["comunhao"]},
   {id:"acaodegracas", nome:"Ação de graças", kw:["acao de gracas","pos comunhao","meditacao"]},
@@ -573,10 +591,34 @@ function slidesLeitura(nome, l, resp, evangelho){
 const CORES = {verde:"#2e8b3e", branco:"#f4f4f4", roxo:"#6b3fa0", vermelho:"#c0262d", rosa:"#e58bb5", preto:"#555", dourado:"#d4a017", azul:"#2b6cb0"};
 function corHex(c){ return CORES[norm(c).split(" ")[0]] || "transparent"; }
 
+/* ---------------- Orações eucarísticas (Missal Romano, 3ª ed. típica, Brasil) ---------------- */
+const MISTERIO = [
+  "Anunciamos, Senhor, a vossa morte e proclamamos a vossa ressurreição. Vinde, Senhor Jesus!",
+  "Todas as vezes que comemos deste pão e bebemos deste cálice, anunciamos, Senhor, a vossa morte, enquanto esperamos a vossa vinda!",
+  "Salvador do mundo, salvai-nos, vós que nos libertastes pela cruz e ressurreição.",
+];
+const DC = ["Bendito o vosso Filho, presente entre nós!","Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Confirmai na unidade a vossa Igreja!"];
+const OES_PADRAO = {
+  "I":   {nome:"Oração Eucarística I", ac:["Abençoai nossa oferenda, ó Senhor!","Lembrai-vos, ó Pai, dos vossos filhos!","Em comunhão com vossos Santos vos louvamos!","Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "II":  {nome:"Oração Eucarística II", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Lembrai-vos, ó Pai, da vossa Igreja!","Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "III": {nome:"Oração Eucarística III", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Fazei de nós uma perfeita oferenda!","Lembrai-vos, ó Pai, da vossa Igreja!","Amém!"]},
+  "IV":  {nome:"Oração Eucarística IV", ac:["A todos socorrestes com bondade!","Por amor nos enviastes vosso Filho!","Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Lembrai-vos, ó Pai, da vossa Igreja!","Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "V":   {nome:"Oração Eucarística V", proprio:true, ac:["Mandai vosso Espírito Santo!","Toda vez que comemos deste Pão, toda vez que bebemos deste Vinho, recordamos a paixão de Jesus Cristo e ficamos esperando sua vinda.","Recebei, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Caminhamos na estrada de Jesus!","Caminhamos na estrada de Jesus!","Esperamos entrar na vida eterna!","A todos dai a luz que não se apaga!","Amém!"]},
+  "DC1": {nome:"Oração Eucarística para Diversas Circunstâncias I", ac:[...DC,"Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "DC2": {nome:"Oração Eucarística para Diversas Circunstâncias II", ac:[...DC,"Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "DC3": {nome:"Oração Eucarística para Diversas Circunstâncias III", ac:[...DC,"Ajudai-nos a criar um mundo novo!","Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "DC4": {nome:"Oração Eucarística para Diversas Circunstâncias IV", ac:[...DC,"Ajudai-nos a criar um mundo novo!","Concedei-lhes, ó Senhor, a luz eterna!","Amém!"]},
+  "R1":  {nome:"Oração Eucarística sobre a Reconciliação I", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Amém!"]},
+  "R2":  {nome:"Oração Eucarística sobre a Reconciliação II", ac:["Enviai o vosso Espírito Santo!","[MISTÉRIO]","Aceitai, ó Senhor, a nossa oferta!","O Espírito nos una num só corpo!","Lembrai-vos, ó Pai, da vossa Igreja!","Amém!"]},
+};
+S.oesAjustes = {};
+function aclamacoes(id){ return S.oesAjustes[id] || OES_PADRAO[id]?.ac || []; }
+const PREFACIO = [["O Senhor esteja convosco.","Ele está no meio de nós."],["Corações ao alto.","O nosso coração está em Deus."],["Demos graças ao Senhor, nosso Deus.","É nosso dever e nossa salvação."]];
+
 /* ---------------- Campos fixos ---------------- */
 const CAMPOS_CANTO = MOMENTOS.filter(m=>m.kw && !m.texto).map(m=>m.id);
 const MULTI = new Set(["comunhao","acaodegracas"]);
-function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; return c; }
+function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; c.oe=""; c.misterio="0"; c.prefacio=true; return c; }
 function camposDoTexto(texto){ // converte o formato antigo (texto livre)
   const c = camposVazios(); const {itens, avisos} = interpretar(texto);
   for (const it of itens){
@@ -611,6 +653,16 @@ function desenharCampos(){
     return `<label class="mom" for="c-${k}">${esc(MOM[k].nome)}</label><div>${ctl}<span class="match" id="mt-${k}"></span></div>`;
   }).join("");
 }
+(function montarOeUI(){
+  $("c-oe").innerHTML = `<option value="">Não projetar</option>` + Object.entries(OES_PADRAO).map(([k,v])=>`<option value="${k}">${esc(v.nome.replace("Oração Eucarística","OE").replace("para Diversas Circunstâncias","Diversas Circunstâncias").replace("sobre a Reconciliação","Reconciliação"))}</option>`).join("");
+  $("c-misterio").innerHTML = MISTERIO.map((m,i)=>`<option value="${i}">${i+1}. ${esc(m.slice(0,48))}…</option>`).join("");
+})();
+function atualizarOeUI(c){
+  const oe = OES_PADRAO[c.oe];
+  $("c-misterio").disabled = !S.editor || !oe || !!oe.proprio;
+  $("det-oe-ed").hidden = !oe;
+  if (oe && document.activeElement!==$("oe-ed")) $("oe-ed").value = aclamacoes(c.oe).join("\n");
+}
 function lerCampos(){
   const c = {...camposVazios(), ...(S.missa.campos||{})};
   Object.keys(c).forEach(k=>{ const el=$("c-"+k); if (!el) return; if (el.type==="checkbox"){ c[k]=el.checked; return; } c[k]=el.value; const el2=$("c-"+k+"__2"); if (el2 && el2.value.trim()) c[k] = (c[k]+"\n"+el2.value).trim(); });
@@ -627,6 +679,7 @@ function escreverCampos(c){
   $("capa-thumb").hidden = !c.capa_url; if (c.capa_url) $("capa-thumb").src = c.capa_url; else $("capa-thumb").removeAttribute("src");
   $("capa-rem").hidden = !c.capa_url;
   $("capa-resumo").textContent = c.capa_url ? "· com imagem" : "· sem imagem";
+  atualizarOeUI(c);
 }
 
 /* ---------------- Montagem do roteiro ---------------- */
@@ -659,6 +712,25 @@ function montar(){
       if (mo.id==="leitura2" && L.segunda?.texto){ arr = slidesLeitura("SEGUNDA LEITURA", L.segunda, "Palavra do Senhor.<br>Graças a Deus."); t=L.segunda.ref; s=L.segunda.titulo; }
       if (mo.id==="evangelho" && L.evangelho?.texto){ arr = slidesLeitura("EVANGELHO", L.evangelho, "Palavra da Salvação.<br>Glória a vós, Senhor.", true); t=L.evangelho.ref; s=L.evangelho.titulo; }
       if (arr.length){ push(mo.id, arr); linhas.push({m:mo.id, nome:mo.nome, t, s, first:start, leit:true, n:arr.length}); }
+      continue;
+    }
+    if (mo.id==="prefacio" || mo.id==="oe"){
+      const c = S.missa.campos || {}; const oe = OES_PADRAO[c.oe];
+      if (!oe) continue;
+      if (mo.id==="prefacio"){
+        if (c.prefacio===false) continue;
+        const h = `<div class="s-head"><span class="s-title">Prefácio</span></div>` + PREFACIO.map(([pr,po])=>`<p style="margin:0">${esc(pr)}</p><p class="s-resp" style="margin:0 0 .5em">${esc(po)}</p>`).join("");
+        push("prefacio",[{html:h, mid:true, rotulo:"Diálogo do Prefácio"}]);
+        linhas.push({m:"prefacio", nome:"Prefácio", t:"Diálogo do Prefácio", first:start});
+        continue;
+      }
+      const curto = oe.nome.replace("Oração Eucarística","Oração eucarística");
+      const mist = MISTERIO[+c.misterio||0];
+      const arr = aclamacoes(c.oe).map((a,i)=> a.trim()==="[MISTÉRIO]"
+        ? {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p style="margin:0 0 .3em">Mistério da fé!</p><p class="s-strong">${esc(mist)}</p>`, mid:true, rotulo:"Mistério da fé"}
+        : {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p class="s-strong">${esc(a)}</p>`, mid:true, rotulo:a});
+      push("oe", arr);
+      linhas.push({m:"oe", nome:"Oração eucarística", t:oe.nome, s:`${arr.length} aclamações`, first:start});
       continue;
     }
     if (mo.id==="avisos"){
@@ -1135,7 +1207,8 @@ $("arq").addEventListener("change", async e=>{
 /* ---------- login e equipe ---------- */
 function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
-  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
+  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #c-oe, #c-prefacio, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
+  atualizarOeUI(S.missa.campos||{});
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
@@ -1321,6 +1394,16 @@ function previa(){
   $("pv-telao").onclick = ()=>{ const r = S.slides.findIndex(x=>!x.blank); if (r>=0) abrirProjecao(r); };
   escreverControles(S.layout);
 })();
+async function carregarOracoes(){
+  const {data} = await sb.from("config").select("valor").eq("id","oracoes").maybeSingle();
+  S.oesAjustes = data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar();
+}
+async function salvarOracoes(){
+  const {error} = await sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes});
+  setSt("st-oe", error ? erroAmigavel(error) : "Salvo.", error?"err":"ok"); montar();
+}
+$("oe-ed-salvar").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const ls=$("oe-ed").value.split("\n").map(x=>x.trim()).filter(Boolean); S.oesAjustes={...S.oesAjustes,[id]:ls}; salvarOracoes(); };
+$("oe-ed-padrao").onclick = ()=>{ const id=$("c-oe").value; if (!S.editor||!OES_PADRAO[id]) return; const a={...S.oesAjustes}; delete a[id]; S.oesAjustes=a; $("oe-ed").value=OES_PADRAO[id].ac.join("\n"); salvarOracoes(); };
 async function carregarLayout(){
   const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
   aplicarLayout(data?.valor || LAYOUT_PADRAO);
@@ -1339,6 +1422,10 @@ window.addEventListener("hashchange", ()=>aba(["acervo","layout","equipe"].inclu
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
+document.querySelector("#v-montar").addEventListener("change", e=>{
+  if (!["c-oe","c-misterio","c-prefacio","c-capa_cobrir"].includes(e.target.id)) return;
+  S.missa.campos = lerCampos(); atualizarOeUI(S.missa.campos); montar(); salvarMissa();
+});
 document.querySelector("#v-montar").addEventListener("input", e=>{
   if (!e.target.id || !e.target.id.startsWith("c-")) return;
   S.missa.campos = lerCampos(); montar(); salvarMissa();
@@ -1353,6 +1440,7 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
   desenharAcervo(); modoEdicao();
   await verificarConta();
   carregarLayout();
+  carregarOracoes();
   document.fonts?.ready.then(()=>{ cacheCabe.clear(); montar(); });
   carregarAcervo();
   carregarData($("data").value);
