@@ -862,7 +862,7 @@ function ajustar(box=$("sbox"), stage=$("stage")){
 function aplicarFundo(stage, box, s){
   const L = S.layout || {};
   const usa = L.fundoOE && L.fundoOEurl && s && !s.blank && (s.grupo==="oe" || s.grupo==="prefacio");
-  if (usa){ const a = (L.fundoOEescuro ?? 75)/100; stage.style.background = `linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})), url("${L.fundoOEurl}") center/cover no-repeat, var(--s-bg)`; }
+  if (usa){ const a = (L.fundoOEescuro ?? 88)/100; stage.style.background = `linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})), url("${L.fundoOEurl}") center/cover no-repeat, var(--s-bg)`; }
   else stage.style.background = "";
   box.classList.toggle("com-fundo", !!usa);
 }
@@ -1386,7 +1386,7 @@ const FONTES = [
 const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
   negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false,
-  fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:75, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
+  fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
   "Padrão da paróquia": {},
