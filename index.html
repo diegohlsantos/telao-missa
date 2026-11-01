@@ -115,6 +115,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .s-strong{color:var(--s-hc);font-weight:700}
 .stage.med{position:fixed;left:-99999px;top:0;width:1600px;visibility:hidden;pointer-events:none}
 .sbox.full{inset:0}
+.sbox.com-fundo{text-shadow:0 0 .12em rgb(0 0 0 / .8)}
 .capa-bar{position:absolute;left:0;right:0;top:0;height:9%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.62em;letter-spacing:.06em;text-transform:uppercase;color:var(--s-fg);padding:0 4%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .capa-img{position:absolute;left:0;right:0;top:9%;bottom:0}
 .capa-img img{width:100%;height:100%;object-fit:contain;display:block}
@@ -343,6 +344,17 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-texto">Texto</label><input type="color" id="ly-texto"><span></span>
         <label for="ly-titulo">Títulos</label><input type="color" id="ly-titulo"><span></span>
         <label for="ly-destaque">Respostas e refrões</label><input type="color" id="ly-destaque"><span></span>
+      </div>
+      <h3>Fundo das orações eucarísticas</h3>
+      <div class="ctl">
+        <span></span><label class="chk"><input type="checkbox" id="ly-fundoOE"> usar imagem de fundo no Prefácio e nas aclamações</label>
+        <label for="ly-fundoOEescuro">Escurecimento</label><input type="range" id="ly-fundoOEescuro" min="30" max="95" step="5"><output id="o-fundoOEescuro"></output>
+        <span></span>
+        <div style="grid-column:2/4;display:flex;flex-direction:column;gap:8px">
+          <img id="ly-fundo-thumb" class="capa-thumb" alt="Imagem de fundo das orações eucarísticas">
+          <div class="row editar"><button class="btn" type="button" id="ly-fundo-ceia">Santa Ceia (padrão)</button><label class="btn" for="ly-fundo-arq">Usar outra imagem</label><input type="file" id="ly-fundo-arq" accept="image/*" hidden><span class="status" id="st-fundo"></span></div>
+          <span class="hint">Padrão: “A Última Ceia”, de Leonardo da Vinci (domínio público, Wikimedia Commons).</span>
+        </div>
       </div>
       <div class="row editar" style="justify-content:space-between"><button class="btn" type="button" id="ly-reset">Voltar ao padrão</button><span class="status" id="st-layout" aria-live="polite"></span></div>
     </div>
@@ -847,10 +859,18 @@ function ajustar(box=$("sbox"), stage=$("stage")){
   for (let i=0;i<14;i++){ const mid=(lo+hi)/2; box.style.fontSize=mid+"px"; if (box.scrollHeight <= box.clientHeight+1) lo=mid; else hi=mid; }
   box.style.fontSize = lo+"px";
 }
+function aplicarFundo(stage, box, s){
+  const L = S.layout || {};
+  const usa = L.fundoOE && L.fundoOEurl && s && !s.blank && (s.grupo==="oe" || s.grupo==="prefacio");
+  if (usa){ const a = (L.fundoOEescuro ?? 75)/100; stage.style.background = `linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})), url("${L.fundoOEurl}") center/cover no-repeat, var(--s-bg)`; }
+  else stage.style.background = "";
+  box.classList.toggle("com-fundo", !!usa);
+}
 function mostrar(){
   const s = S.slides[S.idx]; const box = $("sbox");
   if (!s || S.black || s.blank){ box.innerHTML=""; box.className="sbox"; }
   else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
+  aplicarFundo($("stage"), box, S.black ? null : s);
   ajustar();
   avisarPosicao();
   $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${s.rotulo}` : "";
@@ -1363,8 +1383,10 @@ const FONTES = [
   ["Atkinson Hyperlegible","Atkinson Hyperlegible (muito legível)",true],["Arial","Arial",false],["Verdana","Verdana",false],
   ["Montserrat","Montserrat",true],["Open Sans","Open Sans",true],["Roboto","Roboto",true],["Lato","Lato",true],
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
+const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
-  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
+  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false,
+  fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:75, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
   "Padrão da paróquia": {},
@@ -1401,10 +1423,11 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor"],
+const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","fundoOE"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
-const fmtCtl = {margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
+const fmtCtl = {fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
+  if ($("ly-fundo-thumb").getAttribute("src") !== L.fundoOEurl) $("ly-fundo-thumb").src = L.fundoOEurl || "";
   CTL_NUM.forEach(k=>{ $("ly-"+k).value=L[k]; $("o-"+k).textContent=fmtCtl[k](L[k]); });
   CTL_CHK.forEach(k=>$("ly-"+k).checked=!!L[k]);
   CTL_TXT.forEach(k=>$("ly-"+k).value=L[k]);
@@ -1427,6 +1450,7 @@ const AMOSTRAS = [
   {html:`<div class="s-head"><span class="s-title">Canto de exemplo (1/2)</span><span class="s-autor">Grupo</span></div><div class="s-lyr">Primeira linha da estrofe de exemplo\nSegunda linha da estrofe de exemplo\nTerceira linha da estrofe\n\nLinha do refrão de exemplo\nOutra linha do refrão</div>`, rotulo:"Canto (exemplo)"},
   {html:`<div class="s-head"><span class="s-title">Primeira leitura</span><span class="s-ref">(Ref 1,1-5)</span></div><p class="s-sub">Leitura do livro de exemplo</p><p>Este é um texto de exemplo com o tamanho típico de um slide de leitura, para você conferir a fonte, o espaçamento e as margens antes da celebração.</p><p class="s-resp" style="margin-top:.6em">Palavra do Senhor.<br>Graças a Deus.</p>`, rotulo:"Leitura (exemplo)"},
   {html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">Senhor, escutai a nossa prece!</p>`, mid:true, rotulo:"Preces (exemplo)"},
+  {html:`<div class="s-head"><span class="s-title">Oração eucarística II</span></div><p class="s-strong">Enviai o vosso Espírito Santo!</p>`, mid:true, grupo:"oe", rotulo:"Oração eucarística (exemplo)"},
 ];
 let pvIdx = 0;
 function slidesPrevia(){ const r = S.slides.filter(x=>!x.blank); return r.length ? r : AMOSTRAS; }
@@ -1434,6 +1458,7 @@ function previa(){
   const lista = slidesPrevia(); pvIdx = Math.max(0, Math.min(pvIdx, lista.length-1));
   const s = lista[pvIdx], box = $("pv-box");
   box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html;
+  aplicarFundo($("pv-stage"), box, s);
   ajustar(box, $("pv-stage"));
   $("pv-rot").textContent = `${pvIdx+1}/${lista.length} · ${s.rotulo}`;
 }
@@ -1443,6 +1468,17 @@ function previa(){
   $("presets").addEventListener("click", e=>{ const b=e.target.closest("[data-preset]"); if (!b || !S.editor) return; aplicarLayout({...LAYOUT_PADRAO, ...PRESETS[b.dataset.preset]}); salvarLayout(); });
   $("v-layout").addEventListener("input", e=>{ if (!e.target.id?.startsWith("ly-") || !S.editor) return; aplicarLayout(lerControles()); salvarLayout(); });
   $("v-layout").addEventListener("change", e=>{ if (!e.target.id?.startsWith("ly-") || !S.editor) return; aplicarLayout(lerControles()); salvarLayout(); });
+  $("ly-fundo-ceia").onclick = ()=>{ if (!S.editor) return; aplicarLayout({...S.layout, fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA}); salvarLayout(); setSt("st-fundo","",""); };
+  $("ly-fundo-arq").addEventListener("change", async e=>{
+    const f = e.target.files[0]; e.target.value=""; if (!f || !S.editor) return;
+    setSt("st-fundo","Enviando…","");
+    try{
+      const blob = await reduzirImagem(f); const caminho = `fundos/${Date.now()}.jpg`;
+      const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg"}); if (error) throw error;
+      aplicarLayout({...S.layout, fundoOE:true, fundoOEurl: sb.storage.from("capas").getPublicUrl(caminho).data.publicUrl}); salvarLayout();
+      setSt("st-fundo","Imagem enviada.","ok");
+    }catch{ setSt("st-fundo","Não consegui enviar a imagem.","err"); }
+  });
   $("ly-reset").onclick = ()=>{ if (!S.editor) return; aplicarLayout({...LAYOUT_PADRAO}); salvarLayout(); };
   $("pv-ant").onclick = ()=>{ pvIdx--; previa(); }; $("pv-prox").onclick = ()=>{ pvIdx++; previa(); };
   $("pv-telao").onclick = ()=>{ const r = S.slides.findIndex(x=>!x.blank); if (r>=0) abrirProjecao(r); };
