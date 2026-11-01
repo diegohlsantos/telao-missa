@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Telão da Missa</title>
+<meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,500;9..144,650&display=swap">
+<style>
+/* Layout: mesa de operação — painel de montagem à esquerda, roteiro da missa à direita; projeção ocupa a janela inteira */
+:root{
+  --bg:#f3f4f7; --surface:#ffffff; --sunk:#e9ecf2; --ink:#18202d; --muted:#5a6375; --line:#d9dee7;
+  --accent:#2b5a8c; --accent-ink:#ffffff; --gold:#9a6b00; --gold-soft:#fbf1d8; --ok:#2f7a4f; --warn:#a4451f;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f131a; --surface:#171c25; --sunk:#1e2430; --ink:#e7ebf1; --muted:#9aa4b6; --line:#2a3240;
+  --accent:#7eb0e3; --accent-ink:#0d1622; --gold:#e5b443; --gold-soft:#2b2412; --ok:#6cc495; --warn:#f08a62; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f131a; --surface:#171c25; --sunk:#1e2430; --ink:#e7ebf1; --muted:#9aa4b6; --line:#2a3240;
+  --accent:#7eb0e3; --accent-ink:#0d1622; --gold:#e5b443; --gold-soft:#2b2412; --ok:#6cc495; --warn:#f08a62; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand h1{font-family:var(--display);font-weight:650;font-size:1.75rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+nav.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:999px}
+nav.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:700}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:500;font-size:1.2rem;margin:0}
+.label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+input[type=date],input[type=text],input[type=search],textarea,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+textarea{resize:vertical;line-height:1.5}
+#texto{min-height:230px;font-size:1rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.big{padding:12px 20px;font-size:1.05rem}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.link{border:0;background:none;padding:2px 4px;color:var(--accent);font-weight:700}
+.hint{color:var(--muted);font-size:.86rem;margin:0}
+.status{font-size:.86rem;color:var(--muted)}
+.status.ok{color:var(--ok)} .status.err{color:var(--warn)}
+.celebra{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:8px;background:var(--sunk)}
+.cor{width:14px;align-self:stretch;border-radius:4px;flex:none;border:1px solid var(--line)}
+.celebra strong{font-family:var(--display);font-weight:500;font-size:1.1rem;display:block}
+.refs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.86rem;color:var(--muted);font-variant-numeric:tabular-nums}
+/* roteiro */
+ol.roteiro{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ol.roteiro li{display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+ol.roteiro li:first-child{border-top:0}
+.mom{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mom.leit{color:var(--gold)}
+.what{min-width:0}
+.what .t{font-weight:700;overflow-wrap:anywhere}
+.what .s{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.what select{margin-top:4px;font-size:.85rem;padding:5px 8px}
+.chip{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--gold-soft);color:var(--gold)}
+.chip.miss{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.go{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:700;padding:4px 6px;border-radius:6px}
+.go:hover{background:var(--sunk)}
+.empty{padding:22px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
+details.leit{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+details.leit summary{cursor:pointer;font-weight:700}
+.leit-grid{display:grid;gap:12px;margin-top:12px}
+.leit-grid fieldset{border:0;padding:0;margin:0;display:grid;gap:6px}
+.leit-grid legend{font-weight:700;font-size:.9rem;margin-bottom:4px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:8px}
+@media (max-width:520px){.two{grid-template-columns:minmax(0,1fr)}}
+/* acervo */
+.acervo-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.acervo-top input{flex:1 1 220px}
+.songs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.song{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}
+.song:hover{border-color:var(--accent)}
+.song .t{font-weight:700;overflow-wrap:anywhere}
+.song .s{font-size:.8rem;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bar{height:6px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgb(10 14 20 / .55)}
+dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
+#ed-partes{min-height:300px;font-family:var(--body)}
+.kbd{font-size:.8rem;color:var(--muted)}
+.kbd b{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;margin:0 2px;font-weight:700;color:var(--ink)}
+/* ===== projeção (visual dos slides da paróquia: fundo preto, branco e amarelo) ===== */
+#proj{position:fixed;inset:0;z-index:50;background:#000;display:flex;align-items:center;justify-content:center;cursor:none}
+#proj.cursor{cursor:default}
+.stage{position:relative;width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;max-width:100%;background:#000;color:#fff;overflow:hidden;font-family:"Atkinson Hyperlegible",Arial,sans-serif}
+.sbox{position:absolute;inset:3.2% 4% 4.5%;display:flex;flex-direction:column;align-items:center;text-align:center;overflow:hidden;line-height:1.28}
+.sbox.mid{justify-content:center}
+.s-head{display:flex;flex-direction:column;align-items:center;gap:.05em;margin-bottom:.55em}
+.s-title{color:#ffe500;text-decoration:underline;text-underline-offset:.15em;text-transform:uppercase;font-weight:400}
+.s-ref{color:#fff;font-size:.9em}
+.s-sub{margin:0 0 .25em}
+.sbox p{margin:0 0 .35em}
+.s-resp{color:#ffe500}
+.s-strong{color:#ffe500;font-weight:700;font-size:1.25em}
+.s-lyr{white-space:pre-line;text-transform:none}
+.capa-nome{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.9em;line-height:1.1;text-wrap:balance}
+.capa-data{color:#ffe500;margin-top:.6em;font-size:.8em;letter-spacing:.12em;text-transform:uppercase}
+.capa-cor{width:18%;height:.22em;border-radius:99px;margin:.9em auto 0}
+.hud{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgb(0 0 0 / .85));color:#cfd6e2;font:14px var(--body);opacity:0;transition:opacity .25s}
+#proj.cursor .hud{opacity:1}
+.hud button{background:rgb(255 255 255 / .1);border:1px solid rgb(255 255 255 / .2);color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer}
+.hud .where{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+@media (prefers-reduced-motion:reduce){.hud{transition:none}}
+.auth{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.who{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.aviso{border:1px solid var(--line);background:var(--gold-soft);color:var(--ink);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lista-eq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.lista-eq li:first-child{border-top:0}
+.so-leitura .editar{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Telão da Missa</h1>
+      <p id="sub">Leituras do dia, cantos e avisos num só roteiro</p>
+    </div>
+    <div class="auth">
+      <nav class="tabs" role="tablist">
+        <button role="tab" id="tab-montar" aria-selected="true">Montar a missa</button>
+        <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
+        <button role="tab" id="tab-equipe" aria-selected="false" hidden>Equipe</button>
+      </nav>
+      <span class="who" id="who"></span>
+      <button class="btn" type="button" id="btn-entrar">Entrar</button>
+      <button class="btn" type="button" id="btn-sair" hidden>Sair</button>
+    </div>
+  </header>
+  <div class="aviso" id="aviso" hidden><span id="aviso-txt"></span><button class="btn" type="button" id="aviso-btn" hidden></button></div>
+
+  <!-- ============ MONTAR ============ -->
+  <section id="v-montar" class="grid">
+    <div class="panel">
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="flex:1 1 160px">
+          <label class="label" for="data">Data da celebração</label>
+          <input type="date" id="data">
+        </div>
+        <button class="btn editar" id="btn-buscar" type="button">Buscar de novo</button>
+      </div>
+      <div class="celebra" id="celebra">
+        <span class="cor" id="cor-chip"></span>
+        <div style="min-width:0">
+          <strong id="cel-nome">Leituras ainda não carregadas</strong>
+          <div class="refs" id="cel-refs"></div>
+        </div>
+      </div>
+      <p class="status" id="st-leit" aria-live="polite"></p>
+      <details class="leit" id="det-leit">
+        <summary>Ver ou corrigir as leituras</summary>
+        <div class="leit-grid">
+          <div class="field"><label class="label" for="l-cel">Nome da celebração</label><input type="text" id="l-cel"></div>
+          <fieldset><legend>Primeira leitura</legend>
+            <div class="two"><input type="text" id="l1-ref" placeholder="Referência (Sb 6,12-16)"><input type="text" id="l1-tit" placeholder="Leitura do livro da Sabedoria"></div>
+            <textarea id="l1-txt" rows="4" placeholder="Cole aqui o texto da leitura"></textarea></fieldset>
+          <fieldset><legend>Salmo responsorial</legend>
+            <div class="two"><input type="text" id="sl-ref" placeholder="Sl 62(63)"><input type="text" id="sl-ref2" placeholder="Refrão"></div></fieldset>
+          <fieldset><legend>Segunda leitura <span class="hint">(deixe vazio em dia de semana)</span></legend>
+            <div class="two"><input type="text" id="l2-ref" placeholder="Referência"><input type="text" id="l2-tit" placeholder="Leitura da carta…"></div>
+            <textarea id="l2-txt" rows="4"></textarea></fieldset>
+          <fieldset><legend>Evangelho</legend>
+            <div class="two"><input type="text" id="ev-ref" placeholder="Mt 25,1-13"><input type="text" id="ev-tit" placeholder="Proclamação do Evangelho…"></div>
+            <textarea id="ev-txt" rows="4"></textarea></fieldset>
+          <div class="row editar"><button class="btn" type="button" id="btn-salvar-leit">Salvar leituras</button><span class="status" id="st-salvar-leit"></span></div>
+        </div>
+      </details>
+
+      <div class="field">
+        <label class="label" for="texto">Cantos e avisos — escreva do seu jeito</label>
+        <textarea id="texto" spellcheck="false" placeholder="entrada: noites traiçoeiras
+ato penitencial: perdão senhor
+glória: glória a deus nas alturas shalom
+aclamação: tua palavra
+preces: Senhor, escutai a nossa prece!
+ofertório: a mesa santa
+santo shalom
+cordeiro: padre marcelo rossi
+comunhão: milagre de amor, corpo santo
+final: maria passa à frente
+avisos:
+Reunião do dízimo na terça, às 19h30
+Inscrições abertas para a catequese"></textarea>
+        <p class="hint">Um momento por linha: “momento: nome do canto”. Pode usar o grupo/autor (shalom, capella, pe zezinho) ou um trecho da letra. Depois de “avisos:”, cada linha vira um slide.</p>
+      </div>
+      <p class="status" id="st-missa" aria-live="polite"></p>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h2>Roteiro</h2>
+        <div class="row">
+          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="sep" checked> tela preta entre momentos</label>
+        </div>
+      </div>
+      <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
+      <ol class="roteiro" id="roteiro"></ol>
+      <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>Esc</b> sai. Passadores de slide funcionam.</p>
+    </div>
+  </section>
+
+  <!-- ============ ACERVO ============ -->
+  <section id="v-acervo" class="panel" hidden>
+    <div class="acervo-top">
+      <input type="search" id="busca" placeholder="Buscar por título, grupo ou trecho da letra">
+      <label class="btn editar" for="arq" style="display:inline-flex;align-items:center">Importar PowerPoint (.pptx)</label>
+      <input type="file" id="arq" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple hidden>
+      <button class="btn editar" type="button" id="btn-nova">Novo canto</button>
+    </div>
+    <div id="imp-box" hidden>
+      <p class="status" id="st-imp"></p>
+      <div class="bar"><i id="imp-bar"></i></div>
+    </div>
+    <p class="hint" id="acervo-info"></p>
+    <div class="songs" id="songs"></div>
+  </section>
+
+  <!-- ============ EQUIPE ============ -->
+  <section id="v-equipe" class="grid" hidden>
+    <div class="panel">
+      <h2>Pedidos de acesso</h2>
+      <p class="hint">Quem criou conta e pediu para editar. Libere só quem você conhece.</p>
+      <ul class="lista-eq" id="pedidos"></ul>
+    </div>
+    <div class="panel">
+      <h2>Equipe com acesso</h2>
+      <ul class="lista-eq" id="equipe"></ul>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlg-login">
+  <form id="login-form">
+    <h2 style="font-family:var(--display);font-weight:500;margin:0">Entrar na equipe</h2>
+    <p class="hint">Qualquer pessoa vê e projeta o telão. Para montar a missa e mexer no acervo, entre com sua conta. Na primeira vez, crie a conta e peça acesso a quem já é da equipe.</p>
+    <div class="field"><label class="label" for="lg-email">E-mail</label><input type="text" id="lg-email" autocomplete="email" inputmode="email" required></div>
+    <div class="field"><label class="label" for="lg-senha">Senha (mínimo 6 caracteres)</label><input type="password" id="lg-senha" autocomplete="current-password" minlength="6" required style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px"></div>
+    <p class="status" id="lg-st" aria-live="polite"></p>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn" type="button" id="lg-fechar">Cancelar</button>
+      <div class="row"><button class="btn" type="button" id="lg-criar">Criar conta</button><button class="btn primary" type="submit" id="lg-entrar">Entrar</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg">
+  <form method="dialog" id="ed-form">
+    <h2 style="font-family:var(--display);font-weight:500;margin:0" id="ed-h">Canto</h2>
+    <div class="two">
+      <div class="field"><label class="label" for="ed-tit">Título</label><input type="text" id="ed-tit" required></div>
+      <div class="field"><label class="label" for="ed-aut">Grupo ou autor</label><input type="text" id="ed-aut"></div>
+    </div>
+    <div class="field"><label class="label" for="ed-partes">Letra — separe os slides com uma linha só com ---</label><textarea id="ed-partes"></textarea></div>
+    <div class="row" style="justify-content:space-between">
+      <div class="row"><button class="btn" type="button" id="ed-del">Excluir</button><span class="status err" id="ed-conf" hidden>Clique de novo para confirmar</span></div>
+      <div class="row"><button class="btn" type="button" id="ed-cancel">Cancelar</button><button class="btn primary" type="submit" id="ed-save">Salvar</button></div>
+    </div>
+  </form>
+</dialog>
+
+<div id="proj" hidden>
+  <div class="stage" id="stage"><div class="sbox" id="sbox"></div></div>
+  <div class="hud"><span class="where" id="hud-where"></span><span class="row"><button type="button" id="hud-prev">◀</button><button type="button" id="hud-next">▶</button><button type="button" id="hud-full">Tela cheia</button><button type="button" id="hud-exit">Sair</button></span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function hash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}return h.toString(36)}
+
+/* ---------------- Momentos da missa ---------------- */
+const MOMENTOS = [
+  {id:"entrada", nome:"Entrada", kw:["canto de entrada","entrada","abertura","inicial"]},
+  {id:"penitencial", nome:"Ato penitencial", kw:["ato penitencial","penitencial","perdao","piedade","kyrie"]},
+  {id:"gloria", nome:"Glória", kw:["gloria","hino de louvor"]},
+  {id:"leitura1", nome:"1ª leitura", leitura:true},
+  {id:"salmo", nome:"Salmo", leitura:true},
+  {id:"leitura2", nome:"2ª leitura", leitura:true},
+  {id:"aclamacao", nome:"Aclamação", kw:["aclamacao ao evangelho","aclamacao","aleluia"]},
+  {id:"evangelho", nome:"Evangelho", leitura:true},
+  {id:"preces", nome:"Preces", kw:["preces da assembleia","preces","oracao dos fieis"], texto:true},
+  {id:"ofertorio", nome:"Ofertório", kw:["preparacao das oferendas","ofertorio","oferendas","ofertas"]},
+  {id:"santo", nome:"Santo", kw:["santo"]},
+  {id:"cordeiro", nome:"Cordeiro", kw:["cordeiro de deus","cordeiro","fracao do pao"]},
+  {id:"comunhao", nome:"Comunhão", kw:["comunhao"]},
+  {id:"acaodegracas", nome:"Ação de graças", kw:["acao de gracas","pos comunhao","meditacao"]},
+  {id:"mariano", nome:"Canto mariano", kw:["canto mariano","mariano","nossa senhora"]},
+  {id:"avisos", nome:"Avisos", kw:["avisos","aviso"], texto:true},
+  {id:"final", nome:"Final", kw:["canto final","final","saida","encerramento","envio"]},
+];
+const MOM = Object.fromEntries(MOMENTOS.map(m=>[m.id,m]));
+const KW = MOMENTOS.filter(m=>m.kw).flatMap(m=>m.kw.map(k=>({k,m:m.id}))).sort((a,b)=>b.k.length-a.k.length);
+
+/* ---------------- Estado ---------------- */
+const S = { db:null, mcp:null, date:null, songs:[], songById:new Map(), leit:null, missa:{texto:"",escolhas:{}}, itens:[], slides:[], idx:0, black:false };
+
+/* ---------------- Leitura do texto livre ---------------- */
+function detectar(seg){
+  const n = norm(seg);
+  for (const {k,m} of KW){
+    if (n === k || n.startsWith(k+" ")){
+      // corta o mesmo número de palavras do texto original
+      const words = k.split(" ").length;
+      const rest = seg.trim().split(/\s+/).slice(words).join(" ").replace(/^[\s:\-–—=>.]+/,"").trim();
+      return {m, rest};
+    }
+  }
+  return null;
+}
+function interpretar(texto){
+  const itens = []; const avisos = []; let modoAvisos = false; let ultimo = null;
+  for (let linha of String(texto||"").split(/\r?\n/)){
+    if (!linha.trim()) continue;
+    if (modoAvisos){ linha.split(/\s*;\s*/).map(s=>s.replace(/^[\s•\-*–]+/,"").trim()).filter(Boolean).forEach(a=>avisos.push(a)); continue; }
+    const d0 = detectar(linha);
+    if (d0 && d0.m === "avisos"){ modoAvisos = true; if (d0.rest) d0.rest.split(/\s*;\s*/).filter(Boolean).forEach(a=>avisos.push(a)); continue; }
+    if (d0 && d0.m === "preces"){ itens.push({m:"preces", texto:d0.rest}); ultimo=null; continue; }
+    for (const seg of linha.split(/\s*[,;]\s*/)){
+      if (!seg.trim()) continue;
+      const d = detectar(seg);
+      if (d && !MOM[d.m].texto){ itens.push({m:d.m, q:d.rest, raw:seg.trim()}); ultimo = d.m; }
+      else if (ultimo){ itens.push({m:ultimo, q:seg.trim(), raw:seg.trim()}); }
+      else itens.push({m:null, q:seg.trim(), raw:seg.trim()});
+    }
+  }
+  return {itens, avisos};
+}
+
+/* ---------------- Busca de cantos ---------------- */
+const STOP = new Set(["de","do","da","dos","das","o","a","os","as","e","em","no","na","um","uma","que","com","por","pra","para","ao","musica","canto"]);
+function lev1(a,b){ // distância de edição <= 1
+  if (Math.abs(a.length-b.length)>1) return false;
+  let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue} if(++d>1)return false; if(a.length>b.length)i++; else if(b.length>a.length)j++; else{i++;j++} }
+  return d + (a.length-i) + (b.length-j) <= 1;
+}
+function indexar(song){
+  const t = norm(song.titulo), a = norm(song.autor), l = norm((song.partes||[]).join(" "));
+  song._t=t; song._a=a; song._l=l; song._tt=new Set(t.split(" ")); song._at=new Set(a.split(" ").filter(Boolean));
+  song._lt=new Set(l.slice(0,400).split(" "));
+}
+function pontuar(song, q, momento){
+  const nq = norm(q); const toks = nq.split(" ").filter(w=>w && !STOP.has(w));
+  let s = 0;
+  for (const w of toks){
+    if (song._tt.has(w)) s+=3;
+    else if (song._at.has(w)) s+=2.5;
+    else if (w.length>=5 && ([...song._tt].some(x=>lev1(x,w)) || [...song._at].some(x=>lev1(x,w)))) s+=2;
+    else if (song._lt.has(w)) s+=1;
+  }
+  if (nq && song._t === nq) s+=6; else if (nq.length>3 && song._t.startsWith(nq)) s+=3; else if (nq.length>5 && song._t.includes(nq)) s+=2;
+  if (nq.length>12 && song._l.includes(nq)) s+=4;
+  const mk = momento && MOM[momento].kw ? MOM[momento].kw : [];
+  if (mk.some(k=>song._t.includes(k))) s+=1.5;
+  return s;
+}
+function candidatos(q, momento){
+  const query = q || (momento && MOM[momento].kw ? MOM[momento].kw[0] : "");
+  if (!query) return [];
+  return S.songs.map(song=>({song, s:pontuar(song, query, momento)})).filter(x=>x.s>=2.5).sort((a,b)=>b.s-a.s).slice(0,8);
+}
+
+/* ---------------- Leituras: limpeza e slides ---------------- */
+function limpar(t){
+  return String(t||"")
+    .replace(/\[A forma breve[^\]]*\]\s*/gi,"")
+    .replace(/[\[\]]/g,"")
+    .replace(/(^|[\s(“"‘–—-])\d{1,3}(?=[A-Za-zÀ-ÖØ-öø-ÿ“"‘(])/g,"$1")
+    .replace(/\s*[-–—]?\s*Palavra d[ao] (Senhor|salva[cç][aã]o)\.?\s*$/i,"")
+    .replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
+}
+function separarTitulo(l){
+  if (!l) return l;
+  let {titulo, texto} = l;
+  texto = limpar(texto);
+  if (!titulo){ const m = texto.match(/^(Leitura d[aoe][^–—\n]{4,140}?)\s*[–—-]\s+/); if (m){ titulo=m[1].trim(); texto=texto.slice(m[0].length);} }
+  return {...l, titulo:titulo||"", texto};
+}
+function pedacos(texto, primeiro, demais){
+  const frases = texto.replace(/\n+/g," ").split(/(?<=[.!?;:”"’])\s+/);
+  const out=[]; let cur=""; let lim=primeiro;
+  for (const f of frases){
+    if (cur && (cur.length+f.length+1)>lim){ out.push(cur); cur=f; lim=demais; }
+    else cur = cur ? cur+" "+f : f;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function slidesLeitura(nome, l, resp, evangelho){
+  if (!l || !l.texto) return [];
+  const head = `<div class="s-head"><span class="s-title">${esc(nome)}</span>${l.ref?`<span class="s-ref">(${esc(l.ref)})</span>`:""}</div>`;
+  const out=[];
+  if (evangelho) out.push({html:`<div class="sbox mid">${head}</div>`, rotulo:"Evangelho — título", mid:true});
+  const parts = pedacos(l.texto, 330, 470);
+  parts.forEach((p,i)=>{
+    let h = (i===0 ? head + (l.titulo?`<p class="s-sub">${esc(l.titulo)}</p>`:"") : "") + `<p>${esc(p)}</p>`;
+    if (i===parts.length-1) h += `<p class="s-resp" style="margin-top:.6em">${resp}</p>`;
+    out.push({html:h, rotulo:`${nome.charAt(0)+nome.slice(1).toLowerCase()} ${i+1}/${parts.length}`});
+  });
+  return out;
+}
+const CORES = {verde:"#2e8b3e", branco:"#f4f4f4", roxo:"#6b3fa0", vermelho:"#c0262d", rosa:"#e58bb5", preto:"#555", dourado:"#d4a017", azul:"#2b6cb0"};
+function corHex(c){ return CORES[norm(c).split(" ")[0]] || "transparent"; }
+
+/* ---------------- Montagem do roteiro ---------------- */
+function montar(){
+  const {itens, avisos} = interpretar(S.missa.texto);
+  const L = S.leit;
+  const porMom = {}; itens.forEach(it=>{ (porMom[it.m||"_"] ||= []).push(it); });
+  const linhas = []; // para a lista do roteiro
+  const slides = []; const sep = $("sep").checked;
+  const push = (grupo, arr) => { if (!arr.length) return; if (sep && slides.length) slides.push({html:"", rotulo:"Tela preta", blank:true, grupo}); arr.forEach(s=>slides.push({...s, grupo})); };
+
+  // capa
+  const nomeCel = (L && (L.celebracao)) || "";
+  const dataTxt = S.date ? new Date(S.date+"T12:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}) : "";
+  if (nomeCel){
+    push("capa",[{html:`<div class="capa-nome">${esc(nomeCel)}</div><div class="capa-data">${esc(dataTxt)}</div>${L.cor?`<div class="capa-cor" style="background:${corHex(L.cor)}"></div>`:""}`, mid:true, rotulo:"Capa"}]);
+    linhas.push({m:"capa", nome:"Capa", t:nomeCel, s:dataTxt, first:0});
+  }
+  for (const mo of MOMENTOS){
+    const start = slides.length + (sep && slides.length ? 1 : 0);
+    if (mo.leitura){
+      if (!L) continue;
+      let arr=[], t="", s="";
+      if (mo.id==="leitura1" && L.primeira?.texto){ arr = slidesLeitura("PRIMEIRA LEITURA", L.primeira, "Palavra do Senhor.<br>Graças a Deus."); t=L.primeira.ref; s=L.primeira.titulo; }
+      if (mo.id==="salmo" && L.salmo?.refrao){ arr=[{html:`<div class="s-head"><span class="s-title">Salmo Responsorial</span>${L.salmo.ref?`<span class="s-ref">${esc(L.salmo.ref)}</span>`:""}</div><p class="s-strong" style="margin-top:.5em">${esc(L.salmo.refrao)}</p>`, rotulo:"Salmo", mid:false}]; t=L.salmo.ref; s=L.salmo.refrao; }
+      if (mo.id==="leitura2" && L.segunda?.texto){ arr = slidesLeitura("SEGUNDA LEITURA", L.segunda, "Palavra do Senhor.<br>Graças a Deus."); t=L.segunda.ref; s=L.segunda.titulo; }
+      if (mo.id==="evangelho" && L.evangelho?.texto){ arr = slidesLeitura("EVANGELHO", L.evangelho, "Palavra da Salvação.<br>Glória a vós, Senhor.", true); t=L.evangelho.ref; s=L.evangelho.titulo; }
+      if (arr.length){ push(mo.id, arr); linhas.push({m:mo.id, nome:mo.nome, t, s, first:start, leit:true, n:arr.length}); }
+      continue;
+    }
+    if (mo.id==="avisos"){
+      if (!avisos.length) continue;
+      push("avisos", avisos.map((a,i)=>({html:`<div class="s-head"><span class="s-title">Avisos</span></div><p style="font-size:1.15em">${esc(a)}</p>`, mid:true, rotulo:`Aviso ${i+1}`})));
+      linhas.push({m:"avisos", nome:"Avisos", t:`${avisos.length} aviso${avisos.length>1?"s":""}`, s:avisos.join(" · "), first:start});
+      continue;
+    }
+    if (mo.id==="preces"){
+      const p = (porMom.preces||[]).map(x=>x.texto).filter(Boolean)[0];
+      if (!p) continue;
+      push("preces",[{html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">${esc(p)}</p>`, mid:true, rotulo:"Preces"}]);
+      linhas.push({m:"preces", nome:"Preces", t:p, first:start});
+      continue;
+    }
+    const lista = porMom[mo.id] || [];
+    lista.forEach((it, k)=>{
+      const chave = `${mo.id}:${k}`;
+      const cands = candidatos(it.q, mo.id);
+      const escolhido = S.missa.escolhas?.[chave] && S.songById.get(S.missa.escolhas[chave]) || cands[0]?.song || null;
+      const st = slides.length + (sep && slides.length ? 1 : 0);
+      if (escolhido){
+        const n = escolhido.partes.length;
+        push(mo.id, escolhido.partes.map((p,i)=>({html:`<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n>1?` (${i+1}/${n})`:""}</span>${escolhido.autor?`<span class="s-ref">${esc(escolhido.autor)}</span>`:""}</div><div class="s-lyr">${esc(p)}</div>`, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`})));
+      }
+      linhas.push({m:mo.id, nome:mo.nome, chave, q:it.q||it.raw, song:escolhido, cands, first:escolhido?st:null});
+    });
+  }
+  const soltos = porMom._ || [];
+  soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
+  S.itens = linhas; S.slides = slides;
+  desenharRoteiro();
+}
+
+function desenharRoteiro(){
+  const ol = $("roteiro"); ol.innerHTML = "";
+  if (!S.itens.length){ ol.innerHTML = `<li style="display:block"><div class="empty">Carregue as leituras ou escreva os cantos ao lado, e o roteiro aparece aqui.</div></li>`; }
+  for (const it of S.itens){
+    const li = document.createElement("li");
+    let what;
+    if (it.solto){
+      what = `<div class="t">${esc(it.q)}</div><div class="s">Não reconheci o momento. Comece a linha com “entrada:”, “comunhão:”…</div>`;
+    } else if (it.leit || it.m==="capa" || it.m==="avisos" || it.m==="preces"){
+      what = `<div class="t">${esc(it.t||"")}</div>${it.s?`<div class="s">${esc(it.s)}</div>`:""}`;
+    } else if (it.song){
+      const rot = s => `${s.titulo}${s.autor?" — "+s.autor:""} · “${s.partes[0].replace(/\s+/g," ").slice(0,38)}…”`;
+      const opts = it.cands.map(c=>`<option value="${esc(c.song.id)}" ${c.song.id===it.song.id?"selected":""}>${esc(rot(c.song))}</option>`).join("");
+      const has = it.cands.some(c=>c.song.id===it.song.id);
+      what = `<div class="t">${esc(it.song.titulo)} ${it.song.partes.length>1?`<span class="chip">${it.song.partes.length} slides</span>`:""}</div>
+        <div class="s">${it.song.autor?esc(it.song.autor)+" · ":""}você escreveu “${esc(it.q)}”</div>
+        ${it.cands.length>1||!has?`<select data-chave="${esc(it.chave)}" aria-label="Trocar canto" ${S.editor?"":"disabled"}>${has?"":`<option value="${esc(it.song.id)}" selected>${esc(it.song.titulo)}</option>`}${opts}</select>`:""}`;
+    } else {
+      what = `<div class="t">“${esc(it.q||"")}” <span class="chip miss">não achei no acervo</span></div><div class="s">Confira o nome ou cadastre o canto no acervo.</div>`;
+    }
+    li.innerHTML = `<span class="mom ${it.leit?"leit":""}">${esc(it.nome)}</span><div class="what">${what}</div>${it.first!=null&&it.first!==undefined?`<button class="go" data-go="${it.first}" type="button">Projetar</button>`:"<span></span>"}`;
+    ol.appendChild(li);
+  }
+  $("btn-projetar").disabled = !S.slides.length;
+  $("btn-projetar").textContent = S.slides.length ? `Projetar do início · ${S.slides.filter(s=>!s.blank).length} slides` : "Projetar do início";
+}
+$("roteiro").addEventListener("change", e=>{
+  const sel = e.target.closest("select[data-chave]"); if (!sel) return;
+  if (!S.editor) return;
+  S.missa.escolhas = {...(S.missa.escolhas||{}), [sel.dataset.chave]: sel.value};
+  salvarMissa(); montar();
+});
+$("roteiro").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if (b) abrirProjecao(+b.dataset.go); });
+$("sep").addEventListener("change", ()=>{ S.missa.separadores = $("sep").checked; if (S.editor) salvarMissa(); montar(); });
+
+/* ---------------- Projeção ---------------- */
+function ajustar(){
+  const box = $("sbox"), stage=$("stage"); const H = stage.clientHeight; if (!H) return;
+  let lo = H*0.028, hi = H*(box.classList.contains("mid")?0.11:0.075);
+  box.style.fontSize = hi+"px";
+  if (box.scrollHeight <= box.clientHeight+1) return;
+  for (let i=0;i<14;i++){ const mid=(lo+hi)/2; box.style.fontSize=mid+"px"; if (box.scrollHeight <= box.clientHeight+1) lo=mid; else hi=mid; }
+  box.style.fontSize = lo+"px";
+}
+function mostrar(){
+  const s = S.slides[S.idx]; const box = $("sbox");
+  if (!s || S.black || s.blank){ box.innerHTML=""; box.className="sbox"; }
+  else { box.className = "sbox" + (s.mid ? " mid" : ""); box.innerHTML = s.html; }
+  ajustar();
+  $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${s.rotulo}` : "";
+}
+function ir(d){ S.black=false; S.idx = Math.max(0, Math.min(S.slides.length-1, S.idx+d)); mostrar(); }
+let wake=null, hudT=null;
+function abrirProjecao(i=0){
+  if (!S.slides.length) return;
+  S.idx = Math.max(0,Math.min(i,S.slides.length-1)); S.black=false;
+  $("proj").hidden = false; document.body.style.overflow="hidden"; mostrar();
+  try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
+  telaCheia(true);
+}
+function fechar(){ $("proj").hidden = true; document.body.style.overflow=""; try{wake?.release()}catch{} wake=null; if (document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+function telaCheia(on){ try{ if (on && !document.fullscreenElement) $("proj").requestFullscreen?.().catch(()=>{}); }catch{} }
+document.addEventListener("keydown", e=>{
+  if ($("proj").hidden) return;
+  const k = e.key;
+  if (["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(k)){ e.preventDefault(); ir(1); }
+  else if (["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(k)){ e.preventDefault(); ir(-1); }
+  else if (k==="b"||k==="B"||k==="."){ S.black=!S.black; mostrar(); }
+  else if (k==="Home"){ S.idx=0; S.black=false; mostrar(); }
+  else if (k==="End"){ S.idx=S.slides.length-1; mostrar(); }
+  else if (k==="Escape"){ if (!document.fullscreenElement) fechar(); }
+  else if (k==="f"||k==="F"){ telaCheia(true); }
+});
+$("stage").addEventListener("click", e=>{ const r=$("stage").getBoundingClientRect(); ir(e.clientX < r.left + r.width*0.3 ? -1 : 1); });
+$("proj").addEventListener("mousemove", ()=>{ $("proj").classList.add("cursor"); clearTimeout(hudT); hudT=setTimeout(()=>$("proj").classList.remove("cursor"),1800); });
+$("hud-prev").onclick=()=>ir(-1); $("hud-next").onclick=()=>ir(1); $("hud-exit").onclick=fechar; $("hud-full").onclick=()=>telaCheia(true);
+window.addEventListener("resize", ()=>{ if (!$("proj").hidden) ajustar(); });
+$("btn-projetar").onclick=()=>abrirProjecao(0);
+
+/* ---------------- Importar PowerPoint ---------------- */
+const NS = {a:"http://schemas.openxmlformats.org/drawingml/2006/main", p:"http://schemas.openxmlformats.org/presentationml/2006/main", r:"http://schemas.openxmlformats.org/officeDocument/2006/relationships"};
+async function lerPptx(buf){
+  const zip = await JSZip.loadAsync(buf); const dp = new DOMParser();
+  const xml = async p => { const f = zip.file(p); return f ? dp.parseFromString(await f.async("string"),"application/xml") : null; };
+  const pres = await xml("ppt/presentation.xml"), rels = await xml("ppt/_rels/presentation.xml.rels");
+  const tgt = {}; for (const r of rels.getElementsByTagName("Relationship")) tgt[r.getAttribute("Id")] = r.getAttribute("Target");
+  const ids = [...pres.getElementsByTagNameNS(NS.p,"sldId")].map(s=>s.getAttributeNS(NS.r,"id"));
+  const slides = [];
+  for (const id of ids){
+    let t = tgt[id]; if (!t) continue; t = t.replace(/^\/?ppt\//,"").replace(/^\//,"");
+    const doc = await xml("ppt/"+t); if (!doc) continue;
+    const blocos = [];
+    for (const sp of doc.getElementsByTagNameNS(NS.p,"sp")){
+      const off = sp.getElementsByTagNameNS(NS.a,"off")[0];
+      const paras = [];
+      for (const p of sp.getElementsByTagNameNS(NS.a,"p")){
+        let txt=""; let sz=null;
+        for (const ch of p.childNodes){
+          if (ch.localName==="r"||ch.localName==="fld"){ const tt=ch.getElementsByTagNameNS(NS.a,"t")[0]; txt += tt?tt.textContent:""; const rp=ch.getElementsByTagNameNS(NS.a,"rPr")[0]; if (sz==null && rp && rp.getAttribute("sz")) sz=+rp.getAttribute("sz"); }
+          else if (ch.localName==="br") txt += "\n";
+        }
+        if (sz==null){ const e=p.getElementsByTagNameNS(NS.a,"endParaRPr")[0]; if (e && e.getAttribute("sz")) sz=+e.getAttribute("sz"); }
+        paras.push({t:txt.replace(/\u000b/g,"\n"), sz});
+      }
+      const all = paras.map(p=>p.t).join("\n").trim();
+      if (!all || /^\d{1,4}$/.test(all) || /^\(?\s*\d+\s*\/\s*\d+\s*\)?$/.test(all)) continue;
+      blocos.push({y: off ? +off.getAttribute("y") : 0, paras, len: all.length});
+    }
+    slides.push(blocos);
+  }
+  return slides;
+}
+const PARTE = /\s*\(?\s*0?(\d+)\s*\/\s*0?(\d+)\s*\)?\s*$/;
+function cantoDoSlide(blocos){
+  if (!blocos.length) return null;
+  blocos.sort((a,b)=>b.len-a.len);
+  const main = blocos[0];
+  let ps = main.paras.slice();
+  while (ps.length && !ps[0].t.trim()) ps.shift();
+  if (!ps.length) return null;
+  const linhas0 = ps[0].t.split("\n").map(s=>s.trim());
+  let titulo = linhas0[0];
+  let resto0 = linhas0.slice(1).filter(Boolean);
+  const p1 = ps[1] ? ps[1].t.trim() : null;
+  const maiusc = s => s === s.toUpperCase() && /[A-ZÀ-Ú]/.test(s);
+  const curto = s => s && s.length <= 40 && !s.includes("\n") && s.split(/\s+/).length <= 3;
+  const temTitulo = titulo.length <= 70 && (
+       (ps.length>1 && !p1) || (linhas0.length>1 && !linhas0[1])
+    || PARTE.test(titulo)
+    || (p1 && maiusc(titulo) && /[a-zà-ú]/.test(p1) && resto0.length===0)
+    || (p1 && ps[1].sz!=null && ps[0].sz!=null && ps[1].sz < ps[0].sz && resto0.length===0)
+    || (p1 && curto(p1) && ps.slice(2).some(p=>p.t.trim()) && resto0.length===0));
+  let autor = "", corpo;
+  if (temTitulo){
+    let i = 1;
+    if (resto0.length){ ps = [{t:resto0.join("\n"), sz:ps[0].sz}, ...ps.slice(1)]; i = 0; }
+    // subtítulo (grupo/autor): linha curta logo após o título, entre parênteses, em fonte menor, ou 1-2 palavras coladas ao título
+    const colado = i===1 && p1;
+    while (i < ps.length && !ps[i].t.trim()) i++;
+    const cand = ps[i];
+    if (cand && cand.t.trim().length <= 40 && !cand.t.includes("\n")){
+      const c = cand.t.trim();
+      const nxt = ps.slice(i+1).find(p=>p.t.trim());
+      const menor = cand.sz!=null && ps[0].sz!=null && cand.sz < ps[0].sz && (!nxt || nxt.sz==null || cand.sz < nxt.sz);
+      const palavra = colado && nxt && c.split(/\s+/).length <= 2 && !/[,.!?;:]/.test(c) && c.length >= 3 && (!maiusc(c) || maiusc(titulo));
+      if (/^\(.*\)$/.test(c) || menor || palavra){ autor = c.replace(/^\((.*)\)$/,"$1").trim(); i++; }
+    }
+    corpo = ps.slice(i).map(p=>p.t).join("\n");
+  } else {
+    corpo = ps.map(p=>p.t).join("\n");
+    titulo = "";
+  }
+  // blocos menores (títulos soltos em outra caixa)
+  const outros = blocos.slice(1).map(b=>b.paras.map(p=>p.t).join(" ").trim()).filter(Boolean);
+  if (!titulo && outros.length){ titulo = outros[0]; }
+  corpo = corpo.replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+  if (!corpo) return null;
+  let parte = null; const m = titulo.match(PARTE);
+  if (m && titulo.replace(PARTE,"").trim()){ parte=[+m[1],+m[2]]; titulo = titulo.replace(PARTE,"").trim(); }
+  titulo = titulo.replace(/[.\s]+$/,"").trim();
+  if (!titulo){ titulo = corpo.split(/\n|[.,;!]/)[0].trim().split(/\s+/).slice(0,6).join(" "); }
+  return {titulo, autor, corpo, parte};
+}
+function cantosDe(slides, origem){
+  const out = []; let atual = null;
+  for (const b of slides){
+    const c = cantoDoSlide(b); if (!c) continue;
+    const base = norm(c.titulo);
+    if (atual && c.parte && c.parte[0] > 1 && norm(atual.titulo) === base){ atual.partes.push(c.corpo); continue; }
+    atual = {titulo:c.titulo, autor:c.autor, partes:[c.corpo], origem};
+    out.push(atual);
+  }
+  for (const s of out) s.id = "c" + hash(norm(s.titulo)+"|"+norm(s.autor)+"|"+norm(s.partes[0]).slice(0,80));
+  return out;
+}
+
+
+/* ---------------- Acervo: tela ---------------- */
+function desenharAcervo(){
+  const q = norm($("busca").value);
+  let lista = S.songs;
+  if (q) lista = S.songs.map(s=>({s, p:pontuar(s,q,null) + (s._l.includes(q)?3:0)})).filter(x=>x.p>=2.5).sort((a,b)=>b.p-a.p).map(x=>x.s);
+  $("acervo-info").textContent = S.songs.length ? (q ? `${lista.length} de ${S.songs.length} cantos` : `${S.songs.length} cantos no acervo`) : "";
+  const box = $("songs"); box.innerHTML="";
+  if (!S.songs.length){ box.innerHTML = `<div class="empty" style="grid-column:1/-1">O acervo está vazio. Toque em “Importar PowerPoint (.pptx)” e escolha o arquivo de músicas da paróquia: cada slide vira um canto, e as partes (1/2), (2/2) são juntadas sozinhas.</div>`; return; }
+  const frag = document.createDocumentFragment();
+  lista.slice(0,300).forEach(s=>{
+    const b=document.createElement("button"); b.type="button"; b.className="song"; b.dataset.id=s.id;
+    b.innerHTML = `<span class="t">${esc(s.titulo)}</span><span class="s">${s.autor?esc(s.autor)+" · ":""}${s.partes.length>1?s.partes.length+" slides · ":""}${esc(s.partes[0].slice(0,110))}</span>`;
+    frag.appendChild(b);
+  });
+  box.appendChild(frag);
+  if (lista.length>300) box.insertAdjacentHTML("beforeend",`<p class="hint" style="grid-column:1/-1">Mostrando 300. Use a busca para achar os demais.</p>`);
+}
+$("busca").addEventListener("input", desenharAcervo);
+$("songs").addEventListener("click", e=>{ const b=e.target.closest(".song"); if (b) editar(S.songById.get(b.dataset.id)); });
+
+$("btn-nova").onclick = ()=>editar(null);
+let editando=null;
+function editar(song){
+  editando = song; $("ed-h").textContent = !S.editor ? "Letra do canto" : song ? "Editar canto" : "Novo canto";
+  ["ed-tit","ed-aut","ed-partes"].forEach(id=>$(id).readOnly=!S.editor); $("ed-save").hidden=!S.editor;
+  $("ed-tit").value = song?.titulo||""; $("ed-aut").value=song?.autor||""; $("ed-partes").value = (song?.partes||[]).join("\n---\n");
+  $("ed-del").hidden = !song || !S.editor; $("ed-conf").hidden = true; $("ed-del").dataset.arm="";
+  $("dlg").showModal();
+}
+$("ed-cancel").onclick = ()=>$("dlg").close();
+$("ed-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const titulo=$("ed-tit").value.trim(); if (!titulo) return;
+  const partes = $("ed-partes").value.split(/\n\s*-{3,}\s*\n/).map(s=>s.trim()).filter(Boolean);
+  if (!partes.length){ $("ed-partes").focus(); return; }
+  const song = editando ? {...editando, titulo, autor:$("ed-aut").value.trim(), partes} : {id:"c"+hash(norm(titulo)+"|"+Date.now()), titulo, autor:$("ed-aut").value.trim(), partes, origem:"manual"};
+  $("ed-save").disabled=true;
+  try{ await gravarCanto(song); $("dlg").close(); }catch(err){ $("ed-conf").hidden=false; $("ed-conf").textContent = err?.code==="invalid_argument" ? "Sem permissão para editar o acervo." : "Não consegui salvar. Tente de novo."; }
+  $("ed-save").disabled=false;
+});
+$("ed-del").onclick = async ()=>{
+  if ($("ed-del").dataset.arm!=="1"){ $("ed-del").dataset.arm="1"; $("ed-conf").textContent="Clique de novo para confirmar"; $("ed-conf").hidden=false; return; }
+  try{ await apagarCanto(editando); $("dlg").close(); }catch{ $("ed-conf").textContent="Não consegui excluir."; }
+};
+
+
+/* ---------------- Supabase ---------------- */
+const SUPA_URL = "https://xbtrwvtkdsjptnpqsaom.supabase.co";
+const SUPA_KEY = "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5";
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+S.editor = false; S.user = null;
+
+function setSt(id, t, cls){ $(id).textContent=t; $(id).className="status "+(cls||""); }
+function erroAmigavel(e){
+  const c = e?.code || "";
+  if (c === "42501" || /row-level security/i.test(e?.message||"")) return "Sua conta ainda não tem permissão para editar.";
+  if (/fetch|network/i.test(e?.message||"")) return "Sem conexão com o servidor. Confira a internet.";
+  return "Não consegui salvar agora. Tente de novo em instantes.";
+}
+
+/* ---------- acervo ---------- */
+function aplicarSongs(rows){
+  const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem}; indexar(s); return s; });
+  all.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR"));
+  S.songs = all; S.songById = new Map(all.map(s=>[s.id,s]));
+  desenharAcervo(); montar();
+}
+async function carregarAcervo(){
+  const rows=[]; const passo=1000;
+  for (let i=0;;i+=passo){
+    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,origem").order("id").range(i, i+passo-1);
+    if (error){ $("acervo-info").textContent="Não consegui abrir o acervo. Recarregue a página."; return; }
+    rows.push(...data); if (data.length < passo) break;
+  }
+  aplicarSongs(rows);
+}
+let tAcervo=null;
+function recarregarAcervoEmBreve(){ clearTimeout(tAcervo); tAcervo=setTimeout(carregarAcervo, 1200); }
+
+async function gravarCanto(song){
+  const body = {id:song.id, titulo:song.titulo, autor:song.autor||"", partes:song.partes, origem:song.origem||"manual"};
+  const {error} = await sb.from("musicas").upsert(body);
+  if (error) throw error;
+  const s = {...body}; indexar(s);
+  const i = S.songs.findIndex(x=>x.id===s.id); if (i>=0) S.songs[i]=s; else S.songs.push(s);
+  S.songs.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR")); S.songById=new Map(S.songs.map(x=>[x.id,x]));
+  desenharAcervo(); montar();
+}
+async function apagarCanto(song){
+  const {error} = await sb.from("musicas").delete().eq("id", song.id);
+  if (error) throw error;
+  S.songs = S.songs.filter(x=>x.id!==song.id); S.songById.delete(song.id); desenharAcervo(); montar();
+}
+
+/* ---------- missa do dia ---------- */
+let salvando=false, pendente=false, tSalvar=null, canalData=null;
+function salvarMissa(){ if (!S.editor) return; clearTimeout(tSalvar); tSalvar=setTimeout(execSalvar, 700); }
+async function execSalvar(){
+  if (!S.date || !S.editor) return;
+  if (salvando){ pendente=true; return; }
+  salvando=true; setSt("st-missa","Salvando…","");
+  const {error} = await sb.from("missas").upsert({data:S.date, texto:S.missa.texto||"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
+  if (error) setSt("st-missa", erroAmigavel(error), "err"); else setSt("st-missa","Salvo — o telão de qualquer aparelho já mostra esta versão.","ok");
+  salvando=false; if (pendente){ pendente=false; execSalvar(); }
+}
+function aplicarMissa(d){
+  S.missa = d ? {texto:d.texto||"", escolhas:{...(d.escolhas||{})}, separadores:d.separadores} : {texto:"", escolhas:{}};
+  if (document.activeElement !== $("texto") && $("texto").value !== S.missa.texto) $("texto").value = S.missa.texto;
+  if (d && typeof d.separadores==="boolean") $("sep").checked = d.separadores;
+  montar();
+}
+function aplicarLeituras(row){
+  S.leit = row ? {...row.dados, fonte:row.fonte} : null; preencherLeituras(); montar();
+  if (row) setSt("st-leit", row.fonte==="manual" ? "Leituras corrigidas pela equipe." : "Leituras da liturgia diária.", "ok");
+}
+async function buscarLeituras(forcar){
+  setSt("st-leit","Buscando a liturgia do dia…","");
+  try{
+    const r = await fetch(`${SUPA_URL}/functions/v1/liturgia?data=${S.date}${forcar?"&forcar=1":""}`, {headers:{apikey:SUPA_KEY}});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.erro || "falha");
+    aplicarLeituras({fonte:j.fonte, dados:j.dados});
+  }catch(e){
+    setSt("st-leit", (e?.message && e.message!=="falha" && !/fetch/i.test(e.message) ? e.message + ". " : "Não consegui buscar as leituras agora. ") + "Tente de novo ou cole os textos em “Ver ou corrigir as leituras”.", "err");
+  }
+}
+async function carregarData(date){
+  S.date = date; try{ localStorage.setItem("telao-data", date); }catch{}
+  S.leit = null; S.missa = {texto:"", escolhas:{}}; $("texto").value=""; preencherLeituras(); montar();
+  setSt("st-leit","Carregando…",""); setSt("st-missa","","");
+  if (canalData){ sb.removeChannel(canalData); canalData=null; }
+  const [m, l] = await Promise.all([
+    sb.from("missas").select("*").eq("data", date).maybeSingle(),
+    sb.from("leituras").select("*").eq("data", date).maybeSingle(),
+  ]);
+  if (S.date !== date) return;
+  aplicarMissa(m.data);
+  if (l.data) aplicarLeituras(l.data); else buscarLeituras(false);
+  canalData = sb.channel("dia-"+date)
+    .on("postgres_changes",{event:"*",schema:"public",table:"missas",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.data) aplicarMissa(p.new); })
+    .on("postgres_changes",{event:"*",schema:"public",table:"leituras",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.data) aplicarLeituras(p.new); })
+    .subscribe();
+}
+$("btn-buscar").onclick = ()=>buscarLeituras(true);
+$("btn-salvar-leit").onclick = async ()=>{
+  const v=id=>$(id).value.trim();
+  const dados = {data:S.date, celebracao:v("l-cel"), cor:S.leit?.cor||"",
+    primeira:{ref:v("l1-ref"),titulo:v("l1-tit"),texto:v("l1-txt")}, salmo:{ref:v("sl-ref"),refrao:v("sl-ref2")},
+    segunda: v("l2-txt") ? {ref:v("l2-ref"),titulo:v("l2-tit"),texto:v("l2-txt")} : null,
+    evangelho:{ref:v("ev-ref"),titulo:v("ev-tit"),texto:v("ev-txt")}};
+  const {error} = await sb.from("leituras").upsert({data:S.date, fonte:"manual", dados});
+  if (error) setSt("st-salvar-leit", erroAmigavel(error), "err"); else { setSt("st-salvar-leit","Salvo.","ok"); aplicarLeituras({fonte:"manual", dados}); }
+};
+function preencherLeituras(){
+  const L = S.leit || {};
+  $("cel-nome").textContent = L.celebracao || "Leituras ainda não carregadas";
+  $("cor-chip").style.background = L.cor ? corHex(L.cor) : "transparent";
+  $("cel-refs").innerHTML = [L.primeira?.ref&&`1ª ${esc(L.primeira.ref)}`, L.salmo?.ref&&esc(L.salmo.ref), L.segunda?.ref&&`2ª ${esc(L.segunda.ref)}`, L.evangelho?.ref&&`Ev ${esc(L.evangelho.ref)}`, L.cor&&`cor ${esc(L.cor.toLowerCase())}`].filter(Boolean).map(x=>`<span>${x}</span>`).join("");
+  const set=(id,v)=>{ if (document.activeElement!==$(id)) $(id).value=v||""; };
+  set("l-cel",L.celebracao); set("l1-ref",L.primeira?.ref); set("l1-tit",L.primeira?.titulo); set("l1-txt",L.primeira?.texto);
+  set("sl-ref",L.salmo?.ref); set("sl-ref2",L.salmo?.refrao);
+  set("l2-ref",L.segunda?.ref); set("l2-tit",L.segunda?.titulo); set("l2-txt",L.segunda?.texto);
+  set("ev-ref",L.evangelho?.ref); set("ev-tit",L.evangelho?.titulo); set("ev-txt",L.evangelho?.texto);
+}
+
+/* ---------- importar PowerPoint ---------- */
+$("arq").addEventListener("change", async e=>{
+  const files=[...e.target.files]; e.target.value="";
+  if (!files.length || !S.editor) return;
+  $("imp-box").hidden=false; const st=$("st-imp"), bar=$("imp-bar"); st.className="status"; bar.style.width="0";
+  try{
+    const novos=[]; const existentes=new Set(S.songs.map(s=>s.id)); const ids=new Set();
+    for (const f of files){
+      if (!/\.pptx$/i.test(f.name)){ st.textContent=`“${f.name}” não é .pptx. No PowerPoint ou no Google Drive, salve como .pptx e importe de novo.`; st.className="status err"; continue; }
+      st.textContent=`Lendo “${f.name}”…`;
+      const cantos = cantosDe(await lerPptx(await f.arrayBuffer()), f.name);
+      for (const c of cantos){ if (existentes.has(c.id) || ids.has(c.id)) continue; ids.add(c.id); novos.push(c); }
+      st.textContent = `“${f.name}”: ${cantos.length} cantos encontrados.`;
+    }
+    if (!novos.length){ st.textContent += " Nada novo — esses cantos já estão no acervo."; bar.style.width="100%"; return; }
+    let feitos=0; const total=novos.length;
+    for (let i=0;i<novos.length;i+=150){
+      const lote = novos.slice(i,i+150).map(c=>({id:c.id, titulo:c.titulo, autor:c.autor||"", partes:c.partes, origem:c.origem}));
+      const {error} = await sb.from("musicas").upsert(lote);
+      if (error) throw error;
+      feitos += lote.length; bar.style.width = Math.round(feitos/total*100)+"%"; st.textContent = `Gravando… ${feitos} de ${total} cantos novos`;
+    }
+    st.textContent = `Pronto: ${feitos} cantos novos no acervo.`; st.className="status ok";
+    await carregarAcervo();
+  }catch(err){ st.className="status err"; st.textContent = err?.code ? erroAmigavel(err) : "Não consegui ler esse arquivo. Confira se é um .pptx válido."; }
+});
+
+/* ---------- login e equipe ---------- */
+function modoEdicao(){
+  document.body.classList.toggle("so-leitura", !S.editor);
+  ["texto","sep"].forEach(id=>$(id).disabled=!S.editor);
+  document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
+  $("tab-equipe").hidden = !S.editor;
+  $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
+  $("who").textContent = S.user ? S.user.email + (S.editor ? " · equipe" : "") : "";
+  if (!S.editor && $("tab-equipe").getAttribute("aria-selected")==="true") aba("montar");
+  montar();
+}
+function mostrarAviso(txt, botao, acao){
+  $("aviso").hidden = !txt; $("aviso-txt").textContent = txt||"";
+  $("aviso-btn").hidden = !botao; $("aviso-btn").textContent = botao||""; $("aviso-btn").onclick = acao||null;
+}
+async function verificarConta(){
+  const {data:{session}} = await sb.auth.getSession();
+  S.user = session?.user || null; S.editor = false;
+  if (S.user){
+    const {data} = await sb.from("editores").select("user_id").eq("user_id", S.user.id).maybeSingle();
+    S.editor = !!data;
+    if (!S.editor){
+      const {data:ped} = await sb.from("pedidos").select("user_id").eq("user_id", S.user.id).maybeSingle();
+      if (ped) mostrarAviso("Seu pedido de acesso foi enviado. Assim que alguém da equipe liberar, você poderá editar.");
+      else mostrarAviso("Você entrou, mas ainda não faz parte da equipe de edição.", "Pedir acesso", async ()=>{
+        const {error} = await sb.from("pedidos").insert({user_id:S.user.id, email:S.user.email});
+        mostrarAviso(error ? "Não consegui enviar o pedido. Tente de novo." : "Pedido enviado. Assim que alguém da equipe liberar, você poderá editar.");
+      });
+    } else { mostrarAviso(""); carregarEquipe(); }
+  } else mostrarAviso("");
+  modoEdicao();
+}
+$("btn-entrar").onclick = ()=>{ setSt("lg-st","",""); $("dlg-login").showModal(); };
+$("lg-fechar").onclick = ()=>$("dlg-login").close();
+$("btn-sair").onclick = async ()=>{ await sb.auth.signOut(); };
+$("login-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  setSt("lg-st","Entrando…","");
+  const {error} = await sb.auth.signInWithPassword({email:$("lg-email").value.trim().toLowerCase(), password:$("lg-senha").value});
+  if (error) setSt("lg-st", /invalid/i.test(error.message) ? "E-mail ou senha incorretos." : /confirm/i.test(error.message) ? "Esta conta ainda não foi confirmada por e-mail." : "Não consegui entrar: "+error.message, "err");
+  else $("dlg-login").close();
+});
+$("lg-criar").onclick = async ()=>{
+  const email=$("lg-email").value.trim().toLowerCase(), senha=$("lg-senha").value;
+  if (!email || senha.length<6){ setSt("lg-st","Preencha o e-mail e uma senha de pelo menos 6 caracteres.","err"); return; }
+  setSt("lg-st","Criando conta…","");
+  const {data, error} = await sb.auth.signUp({email, password:senha});
+  if (error) setSt("lg-st", /registered|exists/i.test(error.message) ? "Este e-mail já tem conta. Use “Entrar”." : "Não consegui criar a conta: "+error.message, "err");
+  else if (!data.session) setSt("lg-st","Conta criada. Confirme pelo link enviado ao seu e-mail e depois entre.","ok");
+  else $("dlg-login").close();
+};
+sb.auth.onAuthStateChange((ev)=>{ if (ev==="SIGNED_IN"||ev==="SIGNED_OUT"||ev==="USER_UPDATED") setTimeout(verificarConta,0); });
+
+async function carregarEquipe(){
+  if (!S.editor) return;
+  const [p, q] = await Promise.all([sb.from("pedidos").select("*").order("criado"), sb.from("editores").select("*").order("criado")]);
+  const ped=$("pedidos"); ped.innerHTML="";
+  (p.data||[]).forEach(r=>{ const li=document.createElement("li"); li.innerHTML=`<span>${esc(r.email)}<br><span class="hint">pediu em ${new Date(r.criado).toLocaleDateString("pt-BR")}</span></span><span class="row"><button class="btn" type="button" data-rec="${esc(r.user_id)}">Recusar</button><button class="btn primary" type="button" data-lib="${esc(r.user_id)}" data-email="${esc(r.email)}">Liberar</button></span>`; ped.appendChild(li); });
+  if (!p.data?.length) ped.innerHTML=`<li><span class="hint">Nenhum pedido no momento. Peça para a pessoa abrir o link, criar conta e tocar em “Pedir acesso”.</span></li>`;
+  const eq=$("equipe"); eq.innerHTML="";
+  (q.data||[]).forEach(r=>{ const li=document.createElement("li"); const eu=r.user_id===S.user.id; li.innerHTML=`<span>${esc(r.email)}${eu?' <span class="chip">você</span>':""}</span>${eu?"":`<button class="btn" type="button" data-rem="${esc(r.user_id)}">Remover</button>`}`; eq.appendChild(li); });
+}
+$("v-equipe").addEventListener("click", async e=>{
+  const lib=e.target.closest("[data-lib]"), rec=e.target.closest("[data-rec]"), rem=e.target.closest("[data-rem]");
+  if (lib){ const {error}=await sb.from("editores").insert({user_id:lib.dataset.lib, email:lib.dataset.email, aprovado_por:S.user.id}); if (!error) await sb.from("pedidos").delete().eq("user_id",lib.dataset.lib); }
+  if (rec) await sb.from("pedidos").delete().eq("user_id",rec.dataset.rec);
+  if (rem){ if (rem.dataset.arm!=="1"){ rem.dataset.arm="1"; rem.textContent="Confirmar remoção"; return; } await sb.from("editores").delete().eq("user_id",rem.dataset.rem); }
+  carregarEquipe();
+});
+
+/* ---------- abas e início ---------- */
+function aba(qual){
+  ["montar","acervo","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
+  if (qual==="equipe") carregarEquipe();
+}
+$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["acervo","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("texto").addEventListener("input", ()=>{ S.missa.texto = $("texto").value; montar(); salvarMissa(); });
+$("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("data").value); });
+
+function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
+(async function iniciar(){
+  aba(location.hash==="#acervo" ? "acervo" : "montar");
+  const q = new URLSearchParams(location.search).get("data");
+  $("data").value = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? q : proximoDomingo();
+  desenharAcervo(); modoEdicao();
+  await verificarConta();
+  carregarAcervo();
+  carregarData($("data").value);
+  sb.channel("acervo").on("postgres_changes",{event:"*",schema:"public",table:"musicas"}, recarregarAcervoEmBreve).subscribe();
+})();
+</script>
+</body>
+</html>
