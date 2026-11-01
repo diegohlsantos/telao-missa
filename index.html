@@ -111,7 +111,15 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .s-sub{margin:0 0 .25em}
 .sbox p{margin:0 0 .35em}
 .s-resp{color:var(--s-hc)}
-.s-strong{color:var(--s-hc);font-weight:700;font-size:1.25em}
+.s-strong{color:var(--s-hc);font-weight:700}
+.stage.med{position:fixed;left:-99999px;top:0;width:1600px;visibility:hidden;pointer-events:none}
+.sbox.full{inset:0}
+.capa-bar{position:absolute;left:0;right:0;top:0;height:9%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.62em;letter-spacing:.06em;text-transform:uppercase;color:var(--s-fg);padding:0 4%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.capa-img{position:absolute;left:0;right:0;top:9%;bottom:0}
+.capa-img img{width:100%;height:100%;object-fit:contain;display:block}
+.capa-img.cobrir img{object-fit:cover}
+.capa-frase{position:absolute;left:6%;right:6%;bottom:8%;text-align:center;font-family:"Fraunces",Georgia,serif;font-size:1.05em;line-height:1.2;color:#fff;text-shadow:0 0 .25em rgb(0 0 0 / .9),0 .05em .1em #000;text-wrap:balance}
+.capa-thumb{width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--sunk)}
 .s-lyr{white-space:pre-line;text-transform:var(--s-lt)}
 .capa-nome{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.9em;line-height:1.1;text-wrap:balance}
 .capa-data{color:var(--s-hc);margin-top:.6em;font-size:.8em;letter-spacing:.12em;text-transform:uppercase}
@@ -188,6 +196,22 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </div>
       <p class="status" id="st-leit" aria-live="polite"></p>
+      <details class="leit" id="det-capa">
+        <summary>Imagem de capa <span class="hint" id="capa-resumo" style="font-weight:400"></span></summary>
+        <div class="field" style="margin-top:12px;gap:10px">
+          <p class="hint">O primeiro slide da missa. Envie a imagem com o contexto do Evangelho (ou cole uma imagem copiada com Ctrl+V aqui). Sem imagem, a capa mostra o nome da celebração.</p>
+          <img class="capa-thumb" id="capa-thumb" alt="Imagem de capa desta missa" hidden>
+          <div class="row editar">
+            <label class="btn" for="capa-arq">Escolher imagem</label>
+            <input type="file" id="capa-arq" accept="image/*" hidden>
+            <button class="btn" type="button" id="capa-rem" hidden>Remover imagem</button>
+            <span class="status" id="st-capa" aria-live="polite"></span>
+          </div>
+          <label class="label" for="c-capa_frase">Frase sobre a imagem (opcional)</label>
+          <input type="text" id="c-capa_frase" placeholder="Ex.: Felizes os que promovem a paz">
+          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-capa_cobrir"> imagem ocupa a tela toda (pode cortar as bordas)</label>
+        </div>
+      </details>
       <details class="leit" id="det-leit">
         <summary>Ver ou corrigir as leituras</summary>
         <div class="leit-grid">
@@ -480,6 +504,52 @@ function separarTitulo(l){
   if (!titulo){ const m = texto.match(/^(Leitura d[aoe][^–—\n]{4,140}?)\s*[–—-]\s+/); if (m){ titulo=m[1].trim(); texto=texto.slice(m[0].length);} }
   return {...l, titulo:titulo||"", texto};
 }
+/* ---------------- Tamanho fixo + paginação ---------------- */
+const MED = document.createElement("div"); MED.className = "stage med"; MED.setAttribute("aria-hidden","true"); MED.innerHTML = '<div class="sbox"></div>';
+document.body.appendChild(MED);
+const cacheCabe = new Map();
+function tamanhoBase(H){ return H * 0.055 * ((S.layout?.escala || 100) / 100); }
+function cabe(html, mid){
+  const chave = (mid?"1":"0") + JSON.stringify(S.layout||{}) + html;
+  if (cacheCabe.has(chave)) return cacheCabe.get(chave);
+  const box = MED.firstChild; box.className = "sbox" + (mid ? " mid" : ""); box.style.fontSize = tamanhoBase(MED.clientHeight) + "px"; box.innerHTML = html;
+  const ok = box.scrollHeight <= box.clientHeight + 1;
+  if (cacheCabe.size > 4000) cacheCabe.clear(); cacheCabe.set(chave, ok); return ok;
+}
+// units: [{t, sep}] já em texto puro; montar(us) devolve o html do corpo
+function paginar({head="", tail="", units, corpo, headSempre=false, mid=false}){
+  const juntar = us => us.map((u,i)=> (i ? u.sep : "") + u.t).join("");
+  const html = (us, primeira, ultima) => (primeira||headSempre ? head : "") + (us.length ? corpo(juntar(us)) : "") + (ultima ? tail : "");
+  const pags = []; let cur = [];
+  for (const u of units){
+    const tenta = [...cur, u];
+    if (!cur.length || cabe(html(tenta, !pags.length, false), mid)) cur = tenta;
+    else { pags.push(cur); cur = [u]; }
+  }
+  if (cur.length && tail && !cabe(html(cur, !pags.length, true), mid)){
+    // leva a(s) última(s) frase(s) junto com a resposta final, para ela nunca ficar sozinha
+    const leva = [cur.pop()];
+    while (cur.length && cabe(html([cur[cur.length-1], ...leva], false, true), mid) && leva.length < 2) leva.unshift(cur.pop());
+    if (cur.length) pags.push(cur);
+    cur = leva.map((u,i)=> i ? u : {...u});
+  }
+  pags.push(cur);
+  return pags.map((us,i)=>html(us, i===0, i===pags.length-1));
+}
+function unidadesTexto(texto){ return texto.replace(/\n+/g," ").split(/(?<=[.!?;:”"’])\s+/).filter(Boolean).map(t=>({t, sep:" "})); }
+function unidadesLetra(partes, head){
+  const us = [];
+  partes.forEach((p, pi)=>{
+    String(p).split(/\n\s*\n/).forEach((estrofe, ei)=>{
+      const sep = us.length ? "\n\n" : "";
+      if (cabe(head + `<div class="s-lyr">${esc(estrofe)}</div>`, false)) us.push({t:estrofe, sep});
+      else estrofe.split("\n").forEach((l,li)=>us.push({t:l, sep: li ? "\n" : sep}));
+    });
+    if (us.length) us[us.length-1].fimParte = true;
+  });
+  return us;
+}
+
 function pedacos(texto, primeiro, demais){
   const frases = texto.replace(/\n+/g," ").split(/(?<=[.!?;:”"’])\s+/);
   const out=[]; let cur=""; let lim=primeiro;
@@ -494,13 +564,10 @@ function slidesLeitura(nome, l, resp, evangelho){
   if (!l || !l.texto) return [];
   const head = `<div class="s-head"><span class="s-title">${esc(nome)}</span>${l.ref?`<span class="s-ref">(${esc(l.ref)})</span>`:""}</div>`;
   const out=[];
-  if (evangelho) out.push({html:`<div class="sbox mid">${head}</div>`, rotulo:"Evangelho — título", mid:true});
-  const parts = pedacos(l.texto, 330, 470);
-  parts.forEach((p,i)=>{
-    let h = (i===0 ? head + (l.titulo?`<p class="s-sub">${esc(l.titulo)}</p>`:"") : "") + `<p>${esc(p)}</p>`;
-    if (i===parts.length-1) h += `<p class="s-resp" style="margin-top:.6em">${resp}</p>`;
-    out.push({html:h, rotulo:`${nome.charAt(0)+nome.slice(1).toLowerCase()} ${i+1}/${parts.length}`});
-  });
+  if (evangelho) out.push({html:head, rotulo:"Evangelho — título", mid:true});
+  const pags = paginar({head: head + (l.titulo?`<p class="s-sub">${esc(l.titulo)}</p>`:""), tail:`<p class="s-resp" style="margin-top:.6em">${resp}</p>`,
+    units: unidadesTexto(l.texto), corpo: t=>`<p>${esc(t)}</p>`});
+  pags.forEach((h,i)=>out.push({html:h, rotulo:`${nome.charAt(0)+nome.slice(1).toLowerCase()} ${i+1}/${pags.length}`}));
   return out;
 }
 const CORES = {verde:"#2e8b3e", branco:"#f4f4f4", roxo:"#6b3fa0", vermelho:"#c0262d", rosa:"#e58bb5", preto:"#555", dourado:"#d4a017", azul:"#2b6cb0"};
@@ -509,7 +576,7 @@ function corHex(c){ return CORES[norm(c).split(" ")[0]] || "transparent"; }
 /* ---------------- Campos fixos ---------------- */
 const CAMPOS_CANTO = MOMENTOS.filter(m=>m.kw && !m.texto).map(m=>m.id);
 const MULTI = new Set(["comunhao","acaodegracas"]);
-function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; return c; }
+function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; return c; }
 function camposDoTexto(texto){ // converte o formato antigo (texto livre)
   const c = camposVazios(); const {itens, avisos} = interpretar(texto);
   for (const it of itens){
@@ -545,8 +612,8 @@ function desenharCampos(){
   }).join("");
 }
 function lerCampos(){
-  const c = camposVazios();
-  Object.keys(c).forEach(k=>{ const el=$("c-"+k); if (!el) return; c[k]=el.value; const el2=$("c-"+k+"__2"); if (el2 && el2.value.trim()) c[k] = (c[k]+"\n"+el2.value).trim(); });
+  const c = {...camposVazios(), ...(S.missa.campos||{})};
+  Object.keys(c).forEach(k=>{ const el=$("c-"+k); if (!el) return; if (el.type==="checkbox"){ c[k]=el.checked; return; } c[k]=el.value; const el2=$("c-"+k+"__2"); if (el2 && el2.value.trim()) c[k] = (c[k]+"\n"+el2.value).trim(); });
   return c;
 }
 function escreverCampos(c){
@@ -554,8 +621,12 @@ function escreverCampos(c){
   const put=(el,v)=>{ if (el && document.activeElement!==el && el.value!==v) el.value=v; };
   Object.keys(c).forEach(k=>{
     if (MULTI.has(k)){ const [a,...r]=String(c[k]||"").split("\n"); put($("c-"+k), a||""); put($("c-"+k+"__2"), r.join("; ")); }
+    else if ($("c-"+k)?.type==="checkbox") $("c-"+k).checked = !!c[k];
     else put($("c-"+k), c[k]);
   });
+  $("capa-thumb").hidden = !c.capa_url; if (c.capa_url) $("capa-thumb").src = c.capa_url; else $("capa-thumb").removeAttribute("src");
+  $("capa-rem").hidden = !c.capa_url;
+  $("capa-resumo").textContent = c.capa_url ? "· com imagem" : "· sem imagem";
 }
 
 /* ---------------- Montagem do roteiro ---------------- */
@@ -570,7 +641,11 @@ function montar(){
   // capa
   const nomeCel = (L && (L.celebracao)) || "";
   const dataTxt = S.date ? new Date(S.date+"T12:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}) : "";
-  if (nomeCel){
+  const cc = S.missa.campos || {};
+  if (cc.capa_url){
+    push("capa",[{html:`<div class="capa-bar">${esc(nomeCel || dataTxt)}</div><div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img src="${esc(cc.capa_url)}" alt=""></div>${cc.capa_frase?`<div class="capa-frase">${esc(cc.capa_frase)}</div>`:""}`, full:true, rotulo:"Capa"}]);
+    linhas.push({m:"capa", nome:"Capa", t:nomeCel || "Imagem de capa", s:cc.capa_frase || dataTxt, first:0});
+  } else if (nomeCel){
     push("capa",[{html:`<div class="capa-nome">${esc(nomeCel)}</div><div class="capa-data">${esc(dataTxt)}</div>${L.cor?`<div class="capa-cor" style="background:${corHex(L.cor)}"></div>`:""}`, mid:true, rotulo:"Capa"}]);
     linhas.push({m:"capa", nome:"Capa", t:nomeCel, s:dataTxt, first:0});
   }
@@ -588,7 +663,7 @@ function montar(){
     }
     if (mo.id==="avisos"){
       if (!avisos.length) continue;
-      push("avisos", avisos.map((a,i)=>({html:`<div class="s-head"><span class="s-title">Avisos</span></div><p style="font-size:1.15em">${esc(a)}</p>`, mid:true, rotulo:`Aviso ${i+1}`})));
+      push("avisos", avisos.map((a,i)=>({html:`<div class="s-head"><span class="s-title">Avisos</span></div><p>${esc(a)}</p>`, mid:true, rotulo:`Aviso ${i+1}`})));
       linhas.push({m:"avisos", nome:"Avisos", t:`${avisos.length} aviso${avisos.length>1?"s":""}`, s:avisos.join(" · "), first:start});
       continue;
     }
@@ -611,8 +686,15 @@ function montar(){
       const escolhido = fixo || cands[0]?.song || null;
       const st = slides.length + (sep && slides.length ? 1 : 0);
       if (escolhido){
-        const n = escolhido.partes.length;
-        push(mo.id, escolhido.partes.map((p,i)=>({html:`<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n>1?` (${i+1}/${n})`:""}</span>${escolhido.autor?`<span class="s-ref">${esc(escolhido.autor)}</span>`:""}</div><div class="s-lyr">${esc(p)}</div>`, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`})));
+        const cab = n => `<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n}</span>${escolhido.autor?`<span class="s-ref">${esc(escolhido.autor)}</span>`:""}</div>`;
+        const headMed = cab(" (9/9)");
+        const units = unidadesLetra(escolhido.partes, headMed);
+        // respeita as divisões originais quando cabem; senão quebra pela altura
+        const grupos = []; let g = [];
+        units.forEach(u=>{ g.push(u); if (u.fimParte){ grupos.push(g); g=[]; } }); if (g.length) grupos.push(g);
+        const pags = grupos.flatMap(gr=>paginar({head:headMed, units:gr.map((u,i)=>i?u:{...u, sep:""}), corpo:t=>`<div class="s-lyr">${esc(t)}</div>`, headSempre:true}).map(h=>h.slice(headMed.length)));
+        const n = pags.length;
+        push(mo.id, pags.map((corpo,i)=>({html: cab(n>1?` (${i+1}/${n})`:"") + corpo, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`})));
       }
       linhas.push({m:mo.id, nome:mo.nome, chave, q:it.q||it.raw, song:escolhido, cands, first:escolhido?st:null});
     });
@@ -673,8 +755,7 @@ $("sep").addEventListener("change", ()=>{ S.missa.separadores = $("sep").checked
 /* ---------------- Projeção ---------------- */
 function ajustar(box=$("sbox"), stage=$("stage")){
   const H = stage.clientHeight; if (!H) return;
-  const f = (S.layout?.escala || 100) / 100;
-  let lo = H*0.022, hi = H*(box.classList.contains("mid")?0.11:0.075)*f;
+  let lo = H*0.02, hi = tamanhoBase(H);
   box.style.fontSize = hi+"px";
   if (box.scrollHeight <= box.clientHeight+1) return;
   for (let i=0;i<14;i++){ const mid=(lo+hi)/2; box.style.fontSize=mid+"px"; if (box.scrollHeight <= box.clientHeight+1) lo=mid; else hi=mid; }
@@ -683,7 +764,7 @@ function ajustar(box=$("sbox"), stage=$("stage")){
 function mostrar(){
   const s = S.slides[S.idx]; const box = $("sbox");
   if (!s || S.black || s.blank){ box.innerHTML=""; box.className="sbox"; }
-  else { box.className = "sbox" + (s.mid ? " mid" : ""); box.innerHTML = s.html; }
+  else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
   ajustar();
   $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${s.rotulo}` : "";
 }
@@ -1054,7 +1135,7 @@ $("arq").addEventListener("change", async e=>{
 /* ---------- login e equipe ---------- */
 function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
-  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
+  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
@@ -1121,6 +1202,35 @@ $("v-equipe").addEventListener("click", async e=>{
   carregarEquipe();
 });
 
+/* ---------- imagem de capa ---------- */
+async function reduzirImagem(file){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((ok,ko)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=ko; i.src=url; });
+    const k = Math.min(1, 1920/Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas"); c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(r,"image/jpeg",0.88));
+  } finally { URL.revokeObjectURL(url); }
+}
+async function enviarCapa(file){
+  if (!S.editor || !file || !/^image\//.test(file.type)) return;
+  setSt("st-capa","Enviando imagem…","");
+  try{
+    const blob = await reduzirImagem(file);
+    const caminho = `${S.date}/${Date.now()}.jpg`;
+    const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg", upsert:false});
+    if (error) throw error;
+    const {data} = sb.storage.from("capas").getPublicUrl(caminho);
+    S.missa.campos = {...lerCampos(), capa_url:data.publicUrl};
+    escreverCampos(S.missa.campos); montar(); salvarMissa();
+    setSt("st-capa","Imagem enviada.","ok");
+  }catch(e){ setSt("st-capa", e?.statusCode==="403"||/policy|row-level/i.test(e?.message||"") ? "Sua conta não tem permissão para enviar imagens." : "Não consegui enviar a imagem. Tente de novo.", "err"); }
+}
+$("capa-arq").addEventListener("change", e=>{ const f=e.target.files[0]; e.target.value=""; enviarCapa(f); });
+$("det-capa").addEventListener("paste", e=>{ const f=[...(e.clipboardData?.files||[])].find(x=>/^image\//.test(x.type)); if (f){ e.preventDefault(); enviarCapa(f); } });
+$("capa-rem").onclick = ()=>{ if (!S.editor) return; S.missa.campos = {...lerCampos(), capa_url:""}; escreverCampos(S.missa.campos); montar(); salvarMissa(); setSt("st-capa","",""); };
+
 /* ---------- layout (slide mestre) ---------- */
 const FONTES = [
   ["Atkinson Hyperlegible","Atkinson Hyperlegible (muito legível)",true],["Arial","Arial",false],["Verdana","Verdana",false],
@@ -1143,7 +1253,7 @@ function carregarFonte(nome){
   fontesCarregadas.add(nome);
   const l = document.createElement("link"); l.rel="stylesheet";
   l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(nome).replace(/%20/g,"+")}:wght@400;700&display=swap`;
-  l.onload = ()=>{ if (!$("proj").hidden) ajustar(); if (!$("v-layout").hidden) previa(); };
+  l.onload = ()=>{ cacheCabe.clear(); document.fonts?.ready.then(()=>{ cacheCabe.clear(); montar(); if (!$("proj").hidden) mostrar(); }); };
   document.head.appendChild(l);
 }
 function aplicarLayout(L){
@@ -1160,7 +1270,8 @@ function aplicarLayout(L){
     "--s-sh":L.sombra?"0 0 .08em #000, 0 0 .08em #000, .03em .03em .06em #000":"none"};
   for (const [k,v] of Object.entries(vars)) r.setProperty(k, v);
   escreverControles(L);
-  if (!$("proj").hidden) ajustar();
+  montar();
+  if (!$("proj").hidden) mostrar();
   previa();
 }
 const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc"],
@@ -1195,7 +1306,7 @@ function slidesPrevia(){ const r = S.slides.filter(x=>!x.blank); return r.length
 function previa(){
   const lista = slidesPrevia(); pvIdx = Math.max(0, Math.min(pvIdx, lista.length-1));
   const s = lista[pvIdx], box = $("pv-box");
-  box.className = "sbox" + (s.mid ? " mid" : ""); box.innerHTML = s.html;
+  box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html;
   ajustar(box, $("pv-stage"));
   $("pv-rot").textContent = `${pvIdx+1}/${lista.length} · ${s.rotulo}`;
 }
@@ -1242,6 +1353,7 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
   desenharAcervo(); modoEdicao();
   await verificarConta();
   carregarLayout();
+  document.fonts?.ready.then(()=>{ cacheCabe.clear(); montar(); });
   carregarAcervo();
   carregarData($("data").value);
   sb.channel("acervo").on("postgres_changes",{event:"*",schema:"public",table:"musicas"}, recarregarAcervoEmBreve).subscribe();
