@@ -278,7 +278,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <div class="row" style="justify-content:space-between">
         <h2>Roteiro</h2>
         <div class="row">
-          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="sep" checked> tela preta entre momentos</label>
+          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="sep" checked> pausa entre momentos (papel de parede)</label>
         </div>
       </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
@@ -347,6 +347,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-texto">Texto</label><input type="color" id="ly-texto"><span></span>
         <label for="ly-titulo">Títulos</label><input type="color" id="ly-titulo"><span></span>
         <label for="ly-destaque">Respostas e refrões</label><input type="color" id="ly-destaque"><span></span>
+      </div>
+      <h3>Entre os momentos</h3>
+      <div class="ctl">
+        <span></span><label class="chk"><input type="checkbox" id="ly-papelParede"> mostrar a imagem de capa como papel de parede (em vez de tela preta)</label>
       </div>
       <h3>Fundo das orações eucarísticas</h3>
       <div class="ctl">
@@ -871,12 +875,18 @@ function aplicarFundo(stage, box, s){
 }
 function mostrar(){
   const s = S.slides[S.idx]; const box = $("sbox");
-  if (!s || S.black || s.blank){ box.innerHTML=""; box.className="sbox"; }
+  const cc = S.missa?.campos || {};
+  if (!s || S.black){ box.innerHTML=""; box.className="sbox"; }
+  else if (s.blank){
+    if (S.layout?.papelParede !== false && cc.capa_url){ box.className = "sbox full"; box.innerHTML = `<div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img class="fundo" src="${esc(cc.capa_url)}" alt=""><img class="frente" src="${esc(cc.capa_url)}" alt=""></div>`; }
+    else { box.innerHTML=""; box.className="sbox"; }
+  }
   else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
   aplicarFundo($("stage"), box, S.black ? null : s);
   ajustar();
   avisarPosicao();
-  $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${s.rotulo}` : "";
+  const rot = s && s.blank && box.classList.contains("full") ? "Papel de parede" : s?.rotulo;
+  $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${rot}` : "";
 }
 function ir(d){ S.black=false; S.idx = Math.max(0, Math.min(S.slides.length-1, S.idx+d)); mostrar(); }
 if (canal){
@@ -904,7 +914,8 @@ let wake=null, hudT=null;
 function avisarPosicao(){
   if (!MODO_TELAO || !canal) return;
   const s = S.slides[S.idx];
-  canal.postMessage({tipo:"pos", data:S.date, idx:S.idx, total:S.slides.length, rotulo: s ? s.rotulo : "", preta:S.black});
+  const papel = s && s.blank && $("sbox").classList.contains("full");
+  canal.postMessage({tipo:"pos", data:S.date, idx:S.idx, total:S.slides.length, rotulo: s ? (papel ? "Papel de parede" : s.rotulo) : "", preta:S.black});
 }
 function abrirProjecao(i=0){
   if (!S.slides.length) return;
@@ -1388,7 +1399,7 @@ const FONTES = [
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
 const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
-  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false,
+  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true,
   fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
@@ -1426,7 +1437,7 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","fundoOE"],
+const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","fundoOE"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
 const fmtCtl = {fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
