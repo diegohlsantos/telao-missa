@@ -143,6 +143,12 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .lista-eq li:first-child{border-top:0}
 .so-leitura .editar{display:none!important}
+.hist-mes{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+.hist-item{border-top:1px solid var(--line);padding:10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
+.hist-item .quando{font-weight:700;font-variant-numeric:tabular-nums}
+.hist-item .cel{color:var(--muted);font-size:.86rem}
+.hist-item .cts{grid-column:1/-1;font-size:.88rem;line-height:1.5}
+.hist-item .cts b{font-weight:700;color:var(--muted);font-size:.74rem;letter-spacing:.04em;text-transform:uppercase}
 body.modo-telao{padding:0;background:#000;overflow:hidden}
 body.modo-telao .wrap{display:none}
 .campos{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px 12px;align-items:start}
@@ -176,6 +182,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     <div class="auth">
       <nav class="tabs" role="tablist">
         <button role="tab" id="tab-montar" aria-selected="true">Montar a missa</button>
+        <button role="tab" id="tab-historico" aria-selected="false">Histórico</button>
         <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
         <button role="tab" id="tab-oracoes" aria-selected="false">Orações</button>
         <button role="tab" id="tab-layout" aria-selected="false">Layout</button>
@@ -193,8 +200,12 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     <div class="panel">
       <div class="row" style="align-items:flex-end">
         <div class="field" style="flex:1 1 160px">
-          <label class="label" for="data">Data da celebração</label>
-          <input type="date" id="data">
+          <label class="label" for="data">Data e horário da missa</label>
+          <div class="row" style="flex-wrap:nowrap;gap:8px">
+            <input type="date" id="data" style="flex:1 1 auto">
+            <select id="hora" aria-label="Horário da missa" style="width:auto;flex:none"></select>
+            <input type="time" id="hora-outro" hidden style="width:auto;flex:none" aria-label="Outro horário">
+          </div>
         </div>
         <button class="btn editar" id="btn-buscar" type="button">Buscar de novo</button>
       </div>
@@ -206,6 +217,11 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </div>
       <p class="status" id="st-leit" aria-live="polite"></p>
+      <div class="row editar" id="copiar-box" hidden>
+        <span class="hint">Mesma liturgia em outra missa:</span>
+        <select id="copiar-de" style="width:auto"></select>
+        <button class="btn" type="button" id="btn-copiar">Copiar cantos e capa</button>
+      </div>
       <details class="leit" id="det-capa">
         <summary>Imagem de capa <span class="hint" id="capa-resumo" style="font-weight:400"></span></summary>
         <div class="field" style="margin-top:12px;gap:10px">
@@ -308,6 +324,29 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     </div>
     <p class="hint" id="acervo-info"></p>
     <div class="songs" id="songs"></div>
+  </section>
+
+  <!-- ============ HISTÓRICO ============ -->
+  <section id="v-historico" class="grid" hidden style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between"><h2>Missas realizadas</h2><span class="hint" id="hist-info"></span></div>
+      <input type="search" id="hist-busca" placeholder="Buscar por canto ou celebração">
+      <div id="hist-lista"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div class="panel">
+        <h2>Cantos mais tocados</h2>
+        <div class="row"><label class="hint" for="hist-periodo">Período</label><select id="hist-periodo" style="width:auto"><option value="30">últimos 30 dias</option><option value="90" selected>últimos 3 meses</option><option value="365">último ano</option><option value="0">tudo</option></select></div>
+        <ol class="lista-eq" id="hist-top"></ol>
+      </div>
+      <div class="panel">
+        <h2>Horários da paróquia</h2>
+        <p class="hint">Usados para sugerir a próxima missa e separar cada celebração no histórico. Separe vários horários com vírgula.</p>
+        <div class="campos" id="agenda-campos" style="grid-template-columns:110px minmax(0,1fr)"></div>
+        <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="agenda-vigilia"> missa de sábado à noite usa a liturgia do domingo</label>
+        <div class="row editar"><button class="btn" type="button" id="agenda-salvar">Salvar horários</button><span class="status" id="st-agenda"></span></div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ ORAÇÕES ============ -->
@@ -870,7 +909,11 @@ function montar(){
     const ls = linhas.filter(l=>l.m===k);
     if (!ls.length){ el.textContent=""; el.className="match"; continue; }
     const falta = ls.some(l=>!l.song);
-    el.textContent = ls.map(l=>l.song ? "→ "+l.song.titulo+(l.song.autor?" · "+l.song.autor:"") : `não achei “${l.q}” no acervo`).join("   ");
+    el.textContent = ls.map(l=>{
+      if (!l.song) return `não achei “${l.q}” no acervo`;
+      const u = ultimaVez(l.song.id);
+      return "→ "+l.song.titulo+(l.song.autor?" · "+l.song.autor:"") + (u ? ` (tocado em ${u})` : "");
+    }).join("   ");
     el.className = "match " + (falta ? "miss" : "ok");
   }
   desenharRoteiro();
@@ -948,13 +991,13 @@ if (canal){
   canal.onmessage = ({data:m})=>{
     if (!m) return;
     if (MODO_TELAO){
-      if (m.tipo==="ir" && m.data && m.data!==S.date){ $("data").value=m.data; carregarData(m.data); S.idx=Math.max(0,m.idx|0); return; }
-      if (m.data && m.data!==S.date) return;
+      if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
+      if (m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))) return;
       if (m.tipo==="ir"){ S.black=false; S.idx=Math.max(0,m.idx|0); mostrar(); }
       else if (m.tipo==="passo") ir(m.d);
       else if (m.tipo==="preta"){ S.black=!S.black; mostrar(); }
       else if (m.tipo==="quem") avisarPosicao();
-    } else if (m.tipo==="pos" && m.data===S.date){
+    } else if (m.tipo==="pos" && m.data===S.date && (!m.hora || m.hora===S.hora)){
       mostrarDeixa(m.idx);
       $("ctl-telao").hidden = false;
       $("ctl-onde").textContent = `${m.preta?"TELA PRETA · ":""}slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
@@ -977,24 +1020,24 @@ function mostrarDeixa(idx){
   $("ctl-deixa-prox").textContent = prox ? "Próximo slide: " + prox : "";
   $("ctl-deixa-txt").scrollTop = 1e6;
 }
-$("ctl-ant").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:-1});
-$("ctl-prox").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, d:1});
-$("ctl-preta").onclick = ()=>canal?.postMessage({tipo:"preta", data:S.date});
+$("ctl-ant").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, hora:S.hora, d:-1});
+$("ctl-prox").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, hora:S.hora, d:1});
+$("ctl-preta").onclick = ()=>canal?.postMessage({tipo:"preta", data:S.date, hora:S.hora});
 let wake=null, hudT=null;
 function avisarPosicao(){
   if (!MODO_TELAO || !canal) return;
   const s = S.slides[S.idx];
   const papel = s && s.blank && $("sbox").classList.contains("full");
-  canal.postMessage({tipo:"pos", data:S.date, idx:S.idx, total:S.slides.length, rotulo: s ? (papel ? "Papel de parede" : s.rotulo) : "", preta:S.black});
+  canal.postMessage({tipo:"pos", data:S.date, hora:S.hora, idx:S.idx, total:S.slides.length, rotulo: s ? (papel ? "Papel de parede" : s.rotulo) : "", preta:S.black});
 }
 function abrirProjecao(i=0){
   if (!S.slides.length) return;
   if (!MODO_TELAO){
     // abre (ou reaproveita) a guia do telão e manda ir para o slide escolhido
-    const url = `${location.pathname}?data=${encodeURIComponent(S.date)}&telao=1&slide=${i}`;
-    if (janelaTelao && !janelaTelao.closed){ canal?.postMessage({tipo:"ir", data:S.date, idx:i}); janelaTelao.focus(); return; }
+    const url = `${location.pathname}?data=${encodeURIComponent(S.date)}&hora=${encodeURIComponent(S.hora)}&telao=1&slide=${i}`;
+    if (janelaTelao && !janelaTelao.closed){ canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); janelaTelao.focus(); return; }
     janelaTelao = window.open(url, "telao-missa");
-    if (janelaTelao){ $("ctl-telao").hidden = false; canal?.postMessage({tipo:"ir", data:S.date, idx:i}); return; }
+    if (janelaTelao){ $("ctl-telao").hidden = false; canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); return; }
     // navegador bloqueou a nova guia: projeta aqui mesmo
   }
   abrirLocal(i);
@@ -1265,11 +1308,14 @@ async function apagarCanto(song){
 /* ---------- missa do dia ---------- */
 let salvando=false, pendente=false, tSalvar=null, canalData=null;
 function salvarMissa(){ if (!S.editor) return; clearTimeout(tSalvar); tSalvar=setTimeout(execSalvar, 700); }
+function snapshotCantos(){
+  return (S.itens||[]).filter(l=>CAMPOS_CANTO.includes(l.m) && l.song).map(l=>({m:l.m, id:l.song.id, titulo:l.song.titulo, autor:l.song.autor||""}));
+}
 async function execSalvar(){
-  if (!S.date || !S.editor) return;
+  if (!S.date || !S.hora || !S.editor) return;
   if (salvando){ pendente=true; return; }
   salvando=true; setSt("st-missa","Salvando…","");
-  const {error} = await sb.from("missas").upsert({data:S.date, campos:S.missa.campos||camposVazios(), texto:"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
+  const {error} = await sb.from("missas").upsert({data:S.date, horario:S.hora, campos:S.missa.campos||camposVazios(), cantos:snapshotCantos(), texto:"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
   if (error) setSt("st-missa", erroAmigavel(error), "err"); else setSt("st-missa","Salvo — o telão de qualquer aparelho já mostra esta versão.","ok");
   salvando=false; if (pendente){ pendente=false; execSalvar(); }
 }
@@ -1288,7 +1334,7 @@ function aplicarLeituras(row){
 async function buscarLeituras(forcar){
   setSt("st-leit","Buscando a liturgia do dia…","");
   try{
-    const r = await fetch(`${SUPA_URL}/functions/v1/liturgia?data=${S.date}${forcar?"&forcar=1":""}`, {headers:{apikey:SUPA_KEY}});
+    const r = await fetch(`${SUPA_URL}/functions/v1/liturgia?data=${S.dataLit||S.date}${forcar?"&forcar=1":""}`, {headers:{apikey:SUPA_KEY}});
     const j = await r.json();
     if (!r.ok) throw new Error(j.erro || "falha");
     aplicarLeituras({fonte:j.fonte, dados:j.dados});
@@ -1296,31 +1342,79 @@ async function buscarLeituras(forcar){
     setSt("st-leit", (e?.message && e.message!=="falha" && !/fetch/i.test(e.message) ? e.message + ". " : "Não consegui buscar as leituras agora. ") + "Tente de novo ou cole os textos em “Ver ou corrigir as leituras”.", "err");
   }
 }
-async function carregarData(date){
-  S.date = date; try{ localStorage.setItem("telao-data", date); }catch{}
+S.agenda = {horarios:{"0":["09:00","19:00"],"3":["19:00"],"6":["19:00"]}, vigilia:true};
+const DIAS = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+function diaSemana(date){ return new Date(date+"T12:00").getDay(); }
+function horariosDoDia(date){ return (S.agenda.horarios[String(diaSemana(date))] || []).slice().sort(); }
+function somaDias(date, n){ const d=new Date(date+"T12:00"); d.setDate(d.getDate()+n); return d.toLocaleDateString("sv-SE"); }
+function dataLiturgica(date, hora){ return S.agenda.vigilia && diaSemana(date)===6 && hora >= "17:00" ? somaDias(date,1) : date; }
+function fmtMissa(date, hora){ const d=new Date(date+"T12:00"); return `${DIAS[d.getDay()].slice(0,3)}, ${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})} · ${hora.replace(":00","h").replace(":","h")}`; }
+function jaAconteceu(date, hora){ const agora=new Date(); const quando=new Date(`${date}T${hora}:00`); return quando.getTime() + 90*60000 < agora.getTime(); }
+function proximaMissa(){
+  const hoje = new Date().toLocaleDateString("sv-SE");
+  for (let i=0;i<15;i++){ const d=somaDias(hoje,i); for (const h of horariosDoDia(d)) if (!jaAconteceu(d,h)) return {date:d, hora:h}; }
+  return {date:hoje, hora:"19:00"};
+}
+function preencherHoras(date, hora){
+  const hs = horariosDoDia(date); if (hora && !hs.includes(hora)) hs.push(hora); hs.sort();
+  $("hora").innerHTML = hs.map(h=>`<option value="${h}">${h.endsWith(":00") ? h.slice(0,2)+"h" : h.replace(":","h")}</option>`).join("") + `<option value="outro">outro horário…</option>`;
+  if (hora) $("hora").value = hora;
+  $("hora-outro").hidden = true;
+}
+async function carregarData(date, hora){
+  if (!hora){ const hs = horariosDoDia(date); hora = hs.find(h=>!jaAconteceu(date,h)) || hs[hs.length-1] || "19:00"; }
+  S.date = date; S.hora = hora; S.dataLit = dataLiturgica(date, hora);
+  $("data").value = date; preencherHoras(date, hora);
+  try{ localStorage.setItem("telao-data", date); }catch{}
   S.leit = null; S.missa = {campos:camposVazios(), escolhas:{}}; escreverCampos(S.missa.campos); preencherLeituras(); montar();
   setSt("st-leit","Carregando…",""); setSt("st-missa","","");
   if (canalData){ sb.removeChannel(canalData); canalData=null; }
+  const lit = S.dataLit;
   const [m, l] = await Promise.all([
-    sb.from("missas").select("*").eq("data", date).maybeSingle(),
-    sb.from("leituras").select("*").eq("data", date).maybeSingle(),
+    sb.from("missas").select("*").eq("data", date).eq("horario", hora).maybeSingle(),
+    sb.from("leituras").select("*").eq("data", lit).maybeSingle(),
   ]);
-  if (S.date !== date) return;
+  if (S.date !== date || S.hora !== hora) return;
   aplicarMissa(m.data);
   if (l.data) aplicarLeituras(l.data); else buscarLeituras(false);
-  canalData = sb.channel("dia-"+date)
-    .on("postgres_changes",{event:"*",schema:"public",table:"missas",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.data) aplicarMissa(p.new); })
-    .on("postgres_changes",{event:"*",schema:"public",table:"leituras",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.data) aplicarLeituras(p.new); })
+  if (lit !== date) setSt("st-leit", "Missa antecipada: usa a liturgia de " + new Date(lit+"T12:00").toLocaleDateString("pt-BR",{weekday:"long", day:"numeric", month:"numeric"}) + ".", "ok");
+  preencherCopiar();
+  canalData = sb.channel("missa-"+date+"-"+hora)
+    .on("postgres_changes",{event:"*",schema:"public",table:"missas",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.horario===S.hora) aplicarMissa(p.new); })
+    .on("postgres_changes",{event:"*",schema:"public",table:"leituras",filter:`data=eq.${lit}`}, p=>{ if (p.new && p.new.data) aplicarLeituras(p.new); })
     .subscribe();
 }
+// missas com a mesma liturgia (sábado à noite + domingo) para copiar cantos e capa
+async function preencherCopiar(){
+  const lit = S.dataLit, cands = [];
+  for (const d of [somaDias(lit,-1), lit]) for (const h of horariosDoDia(d)) if (dataLiturgica(d,h)===lit && !(d===S.date && h===S.hora)) cands.push([d,h]);
+  if (!cands.length){ $("copiar-box").hidden = true; return; }
+  const {data} = await sb.from("missas").select("data,horario,campos").in("data", [...new Set(cands.map(c=>c[0]))]);
+  const ok = cands.filter(([d,h])=> (data||[]).some(r=>r.data===d && r.horario===h && Object.values(r.campos||{}).some(v=>v && v!==true && String(v).trim())));
+  $("copiar-box").hidden = !ok.length;
+  $("copiar-de").innerHTML = ok.map(([d,h])=>`<option value="${d}|${h}">${fmtMissa(d,h)}</option>`).join("");
+}
+$("btn-copiar").onclick = async ()=>{
+  if (!S.editor) return;
+  const [d,h] = $("copiar-de").value.split("|"); if (!d) return;
+  const {data} = await sb.from("missas").select("campos,escolhas,separadores").eq("data",d).eq("horario",h).maybeSingle();
+  if (!data) return;
+  aplicarMissa({...data}); S.missa.campos = {...S.missa.campos}; salvarMissa();
+  setSt("st-missa", `Copiado de ${fmtMissa(d,h)}. Ajuste o que for diferente.`, "ok");
+};
+$("hora").addEventListener("change", ()=>{
+  if ($("hora").value === "outro"){ $("hora-outro").hidden = false; $("hora-outro").focus(); return; }
+  carregarData($("data").value, $("hora").value);
+});
+$("hora-outro").addEventListener("change", ()=>{ if (/^\d\d:\d\d$/.test($("hora-outro").value)) carregarData($("data").value, $("hora-outro").value); });
 $("btn-buscar").onclick = ()=>buscarLeituras(true);
 $("btn-salvar-leit").onclick = async ()=>{
   const v=id=>$(id).value.trim();
-  const dados = {data:S.date, celebracao:v("l-cel"), cor:S.leit?.cor||"",
+  const dados = {data:S.dataLit||S.date, celebracao:v("l-cel"), cor:S.leit?.cor||"",
     primeira:{ref:v("l1-ref"),titulo:v("l1-tit"),texto:v("l1-txt")}, salmo:{ref:v("sl-ref"),refrao:v("sl-ref2")},
     segunda: v("l2-txt") ? {ref:v("l2-ref"),titulo:v("l2-tit"),texto:v("l2-txt")} : null,
     evangelho:{ref:v("ev-ref"),titulo:v("ev-tit"),texto:v("ev-txt")}};
-  const {error} = await sb.from("leituras").upsert({data:S.date, fonte:"manual", dados});
+  const {error} = await sb.from("leituras").upsert({data:S.dataLit||S.date, fonte:"manual", dados});
   if (error) setSt("st-salvar-leit", erroAmigavel(error), "err"); else { setSt("st-salvar-leit","Salvo.","ok"); aplicarLeituras({fonte:"manual", dados}); }
 };
 function preencherLeituras(){
@@ -1367,6 +1461,7 @@ function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
   document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #c-oe, #c-prefacio, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
   atualizarOeUI(S.missa.campos||{});
+  if (typeof desenharAgenda==="function") desenharAgenda();
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
   $("btn-entrar").hidden = !!S.user; $("btn-sair").hidden = !S.user;
@@ -1585,6 +1680,83 @@ async function carregarLayout(){
   sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); }).subscribe();
 }
 
+/* ---------- histórico ---------- */
+S.hist = [];
+function cantosDaMissa(r){
+  if (Array.isArray(r.cantos) && r.cantos.length) return r.cantos;
+  // missas salvas antes do histórico: reconstrói pelo acervo
+  const {itens} = doCampos({...camposVazios(), ...(r.campos||{})}); const cont = {};
+  return itens.map(it=>{
+    const k = cont[it.m] = (cont[it.m]??-1)+1; const chave = `${it.m}:${k}`;
+    const e = r.escolhas?.[chave];
+    const song = (e && typeof e==="object" && e.q===norm(it.q) && S.songById.get(e.id)) || candidatos(it.q, it.m)[0]?.song;
+    return song ? {m:it.m, id:song.id, titulo:song.titulo, autor:song.autor||""} : null;
+  }).filter(Boolean);
+}
+function ultimaVez(id){
+  for (const r of S.hist){ if (r.data===S.date && r.horario===S.hora) continue; if (!r.passada) continue; if (cantosDaMissa(r).some(c=>c.id===id)) return fmtMissa(r.data, r.horario).replace(/^.*?, /,""); }
+  return "";
+}
+async function carregarHistorico(){
+  const {data, error} = await sb.from("missas").select("data,horario,campos,cantos,escolhas").order("data",{ascending:false}).order("horario",{ascending:false}).limit(600);
+  if (error){ $("hist-info").textContent = "Não consegui abrir o histórico."; return; }
+  const datas = [...new Set((data||[]).map(r=>dataLiturgica(r.data, r.horario)))];
+  const cels = {};
+  for (let i=0;i<datas.length;i+=100){
+    const {data:ls} = await sb.from("leituras").select("data, celebracao:dados->>celebracao").in("data", datas.slice(i,i+100));
+    (ls||[]).forEach(l=>cels[l.data]=l.celebracao);
+  }
+  S.hist = (data||[]).map(r=>({...r, cel: cels[dataLiturgica(r.data, r.horario)]||"", passada: jaAconteceu(r.data, r.horario)}));
+  desenharHistorico(); montar();
+}
+function desenharHistorico(){
+  if (!$("hist-lista")) return;
+  const q = norm($("hist-busca").value);
+  const passadas = S.hist.filter(r=>r.passada).map(r=>({...r, cs: cantosDaMissa(r)})).filter(r=>r.cs.length || r.campos?.capa_url);
+  const lista = q ? passadas.filter(r=>norm(r.cel).includes(q) || r.cs.some(c=>norm(c.titulo+" "+c.autor).includes(q))) : passadas;
+  $("hist-info").textContent = passadas.length ? `${lista.length} missa${lista.length===1?"":"s"}` : "";
+  let mesAtual = "", html = "";
+  for (const r of lista){
+    const mes = new Date(r.data+"T12:00").toLocaleDateString("pt-BR",{month:"long", year:"numeric"});
+    if (mes!==mesAtual){ html += `<div class="hist-mes">${esc(mes)}</div>`; mesAtual = mes; }
+    const cts = r.cs.map(c=>`<b>${esc(MOM[c.m]?.nome||c.m)}</b> ${esc(c.titulo)}`).join(" · ") || `<span class="hint">Sem cantos registrados.</span>`;
+    html += `<div class="hist-item"><div><span class="quando">${esc(fmtMissa(r.data, r.horario))}</span> <span class="cel">${esc(r.cel)}</span></div><button class="go" type="button" data-abrir="${r.data}|${r.horario}">Abrir</button><div class="cts">${cts}</div></div>`;
+  }
+  $("hist-lista").innerHTML = html || `<div class="empty">${passadas.length ? "Nenhuma missa com esse canto ou celebração." : "As missas aparecem aqui depois que acontecem, com os cantos que foram projetados."}</div>`;
+  // mais tocados
+  const dias = +$("hist-periodo").value, limite = dias ? Date.now() - dias*86400000 : 0, cont = new Map();
+  for (const r of passadas){
+    if (new Date(r.data+"T12:00").getTime() < limite) continue;
+    for (const c of r.cs){ const e = cont.get(c.id) || {c, n:0, ult:r}; e.n++; cont.set(c.id, e); }
+  }
+  const top = [...cont.values()].sort((a,b)=>b.n-a.n || a.c.titulo.localeCompare(b.c.titulo)).slice(0,15);
+  $("hist-top").innerHTML = top.map(e=>`<li><span>${esc(e.c.titulo)}${e.c.autor?` <span class="hint">· ${esc(e.c.autor)}</span>`:""}<br><span class="hint">última vez: ${esc(fmtMissa(e.ult.data, e.ult.horario))}</span></span><span class="chip">${e.n}×</span></li>`).join("") || `<li><span class="hint">Nenhum canto no período.</span></li>`;
+}
+$("hist-busca").addEventListener("input", desenharHistorico);
+$("hist-periodo").addEventListener("change", desenharHistorico);
+$("hist-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-abrir]"); if (!b) return; const [d,h]=b.dataset.abrir.split("|"); aba("montar"); carregarData(d,h); });
+function desenharAgenda(){
+  $("agenda-campos").innerHTML = [0,3,6,1,2,4,5].map(d=>`<label class="mom" for="ag-${d}">${DIAS[d]}</label><input type="text" id="ag-${d}" placeholder="sem missa" value="${esc((S.agenda.horarios[String(d)]||[]).join(", "))}">`).join("");
+  $("agenda-vigilia").checked = !!S.agenda.vigilia;
+  document.querySelectorAll("#agenda-campos input, #agenda-vigilia").forEach(el=>el.disabled=!S.editor);
+}
+$("agenda-salvar").onclick = async ()=>{
+  if (!S.editor) return;
+  const horarios = {};
+  for (let d=0; d<7; d++){
+    const v = ($("ag-"+d).value||"").split(/[,;\s]+/).map(x=>x.trim().replace(/^(\d)(?=:)/,"0$1").replace(/^(\d\d)h?$/,"$1:00").replace(/h/,":")).filter(x=>/^[0-2]\d:[0-5]\d$/.test(x));
+    if (v.length) horarios[String(d)] = [...new Set(v)].sort();
+  }
+  S.agenda = {horarios, vigilia:$("agenda-vigilia").checked};
+  const {error} = await sb.from("config").upsert({id:"agenda", valor:S.agenda});
+  setSt("st-agenda", error ? erroAmigavel(error) : "Salvo.", error?"err":"ok"); desenharAgenda(); preencherHoras(S.date, S.hora);
+};
+async function carregarAgenda(){
+  const {data} = await sb.from("config").select("valor").eq("id","agenda").maybeSingle();
+  if (data?.valor?.horarios) S.agenda = data.valor;
+  desenharAgenda();
+}
+
 /* ---------- aba Orações ---------- */
 let orSel = "II";
 function desenharOracoes(){
@@ -1624,14 +1796,15 @@ $("or-padrao").onclick = ()=>{ if (!S.editor) return; $("or-ac").value = OES_PAD
 
 /* ---------- abas e início ---------- */
 function aba(qual){
-  ["montar","acervo","oracoes","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  ["montar","historico","acervo","oracoes","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
   if (qual==="layout") previa();
+  if (qual==="historico") carregarHistorico();
   if (qual==="oracoes"){ if (S.missa?.campos?.oe && OES_PADRAO[S.missa.campos.oe]) orSel = S.missa.campos.oe; desenharOracoes(); }
 }
-$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-equipe").onclick=()=>aba("equipe");
-window.addEventListener("hashchange", ()=>aba(["acervo","oracoes","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-historico").onclick=()=>aba("historico"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["historico","acervo","oracoes","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
@@ -1653,16 +1826,17 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
     $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
     try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   }
-  aba(["acervo","oracoes","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
-  const q = new URLSearchParams(location.search).get("data");
-  $("data").value = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? q : proximoDomingo();
+  aba(["historico","acervo","oracoes","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
   desenharAcervo(); modoEdicao();
-  await verificarConta();
+  await Promise.all([verificarConta(), carregarAgenda()]);
+  const q = PARAMS.get("data"), qh = PARAMS.get("hora");
+  const alvo = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? {date:q, hora:/^\d\d:\d\d$/.test(qh||"") ? qh : null} : proximaMissa();
   carregarLayout();
   carregarOracoes();
   document.fonts?.ready.then(()=>{ cacheCabe.clear(); montar(); });
   carregarAcervo();
-  carregarData($("data").value);
+  carregarData(alvo.date, alvo.hora);
+  if (!MODO_TELAO) carregarHistorico();
   sb.channel("acervo").on("postgres_changes",{event:"*",schema:"public",table:"musicas"}, recarregarAcervoEmBreve).subscribe();
 })();
 </script>
