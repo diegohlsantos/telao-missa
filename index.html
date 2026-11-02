@@ -25,6 +25,11 @@
   --accent:#7eb0e3; --accent-ink:#0d1622; --gold:#e5b443; --gold-soft:#2b2412; --ok:#6cc495; --warn:#f08a62; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.musicos{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:14px 0 4px}
+.grav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.grav input[type=url]{flex:1 1 200px;min-width:0}
+.grav input.ini{width:6.5em;flex:none}
+.grav .chip.ok{border-color:#2e7d4f;color:#2e7d4f}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
 button,input,textarea,select{font:inherit;color:inherit}
@@ -143,6 +148,33 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .lista-eq li:first-child{border-top:0}
 .so-leitura .editar{display:none!important}
+#controle{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgb(0 0 0 / .14);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.ctl-in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.ctl-linha{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.ctl-estado{display:flex;gap:10px;align-items:center;min-width:0;flex:1 1 260px}
+.ctl-noar{font-weight:700;overflow-wrap:anywhere}
+.ctl-bts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctl-bts .btn{padding:9px 14px}
+.ctl-caixa{display:flex;flex-direction:column;gap:4px;background:var(--sunk);border-radius:8px;padding:8px 12px}
+.badge{font-size:.72rem;font-weight:700;letter-spacing:.08em;border-radius:6px;padding:6px 9px;white-space:nowrap;flex:none}
+.badge.preta{background:#111;color:#fff;box-shadow:0 0 0 2px #e5484d}
+.badge.cong{background:#1d4ed8;color:#fff}
+.badge.ora{background:var(--gold-soft);color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.btn.ligado{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.ctl-menu{position:relative}
+.menu{position:absolute;bottom:calc(100% + 6px);right:0;min-width:260px;max-width:min(360px,90vw);max-height:50vh;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgb(0 0 0 / .2);padding:6px;display:flex;flex-direction:column;gap:2px}
+.menu button{border:0;background:none;text-align:left;padding:9px 10px;border-radius:6px;cursor:pointer;font-weight:700}
+.menu button:hover,.menu button:focus-visible{background:var(--sunk)}
+.menu button:disabled{opacity:.5;cursor:not-allowed;font-weight:400}
+#yt-box iframe{width:192px;height:108px;border-radius:6px;display:block}
+ol.roteiro li{transition:background-color .25s}
+ol.roteiro li.feito{background:color-mix(in srgb,var(--ok) 9%,transparent)}
+ol.roteiro li.feito .mom{color:var(--ok)}
+ol.roteiro li.feito .mom::before{content:"✓ "}
+ol.roteiro li.noar{background:color-mix(in srgb,var(--ok) 20%,transparent);box-shadow:inset 4px 0 0 var(--ok)}
+ol.roteiro li.noar .mom{color:var(--ok)}
+.noar-tag{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--ok);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.campo-noar input{box-shadow:0 0 0 2px var(--ok)}
 .hist-mes{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
 .hist-item{border-top:1px solid var(--line);padding:10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
 .hist-item .quando{font-weight:700;font-variant-numeric:tabular-nums}
@@ -238,6 +270,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
           <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-capa_cobrir"> imagem ocupa a tela toda (pode cortar as bordas)</label>
         </div>
       </details>
+      <div class="row">
+        <label class="hint" for="c-evangelho_modo">Evangelho no telão</label>
+        <select id="c-evangelho_modo" style="width:auto"><option value="">Padrão do Layout</option><option value="titulo">Só o título</option><option value="texto">Título e texto</option></select>
+      </div>
       <details class="leit" id="det-leit">
         <summary>Ver ou corrigir as leituras</summary>
         <div class="leit-grid">
@@ -257,6 +293,11 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </details>
 
+      <div class="musicos" role="group" aria-labelledby="mus-q">
+        <span class="label" id="mus-q">Tem músicos hoje?</span>
+        <select id="c-musicos" style="width:auto"><option value="sim">Sim — os músicos tocam</option><option value="nao">Não — tocar gravações (YouTube ou MP3)</option></select>
+        <span class="hint" id="mus-hint" hidden>Cole o link de cada canto no roteiro ao lado. A música começa sozinha no controle remoto quando o slide do canto entra, e termina suave ao passar para outro momento.</span>
+      </div>
       <details class="leit" id="det-cantos" open>
         <summary>Cantos da celebração <span class="hint" id="cantos-resumo" style="font-weight:400"></span></summary>
         <div class="field" style="margin-top:12px">
@@ -275,6 +316,16 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
         <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-prefacio"> incluir o diálogo do Prefácio antes do Santo</label>
         <p class="hint" id="oe-atalho">Textos e aclamações das orações ficam na aba <a href="#oracoes" class="btn link">Orações</a>.</p>
+      </fieldset>
+      <fieldset class="bloco">
+        <legend class="label">Orações no roteiro</legend>
+        <ul class="lista-eq" id="orr-lista"></ul>
+        <div class="row editar">
+          <select id="orr-id" style="width:auto;flex:1 1 180px" aria-label="Oração"></select>
+          <select id="orr-depois" style="width:auto;flex:1 1 140px" aria-label="Depois de"></select>
+          <button class="btn" type="button" id="orr-add">Incluir</button>
+        </div>
+        <p class="hint">Ex.: Oração do dizimista depois do Ofertório. As orações são cadastradas na aba Orações.</p>
       </fieldset>
       <fieldset class="bloco">
         <legend class="label">Preces da assembleia</legend>
@@ -296,17 +347,8 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
-      <div class="aviso" id="ctl-deixa" hidden style="flex-direction:column;align-items:stretch;background:var(--sunk)">
-        <span class="label" id="ctl-deixa-tit"></span>
-        <span id="ctl-deixa-txt" style="max-height:9.5em;overflow:auto;font-size:.95rem;line-height:1.45"></span>
-        <span class="hint" id="ctl-deixa-prox"></span>
-      </div>
-      <div class="aviso" id="ctl-telao" hidden>
-        <span style="min-width:0"><b>Telão aberto em outra guia</b><br><span class="hint" id="ctl-onde">—</span></span>
-        <span class="row"><button class="btn" type="button" id="ctl-ant" aria-label="Slide anterior">◀</button><button class="btn" type="button" id="ctl-preta">Tela preta</button><button class="btn" type="button" id="ctl-prox" aria-label="Próximo slide">▶</button></span>
-      </div>
       <ol class="roteiro" id="roteiro"></ol>
-      <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>Esc</b> sai. Passadores de slide funcionam.</p>
+      <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>C</b> congelar, <b>Esc</b> sai. Passadores de slide funcionam.</p>
     </div>
   </section>
 
@@ -373,6 +415,26 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     </div>
   </section>
 
+  <section id="v-avulsas" class="grid" hidden style="grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);margin-top:-2px">
+    <div class="panel">
+      <h2>Outras orações</h2>
+      <p class="hint">Orações rezadas (Ato penitencial, Glória, Santo, Cordeiro), Renovação das promessas do batismo e orações da paróquia. Aparecem no botão <b>Orações</b> do controle remoto.</p>
+      <ul class="lista-eq" id="av-lista"></ul>
+      <button class="btn editar" type="button" id="av-nova">Nova oração</button>
+    </div>
+    <div class="panel">
+      <div class="field"><label class="label" for="av-tit">Título</label><input type="text" id="av-tit"></div>
+      <div class="field">
+        <label class="label" for="av-txt">Texto</label>
+        <textarea id="av-txt" rows="12" placeholder="Cole o texto da oração. Deixe uma linha em branco entre os blocos. Linhas que começam com “T.” ou “R.” (respostas do povo) aparecem em destaque; “P.” marca a fala do padre."></textarea>
+      </div>
+      <div class="row editar" style="justify-content:space-between">
+        <button class="btn" type="button" id="av-excluir">Excluir</button>
+        <span class="row"><span class="status" id="st-av"></span><button class="btn" type="button" id="av-ver">Ver no telão</button><button class="btn primary" type="button" id="av-salvar">Salvar</button></span>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ LAYOUT ============ -->
   <section id="v-layout" class="lay" hidden>
     <div class="panel">
@@ -417,6 +479,10 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-titulo">Títulos</label><input type="color" id="ly-titulo"><span></span>
         <label for="ly-destaque">Respostas e refrões</label><input type="color" id="ly-destaque"><span></span>
       </div>
+      <h3>Evangelho</h3>
+      <div class="ctl">
+        <span></span><label class="chk"><input type="checkbox" id="ly-evangelhoTexto"> projetar o texto do Evangelho (desligado: só o título com a referência)</label>
+      </div>
       <h3>Entre os momentos</h3>
       <div class="ctl">
         <span></span><label class="chk"><input type="checkbox" id="ly-papelParede"> mostrar a imagem de capa como papel de parede (em vez de tela preta)</label>
@@ -457,6 +523,40 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <ul class="lista-eq" id="equipe"></ul>
     </div>
   </section>
+</div>
+
+<div id="controle" hidden>
+  <div class="ctl-in">
+    <div class="ctl-linha">
+      <div class="ctl-estado">
+        <span class="badge" id="ctl-badge" hidden></span>
+        <div style="min-width:0"><div id="ctl-noar" class="ctl-noar">—</div><div class="hint" id="ctl-onde"></div></div>
+      </div>
+      <div class="ctl-bts">
+        <button class="btn" type="button" id="ctl-ant" aria-label="Slide anterior">◀</button>
+        <button class="btn primary" type="button" id="ctl-prox" aria-label="Próximo slide">▶</button>
+        <button class="btn" type="button" id="ctl-preta">Tela preta</button>
+        <button class="btn" type="button" id="ctl-congelar">Congelar</button>
+        <span class="ctl-menu"><button class="btn" type="button" id="ctl-oracoes" aria-expanded="false" aria-haspopup="true">Orações ▴</button><div class="menu" id="ctl-oracoes-menu" role="menu" hidden></div></span>
+        <button class="btn" type="button" id="ctl-voltar" hidden>Voltar ao roteiro</button>
+      </div>
+    </div>
+    <div id="ctl-deixa" class="ctl-caixa" hidden>
+      <span class="label" id="ctl-deixa-tit"></span>
+      <span id="ctl-deixa-txt" style="max-height:6.2em;overflow:auto;font-size:.95rem;line-height:1.45"></span>
+      <span class="hint" id="ctl-deixa-prox"></span>
+    </div>
+    <div id="player" class="ctl-caixa" hidden>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:12px">
+        <div style="display:flex;gap:12px;align-items:center;min-width:0">
+          <div id="yt-box" hidden><div id="yt"></div></div>
+          <div style="min-width:0"><span class="label">Gravação tocando</span><div id="pl-tit" style="font-weight:700;overflow-wrap:anywhere"></div><div class="hint" id="pl-st"></div></div>
+        </div>
+        <div class="row" style="flex:none"><button class="btn" type="button" id="pl-play">Pausar</button><button class="btn" type="button" id="pl-fade">Encerrar música</button></div>
+      </div>
+      <audio id="aud" preload="auto" hidden></audio>
+    </div>
+  </div>
 </div>
 
 <dialog id="dlg-login">
@@ -735,10 +835,34 @@ function deixas(id){
 function aclamacoes(id){ return S.oesAjustes[id] || OES_PADRAO[id]?.ac || []; }
 const PREFACIO = [["O Senhor esteja convosco.","Ele está no meio de nós."],["Corações ao alto.","O nosso coração está em Deus."],["Demos graças ao Senhor, nosso Deus.","É nosso dever e nossa salvação."]];
 
+/* ---------------- Orações avulsas ---------------- */
+function linhaOracao(l, st){ // st.resp: continua a fala do povo até aparecer outra marca
+  st = st || {};
+  const resp = l.match(/^\s*(T|R|Todos|Povo|Assembleia|Ass)\s*[.:]\s*(.*)$/i);
+  const pres = l.match(/^\s*(P|Pres|Presidente|Padre|S|Sac|Sacerdote|D|Diácono|L|Leitor)\s*[.:]\s*(.*)$/i);
+  if (resp) st.resp = true; else if (pres) st.resp = false;
+  const t = resp ? resp[2] : pres ? pres[2] : l;
+  return st.resp ? `<span class="s-resp">${esc(t)}</span>` : esc(t);
+}
+function slidesOracao(o){
+  const texto = String(o.texto||"").replace(/\r/g,"").trim(); if (!texto) return [];
+  const head = `<div class="s-head"><span class="s-title">${esc(o.titulo)}</span></div>`;
+  const units = [];
+  texto.split(/\n\s*\n/).forEach(par=>{
+    const st = {};
+    const html = `<p>${par.split("\n").map(l=>linhaOracao(l, st)).join("<br>")}</p>`;
+    const st2 = {};
+    if (cabe(head + html, false)) units.push({t:html, sep:""});
+    else par.split("\n").forEach(l=>units.push({t:`<p style="margin:0">${linhaOracao(l, st2)}</p>`, sep:""}));
+  });
+  const pags = paginar({head, units, corpo:t=>t, headSempre:true});
+  return pags.map((h,i)=>({html:h, rotulo:`${o.titulo}${pags.length>1?` ${i+1}/${pags.length}`:""}`, grupo:"oracao"}));
+}
+
 /* ---------------- Campos fixos ---------------- */
 const CAMPOS_CANTO = MOMENTOS.filter(m=>m.kw && !m.texto).map(m=>m.id);
 const MULTI = new Set(["comunhao","acaodegracas"]);
-function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; c.oe=""; c.misterio="0"; c.prefacio=true; return c; }
+function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; c.oe=""; c.misterio="0"; c.prefacio=true; c.evangelho_modo=""; c.musicos="sim"; c.grav={}; c.oracoes_roteiro=[]; return c; }
 function camposDoTexto(texto){ // converte o formato antigo (texto livre)
   const c = camposVazios(); const {itens, avisos} = interpretar(texto);
   for (const it of itens){
@@ -799,7 +923,144 @@ function escreverCampos(c){
   $("capa-rem").hidden = !c.capa_url;
   $("capa-resumo").textContent = c.capa_url ? "· com imagem" : "· sem imagem";
   atualizarOeUI(c);
+  $("mus-hint").hidden = c.musicos!=="nao";
 }
+
+function desenharOracoesRoteiro(){
+  if (!$("orr-lista")) return;
+  const lista = S.missa?.campos?.oracoes_roteiro || [];
+  $("orr-lista").innerHTML = lista.map((x,i)=>{ const o=(S.avulsas||[]).find(a=>a.id===x.id); const dep = x.depois==="inicio" ? "no início" : "depois de " + (MOM[x.depois]?.nome || x.depois);
+    return `<li><span>${esc(o?.titulo || "Oração removida")} <span class="hint">· ${esc(dep)}</span></span>${S.editor?`<button class="btn link" type="button" data-orr-rem="${i}">Remover</button>`:""}</li>`; }).join("") || `<li><span class="hint">Nenhuma oração extra nesta missa.</span></li>`;
+  $("orr-id").innerHTML = (S.avulsas||[]).map(o=>`<option value="${esc(o.id)}">${esc(o.titulo)}</option>`).join("");
+  if (!$("orr-depois").options.length) $("orr-depois").innerHTML = `<option value="inicio">No início</option>` + MOMENTOS.map(m=>`<option value="${m.id}">Depois de: ${esc(m.nome)}</option>`).join("");
+}
+
+/* ---------------- Gravações (missa sem músicos) ---------------- */
+function semMusicos(){ return (S.missa?.campos?.musicos || "sim") === "nao"; }
+function gravacaoDe(chave, song){
+  const g = S.missa?.campos?.grav?.[chave];
+  if (g && g.id===song.id) return g.url ? g : null;   // ajuste desta missa (url vazia = sem gravação)
+  return song.gravacao?.url ? song.gravacao : null;
+}
+function ytId(u){
+  const m = String(u||"").match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/); return m ? m[1] : null;
+}
+function ytInicio(u){ const m = String(u||"").match(/[?&](?:t|start)=(?:(\d+)m)?(\d+)s?/); return m ? (+(m[1]||0))*60 + (+m[2]) : 0; }
+function tipoGravacao(u){ return ytId(u) ? "youtube" : (/^https?:\/\//i.test(u||"") ? "audio" : null); }
+function fmtSeg(n){ n=+n||0; return n ? `${Math.floor(n/60)}:${String(n%60).padStart(2,"0")}` : ""; }
+function lerSeg(t){ t=String(t||"").trim(); if (!t) return 0; const m=t.match(/^(\d+):(\d{1,2})$/); return m ? (+m[1])*60+(+m[2]) : Math.max(0, parseInt(t,10)||0); }
+function linhaGravacao(it){
+  const g = gravacaoDe(it.chave, it.song);
+  const ed = S.editor ? "" : "disabled";
+  const st = g ? `<span class="chip ok">${g.tipo==="youtube"?"YouTube":"MP3"}${g.inicio?` · começa em ${fmtSeg(g.inicio)}`:""}</span>` : `<span class="chip miss">sem gravação</span>`;
+  return `<div class="grav" data-grav="${esc(it.chave)}" data-song="${esc(it.song.id)}">
+    <input type="url" class="url" placeholder="Link do YouTube ou de um MP3" value="${esc(g?.url||"")}" aria-label="Gravação de ${esc(it.song.titulo)}" ${ed}>
+    <input type="text" class="ini" placeholder="início 0:00" value="${esc(fmtSeg(g?.inicio))}" aria-label="Começar em (minuto:segundo)" ${ed}>
+    <label class="btn" style="cursor:pointer" ${S.editor?"":"hidden"}>MP3…<input type="file" accept="audio/*" hidden></label>
+    ${st}</div>`;
+}
+async function definirGravacao(chave, songId, g){
+  const song = S.songById.get(songId); if (!song || !S.editor) return;
+  S.missa.campos = {...lerCampos(), grav:{...(S.missa.campos.grav||{}), [chave]:{id:songId, ...g}}};
+  salvarMissa();
+  if (g.url){ // vira a gravação padrão do canto no acervo
+    song.gravacao = {tipo:g.tipo, url:g.url, inicio:g.inicio||0};
+    const {error} = await sb.from("musicas").update({gravacao:song.gravacao}).eq("id", songId);
+    if (error) setSt("st-missa", erroAmigavel(error), "err");
+  }
+  montar();
+}
+$("roteiro").addEventListener("change", async e=>{
+  const box = e.target.closest("[data-grav]"); if (!box || !S.editor) return;
+  const chave = box.dataset.grav, songId = box.dataset.song;
+  if (e.target.type==="file"){
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 40*1024*1024){ setSt("st-missa","Arquivo grande demais (máx. 40 MB).","err"); return; }
+    setSt("st-missa","Enviando o áudio…","");
+    const ext = (f.name.match(/\.(\w{2,4})$/)?.[1] || "mp3").toLowerCase();
+    const caminho = `${songId}/${Date.now()}.${ext}`;
+    const {error} = await sb.storage.from("audios").upload(caminho, f, {contentType:f.type||"audio/mpeg"});
+    if (error){ setSt("st-missa", erroAmigavel(error), "err"); return; }
+    const url = sb.storage.from("audios").getPublicUrl(caminho).data.publicUrl;
+    setSt("st-missa","Áudio enviado.","ok");
+    definirGravacao(chave, songId, {tipo:"audio", url, inicio:lerSeg(box.querySelector(".ini").value)});
+    return;
+  }
+  const url = box.querySelector(".url").value.trim();
+  const tipo = tipoGravacao(url);
+  if (url && !tipo){ setSt("st-missa","Esse link não parece do YouTube nem um arquivo de áudio.","err"); return; }
+  let inicio = lerSeg(box.querySelector(".ini").value);
+  if (e.target.classList.contains("url") && tipo==="youtube" && !inicio) inicio = ytInicio(url);
+  definirGravacao(chave, songId, {tipo, url, inicio});
+});
+
+/* player do controle remoto */
+const PL = {key:null, tipo:null, yt:null, ytPronto:null, fadeT:null, parado:false};
+function carregarYT(){
+  if (PL.ytPronto) return PL.ytPronto;
+  PL.ytPronto = new Promise(res=>{
+    window.onYouTubeIframeAPIReady = ()=>res(window.YT);
+    const sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; sc.onerror = ()=>res(null); document.head.appendChild(sc);
+  });
+  return PL.ytPronto;
+}
+function plStatus(t){ $("pl-st").textContent = t; }
+function pararTudo(){
+  clearInterval(PL.fadeT); PL.fadeT=null;
+  try{ PL.yt?.stopVideo?.(); }catch{}
+  const a=$("aud"); a.pause(); a.volume=1;
+  $("pl-play").textContent="Tocar"; PL.parado=true;
+}
+function fadeOut(seg=3, depois){
+  if (PL.fadeT || PL.parado){ depois?.(); return; }
+  const a=$("aud"); const passos = 20; let i=0;
+  const v0 = PL.tipo==="youtube" ? (PL.yt?.getVolume?.() ?? 100) : a.volume;
+  plStatus("Encerrando…");
+  PL.fadeT = setInterval(()=>{
+    i++; const v = v0 * (1 - i/passos);
+    try{ if (PL.tipo==="youtube") PL.yt?.setVolume?.(Math.max(0,v)); else a.volume = Math.max(0, v); }catch{}
+    if (i>=passos){ clearInterval(PL.fadeT); PL.fadeT=null; pararTudo(); try{ PL.yt?.setVolume?.(100); }catch{} plStatus("Encerrada"); if (PL.key===null && !depois){ $("player").hidden = true; ajustarRodape(); } depois?.(); }
+  }, seg*1000/passos);
+}
+async function tocar(g, key){
+  pararTudo(); PL.key = key; PL.tipo = g.tipo; PL.parado = false;
+  $("player").hidden = false; ajustarRodape();
+  $("pl-tit").textContent = g.titulo || "Canto"; plStatus("Carregando…"); $("pl-play").textContent="Pausar";
+  $("yt-box").hidden = g.tipo!=="youtube";
+  if (g.tipo==="youtube"){
+    const YT = await carregarYT(); if (PL.key!==key) return;
+    if (!YT){ plStatus("Não consegui abrir o YouTube. Confira a internet."); return; }
+    const id = ytId(g.url), start = Math.floor(g.inicio||0);
+    if (PL.yt && PL.yt.loadVideoById){ PL.yt.setVolume(100); PL.yt.loadVideoById({videoId:id, startSeconds:start}); }
+    else PL.yt = new YT.Player("yt", {width:192, height:108, videoId:id, playerVars:{autoplay:1, start, playsinline:1, rel:0},
+      events:{ onReady:ev=>{ ev.target.setVolume(100); ev.target.playVideo(); },
+               onStateChange:ev=>{ const st={1:"Tocando",2:"Pausada",0:"Terminou",3:"Carregando…"}[ev.data]; if (st && !PL.fadeT) plStatus(st); $("pl-play").textContent = ev.data===1 ? "Pausar" : "Tocar"; if (ev.data===1) PL.parado=false; },
+               onError:()=>plStatus("Esse vídeo não pode ser tocado aqui (o dono bloqueou ou foi removido).") }});
+  } else {
+    const a = $("aud"); a.src = g.url; a.volume = 1;
+    a.onloadedmetadata = ()=>{ if (g.inicio) a.currentTime = g.inicio; };
+    a.onplaying = ()=>{ plStatus("Tocando"); $("pl-play").textContent="Pausar"; PL.parado=false; };
+    a.onpause = ()=>{ if (!PL.fadeT) plStatus(a.ended?"Terminou":"Pausada"); $("pl-play").textContent="Tocar"; };
+    a.onerror = ()=>plStatus("Não consegui tocar esse arquivo.");
+    try{ await a.play(); }catch{ plStatus("Toque em Tocar para liberar o som neste navegador."); $("pl-play").textContent="Tocar"; }
+  }
+}
+function musicaPosicao(idx){
+  if (MODO_TELAO) return;
+  const s = idx==null ? null : S.slides[idx];
+  if (s && s.blank) return;                 // tela preta entre momentos: mantém como está
+  const key = s?.gravKey || null;
+  if (key === PL.key) return;
+  if (!key){ PL.key = null; fadeOut(3); return; }
+  const g = s.grav;
+  if (PL.key && !PL.parado) { PL.key = key; fadeOut(1.5, ()=>{ if (PL.key===key) tocar(g, key); }); }
+  else tocar(g, key);
+}
+$("pl-play").onclick = ()=>{
+  if (PL.tipo==="youtube" && PL.yt){ const st = PL.yt.getPlayerState?.(); if (st===1) PL.yt.pauseVideo(); else { PL.yt.setVolume(100); PL.yt.playVideo(); } return; }
+  const a=$("aud"); if (!a.src) return; if (a.paused){ a.volume=1; a.play().catch(()=>{}); } else a.pause();
+};
+$("pl-fade").onclick = ()=>fadeOut(3);
 
 /* ---------------- Montagem do roteiro ---------------- */
 function montar(){
@@ -821,7 +1082,19 @@ function montar(){
     push("capa",[{html:`<div class="capa-nome">${esc(nomeCel)}</div><div class="capa-data">${esc(dataTxt)}</div>${L.cor?`<div class="capa-cor" style="background:${corHex(L.cor)}"></div>`:""}`, mid:true, rotulo:"Capa"}]);
     linhas.push({m:"capa", nome:"Capa", t:nomeCel, s:dataTxt, first:0});
   }
+  const orRot = (S.missa?.campos?.oracoes_roteiro || []);
+  const inserirOracoes = depois => orRot.filter(x=>x.depois===depois).forEach(x=>{
+    const o = (S.avulsas||[]).find(a=>a.id===x.id); if (!o) return;
+    const st = slides.length + (sep && slides.length ? 1 : 0);
+    const arr = slidesOracao(o);
+    if (arr.length) push("oracao", arr);
+    linhas.push({m:"oracao", nome:"Oração", t:o.titulo, s: arr.length ? `${arr.length} slide${arr.length>1?"s":""}` : "sem texto — cole na aba Orações", first: arr.length ? st : null});
+  });
+  inserirOracoes("inicio");
+  let anterior = null;
   for (const mo of MOMENTOS){
+    if (anterior) inserirOracoes(anterior);
+    anterior = mo.id;
     const start = slides.length + (sep && slides.length ? 1 : 0);
     if (mo.leitura){
       if (!L) continue;
@@ -829,7 +1102,13 @@ function montar(){
       if (mo.id==="leitura1" && L.primeira?.texto){ arr = slidesLeitura("PRIMEIRA LEITURA", L.primeira, "Palavra do Senhor.<br>Graças a Deus."); t=L.primeira.ref; s=L.primeira.titulo; }
       if (mo.id==="salmo" && L.salmo?.refrao){ arr=[{html:`<div class="s-head"><span class="s-title">Salmo Responsorial</span>${L.salmo.ref?`<span class="s-ref">${esc(L.salmo.ref)}</span>`:""}</div><p class="s-strong" style="margin-top:.5em">${esc(L.salmo.refrao)}</p>`, rotulo:"Salmo", mid:false}]; t=L.salmo.ref; s=L.salmo.refrao; }
       if (mo.id==="leitura2" && L.segunda?.texto){ arr = slidesLeitura("SEGUNDA LEITURA", L.segunda, "Palavra do Senhor.<br>Graças a Deus."); t=L.segunda.ref; s=L.segunda.titulo; }
-      if (mo.id==="evangelho" && L.evangelho?.texto){ arr = slidesLeitura("EVANGELHO", L.evangelho, "Palavra da Salvação.<br>Glória a vós, Senhor.", true); t=L.evangelho.ref; s=L.evangelho.titulo; }
+      if (mo.id==="evangelho" && L.evangelho?.texto){
+        const cm = S.missa?.campos?.evangelho_modo || "";
+        const comTexto = cm==="texto" || (cm!=="titulo" && !!S.layout?.evangelhoTexto);
+        arr = slidesLeitura("EVANGELHO", L.evangelho, "Palavra da Salvação.<br>Glória a vós, Senhor.", true);
+        if (!comTexto) arr = arr.slice(0,1);
+        t=L.evangelho.ref; s=(comTexto ? "" : "só o título · ") + L.evangelho.titulo;
+      }
       if (arr.length){ push(mo.id, arr); linhas.push({m:mo.id, nome:mo.nome, t, s, first:start, leit:true, n:arr.length}); }
       continue;
     }
@@ -892,11 +1171,13 @@ function montar(){
         else { units.forEach(u=>{ g.push(u); if (u.fimParte){ grupos.push(g); g=[]; } }); if (g.length) grupos.push(g); }
         const pags = grupos.flatMap(gr=>paginar({head:headMed, units:gr.map((u,i)=>i?u:{...u, sep:""}), corpo:corpoLetra, headSempre:true}).map(h=>h.slice(headMed.length)));
         const n = pags.length;
-        push(mo.id, pags.map((corpo,i)=>({html: cab(n>1?` (${i+1}/${n})`:"") + corpo, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`})));
+        const gv = semMusicos() ? gravacaoDe(chave, escolhido) : null;
+        push(mo.id, pags.map((corpo,i)=>({html: cab(n>1?` (${i+1}/${n})`:"") + corpo, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`, ...(gv ? {gravKey:`${chave}|${escolhido.id}|${gv.url}`, grav:{...gv, titulo:escolhido.titulo}} : {})})));
       }
       linhas.push({m:mo.id, nome:mo.nome, chave, q:it.q||it.raw, song:escolhido, cands, first:escolhido?st:null});
     });
   }
+  if (anterior) inserirOracoes(anterior);
   const soltos = porMom._ || [];
   soltos.forEach(it=>linhas.push({m:null, nome:"?", q:it.raw, solto:true}));
   S.itens = linhas; S.slides = slides;
@@ -927,7 +1208,7 @@ function desenharRoteiro(){
     let what;
     if (it.solto){
       what = `<div class="t">${esc(it.q)}</div><div class="s">Não reconheci o momento. Comece a linha com “entrada:”, “comunhão:”…</div>`;
-    } else if (it.leit || it.m==="capa" || it.m==="avisos" || it.m==="preces"){
+    } else if (it.leit || ["capa","avisos","preces","oracao","prefacio","oe"].includes(it.m)){
       what = `<div class="t">${esc(it.t||"")}</div>${it.s?`<div class="s">${esc(it.s)}</div>`:""}`;
     } else if (it.song){
       const rot = s => `${s.titulo}${s.autor?" — "+s.autor:""} · “${s.partes[0].replace(/\s+/g," ").slice(0,38)}…”`;
@@ -935,13 +1216,16 @@ function desenharRoteiro(){
       const has = it.cands.some(c=>c.song.id===it.song.id);
       what = `<div class="t">${esc(it.song.titulo)} ${it.song.partes.length>1?`<span class="chip">${it.song.partes.length} slides</span>`:""}</div>
         <div class="s">${it.song.autor?esc(it.song.autor)+" · ":""}você escreveu “${esc(it.q)}”</div>
-        ${it.cands.length>1||!has?`<select data-chave="${esc(it.chave)}" aria-label="Trocar canto" ${S.editor?"":"disabled"}>${has?"":`<option value="${esc(it.song.id)}" selected>${esc(it.song.titulo)}</option>`}${opts}</select>`:""}`;
+        ${it.cands.length>1||!has?`<select data-chave="${esc(it.chave)}" aria-label="Trocar canto" ${S.editor?"":"disabled"}>${has?"":`<option value="${esc(it.song.id)}" selected>${esc(it.song.titulo)}</option>`}${opts}</select>`:""}
+        ${semMusicos() ? linhaGravacao(it) : ""}`;
     } else {
       what = `<div class="t">“${esc(it.q||"")}” <span class="chip miss">não achei no acervo</span></div><div class="s">Confira o nome ou cadastre o canto no acervo.</div>`;
     }
+    if (it.first!=null){ li.dataset.first = it.first; li.dataset.m = it.m || ""; }
     li.innerHTML = `<span class="mom ${it.leit?"leit":""}">${esc(it.nome)}</span><div class="what">${what}</div>${it.first!=null&&it.first!==undefined?`<button class="go" data-go="${it.first}" type="button">Projetar</button>`:"<span></span>"}`;
     ol.appendChild(li);
   }
+  if (S.ultimoIdx != null) marcarAndamento(S.ultimoIdx);
   $("btn-projetar").disabled = !S.slides.length;
   $("btn-projetar").textContent = S.slides.length ? `Projetar do início · ${S.slides.filter(s=>!s.blank).length} slides` : "Projetar do início";
 }
@@ -971,65 +1255,153 @@ function aplicarFundo(stage, box, s){
   else stage.style.background = "";
   box.classList.toggle("com-fundo", !!usa);
 }
-function mostrar(){
-  const s = S.slides[S.idx]; const box = $("sbox");
-  const cc = S.missa?.campos || {};
-  if (!s || S.black){ box.innerHTML=""; box.className="sbox"; }
+S.congelado = false; S.frozen = null; S.extra = null; S.avulsas = [];
+function slideOperador(){ return S.extra ? S.extra.slides[S.extra.idx] : S.slides[S.idx]; }
+function rotuloDe(s){
+  if (!s) return "";
+  if (s.blank) return (S.layout?.papelParede !== false && S.missa?.campos?.capa_url) ? "Papel de parede" : "Pausa";
+  return s.rotulo;
+}
+function renderSlide(s){
+  const box = $("sbox"); const cc = S.missa?.campos || {};
+  if (!s){ box.innerHTML=""; box.className="sbox"; }
   else if (s.blank){
     if (S.layout?.papelParede !== false && cc.capa_url){ box.className = "sbox full"; box.innerHTML = `<div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img class="fundo" src="${esc(cc.capa_url)}" alt=""><img class="frente" src="${esc(cc.capa_url)}" alt=""></div>`; }
     else { box.innerHTML=""; box.className="sbox"; }
   }
   else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
-  aplicarFundo($("stage"), box, S.black ? null : s);
+  aplicarFundo($("stage"), box, s && !s.blank ? s : null);
   ajustar();
-  avisarPosicao();
-  const rot = s && s.blank && box.classList.contains("full") ? "Papel de parede" : s?.rotulo;
-  $("hud-where").textContent = s ? `${S.idx+1}/${S.slides.length} · ${S.black?"TELA PRETA · ":""}${rot}` : "";
 }
-function ir(d){ S.black=false; S.idx = Math.max(0, Math.min(S.slides.length-1, S.idx+d)); mostrar(); }
+function mostrar(){
+  const op = slideOperador();
+  const visivel = S.black ? null : (S.congelado ? S.frozen : op);
+  renderSlide(visivel);
+  avisarPosicao();
+  const total = S.extra ? S.extra.slides.length : S.slides.length, pos = S.extra ? S.extra.idx : S.idx;
+  const estado = S.black ? "TELA PRETA · " : S.congelado ? "CONGELADO · " : "";
+  $("hud-where").textContent = op ? `${S.extra?"ORAÇÃO · ":""}${pos+1}/${total} · ${estado}${rotuloDe(op)}` : "";
+  if (!MODO_TELAO) aoPosicao(S.extra ? null : S.idx);
+}
+function ir(d){
+  if (S.extra) S.extra.idx = Math.max(0, Math.min(S.extra.slides.length-1, S.extra.idx+d));
+  else S.idx = Math.max(0, Math.min(S.slides.length-1, S.idx+d));
+  mostrar();
+}
+function alternarPreta(){ S.black = !S.black; mostrar(); }
+function alternarCongelar(){
+  if (!S.congelado){ S.frozen = slideOperador() || null; S.congelado = true; }
+  else { S.congelado = false; S.frozen = null; }
+  mostrar();
+}
+function abrirOracao(id){
+  const o = (S.avulsas||[]).find(x=>x.id===id); if (!o) return;
+  const sl = slidesOracao(o); if (!sl.length) return;
+  S.extra = {id, titulo:o.titulo, slides:sl, idx:0}; mostrar();
+}
+function voltarRoteiro(){ S.extra = null; mostrar(); }
 if (canal){
   canal.onmessage = ({data:m})=>{
     if (!m) return;
     if (MODO_TELAO){
-      if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
+      if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ S.extra=null; carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
       if (m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))) return;
-      if (m.tipo==="ir"){ S.black=false; S.idx=Math.max(0,m.idx|0); mostrar(); }
+      if (m.tipo==="ir"){ S.extra=null; S.idx=Math.max(0,m.idx|0); mostrar(); }
       else if (m.tipo==="passo") ir(m.d);
-      else if (m.tipo==="preta"){ S.black=!S.black; mostrar(); }
+      else if (m.tipo==="preta") alternarPreta();
+      else if (m.tipo==="congelar") alternarCongelar();
+      else if (m.tipo==="oracao") abrirOracao(m.id);
+      else if (m.tipo==="voltar") voltarRoteiro();
       else if (m.tipo==="quem") avisarPosicao();
     } else if (m.tipo==="pos" && m.data===S.date && (!m.hora || m.hora===S.hora)){
-      mostrarDeixa(m.idx);
-      $("ctl-telao").hidden = false;
-      $("ctl-onde").textContent = `${m.preta?"TELA PRETA · ":""}slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
-      $("ctl-preta").textContent = m.preta ? "Voltar a mostrar" : "Tela preta";
+      atualizarControle(m);
     }
   };
   if (!MODO_TELAO) setTimeout(()=>canal.postMessage({tipo:"quem"}), 800);
 }
+let ultimoPos = 0;
+function atualizarControle(m){
+  ultimoPos = Date.now();
+  $("controle").hidden = false; ajustarRodape();
+  const b = $("ctl-badge");
+  if (m.preta){ b.hidden=false; b.className="badge preta"; b.textContent="TELA PRETA"; }
+  else if (m.congelado){ b.hidden=false; b.className="badge cong"; b.textContent="CONGELADO"; }
+  else if (m.extra){ b.hidden=false; b.className="badge ora"; b.textContent="ORAÇÃO"; }
+  else b.hidden = true;
+  $("ctl-noar").textContent = "No telão: " + (m.noAr || "—");
+  const ondeOp = m.extra ? `Oração: ${m.extra.titulo} · ${m.extra.idx+1} de ${m.extra.total}` : `slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
+  $("ctl-onde").textContent = (m.preta || m.congelado) ? "Ao liberar, aparece: " + ondeOp : ondeOp;
+  $("ctl-preta").textContent = m.preta ? "Mostrar de novo" : "Tela preta"; $("ctl-preta").classList.toggle("ligado", !!m.preta);
+  $("ctl-congelar").textContent = m.congelado ? "Descongelar" : "Congelar"; $("ctl-congelar").classList.toggle("ligado", !!m.congelado);
+  $("ctl-voltar").hidden = !m.extra;
+  mostrarDeixa(m.extra ? null : m.idx);
+  aoPosicao(m.extra ? null : m.idx);
+}
+setInterval(()=>{ if (!MODO_TELAO && !$("controle").hidden && janelaTelao && janelaTelao.closed && Date.now()-ultimoPos > 6000){ $("controle").hidden = true; ajustarRodape(); } }, 3000);
+function ajustarRodape(){
+  const c = $("controle"); document.body.style.paddingBottom = c.hidden ? "" : (c.offsetHeight + 24) + "px";
+}
+if (window.ResizeObserver) new ResizeObserver(ajustarRodape).observe($("controle"));
+function mandar(tipo, extra){ canal?.postMessage({tipo, data:S.date, hora:S.hora, ...(extra||{})}); }
 function mostrarDeixa(idx){
-  const s = S.slides[idx], box = $("ctl-deixa");
-  if (!s || s.grupo!=="oe"){ box.hidden = true; return; }
+  const box = $("ctl-deixa"); const s = idx==null ? null : S.slides[idx];
+  if (!s || s.grupo!=="oe"){ box.hidden = true; ajustarRodape(); return; }
   box.hidden = false;
   const seg = S.slides[idx+1];
   const alvo = s.oeImagem ? s : (seg && seg.grupo==="oe" ? seg : null);
-  if (s.blank){ $("ctl-deixa-tit").textContent = "Pausa — a oração eucarística começa a seguir:"; }
   const prox = s.oeImagem ? s.proxima : (seg?.grupo==="oe" ? (seg.oeImagem ? "imagem (padre volta a rezar)" : seg.proxima) : "fim da oração eucarística");
-  if (!s.blank) $("ctl-deixa-tit").textContent = s.oeImagem ? "O padre está rezando — avance quando ele terminar:" : "No telão: resposta do povo. Próxima parte do padre:";
+  $("ctl-deixa-tit").textContent = s.blank ? "Pausa — a oração eucarística começa a seguir:" : s.oeImagem ? "O padre está rezando — avance quando ele terminar:" : "No telão: resposta do povo. Próxima parte do padre:";
   const d = alvo?.deixa || "";
-  $("ctl-deixa-txt").textContent = d ? (d.length > 420 ? "… " + d.slice(-420) : d) : "Cole o texto do padre em “Ajustar as aclamações desta oração” para acompanhar aqui.";
+  $("ctl-deixa-txt").textContent = d ? (d.length > 420 ? "… " + d.slice(-420) : d) : "Cole o texto do padre na aba Orações para acompanhar aqui.";
   $("ctl-deixa-prox").textContent = prox ? "Próximo slide: " + prox : "";
-  $("ctl-deixa-txt").scrollTop = 1e6;
+  $("ctl-deixa-txt").scrollTop = 1e6; ajustarRodape();
 }
-$("ctl-ant").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, hora:S.hora, d:-1});
-$("ctl-prox").onclick = ()=>canal?.postMessage({tipo:"passo", data:S.date, hora:S.hora, d:1});
-$("ctl-preta").onclick = ()=>canal?.postMessage({tipo:"preta", data:S.date, hora:S.hora});
+$("ctl-ant").onclick = ()=>mandar("passo",{d:-1});
+$("ctl-prox").onclick = ()=>mandar("passo",{d:1});
+$("ctl-preta").onclick = ()=>mandar("preta");
+$("ctl-congelar").onclick = ()=>mandar("congelar");
+$("ctl-voltar").onclick = ()=>mandar("voltar");
+$("ctl-oracoes").onclick = e=>{
+  e.stopPropagation(); const menu = $("ctl-oracoes-menu");
+  if (!menu.hidden){ menu.hidden = true; $("ctl-oracoes").setAttribute("aria-expanded","false"); return; }
+  const lista = S.avulsas || [];
+  menu.innerHTML = lista.length ? lista.map(o=>`<button type="button" role="menuitem" data-ora="${esc(o.id)}" ${o.texto?.trim()?"":"disabled title=\"Sem texto: cole na aba Orações\""}>${esc(o.titulo)}${o.texto?.trim()?"":" — sem texto"}</button>`).join("") : `<span class="hint" style="padding:8px">Cadastre orações na aba Orações.</span>`;
+  menu.hidden = false; $("ctl-oracoes").setAttribute("aria-expanded","true");
+};
+$("ctl-oracoes-menu").addEventListener("click", e=>{ const b=e.target.closest("[data-ora]"); if (!b) return; mandar("oracao",{id:b.dataset.ora}); $("ctl-oracoes-menu").hidden = true; $("ctl-oracoes").setAttribute("aria-expanded","false"); });
+document.addEventListener("click", e=>{ if (!e.target.closest(".ctl-menu")){ $("ctl-oracoes-menu").hidden = true; $("ctl-oracoes").setAttribute("aria-expanded","false"); } });
+
+/* ---------- andamento da missa no roteiro ---------- */
+S.ultimoIdx = null;
+function marcarAndamento(idx){
+  S.ultimoIdx = idx;
+  const lis = [...document.querySelectorAll("#roteiro li[data-first]")];
+  const ranges = lis.map(li=>({li, first:+li.dataset.first, m:li.dataset.m})).sort((a,b)=>a.first-b.first);
+  document.querySelectorAll(".campo-noar").forEach(el=>el.classList.remove("campo-noar"));
+  let atual = null;
+  ranges.forEach((r,i)=>{
+    const fim = i+1 < ranges.length ? ranges[i+1].first : S.slides.length;
+    r.li.classList.remove("feito","noar"); r.li.querySelector(".noar-tag")?.remove();
+    if (idx==null) return;
+    if (idx >= fim || (idx >= r.first && S.slides[idx]?.blank)) r.li.classList.add("feito");
+    else if (idx >= r.first){
+      r.li.classList.add("noar"); atual = r;
+      const total = S.slides.slice(r.first, fim).filter(x=>!x.blank).length, aqui = S.slides.slice(r.first, idx+1).filter(x=>!x.blank).length;
+      const t = r.li.querySelector(".mom"); if (t) t.insertAdjacentHTML("beforeend", `<span class="noar-tag">no telão${total>1?` ${aqui}/${total}`:""}</span>`);
+      const campo = $("c-"+r.m); if (campo) campo.closest("div")?.classList.add("campo-noar");
+    }
+  });
+  if (atual && atual.li !== S.liAtual){ S.liAtual = atual.li; atual.li.scrollIntoView({block:"nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); }
+}
+function aoPosicao(idx){ marcarAndamento(idx); if (typeof musicaPosicao === "function") musicaPosicao(idx); }
 let wake=null, hudT=null;
 function avisarPosicao(){
   if (!MODO_TELAO || !canal) return;
-  const s = S.slides[S.idx];
-  const papel = s && s.blank && $("sbox").classList.contains("full");
-  canal.postMessage({tipo:"pos", data:S.date, hora:S.hora, idx:S.idx, total:S.slides.length, rotulo: s ? (papel ? "Papel de parede" : s.rotulo) : "", preta:S.black});
+  const noAr = S.black ? "Tela preta" : rotuloDe(S.congelado ? S.frozen : slideOperador()) + (S.congelado ? " (congelado)" : "");
+  canal.postMessage({tipo:"pos", data:S.date, hora:S.hora, idx:S.idx, total:S.slides.length, rotulo: rotuloDe(S.slides[S.idx]), preta:S.black, congelado:S.congelado, noAr,
+    extra: S.extra ? {titulo:S.extra.titulo, idx:S.extra.idx, total:S.extra.slides.length} : null});
 }
+if (MODO_TELAO) setInterval(avisarPosicao, 4000);
 function abrirProjecao(i=0){
   if (!S.slides.length) return;
   if (!MODO_TELAO){
@@ -1037,13 +1409,13 @@ function abrirProjecao(i=0){
     const url = `${location.pathname}?data=${encodeURIComponent(S.date)}&hora=${encodeURIComponent(S.hora)}&telao=1&slide=${i}`;
     if (janelaTelao && !janelaTelao.closed){ canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); janelaTelao.focus(); return; }
     janelaTelao = window.open(url, "telao-missa");
-    if (janelaTelao){ $("ctl-telao").hidden = false; canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); return; }
+    if (janelaTelao){ canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); return; }
     // navegador bloqueou a nova guia: projeta aqui mesmo
   }
   abrirLocal(i);
 }
 function abrirLocal(i=0){
-  S.idx = Math.max(0,Math.min(i,S.slides.length-1)); S.black=false;
+  S.idx = Math.max(0,Math.min(i,S.slides.length-1)); S.extra = null;
   $("proj").hidden = false; document.body.style.overflow="hidden"; mostrar();
   try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   telaCheia(true);
@@ -1057,9 +1429,10 @@ document.addEventListener("keydown", e=>{
   const k = e.key;
   if (["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(k)){ e.preventDefault(); ir(1); }
   else if (["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(k)){ e.preventDefault(); ir(-1); }
-  else if (k==="b"||k==="B"||k==="."){ S.black=!S.black; mostrar(); }
-  else if (k==="Home"){ S.idx=0; S.black=false; mostrar(); }
-  else if (k==="End"){ S.idx=S.slides.length-1; mostrar(); }
+  else if (k==="b"||k==="B"||k==="."){ alternarPreta(); }
+  else if (k==="c"||k==="C"){ alternarCongelar(); }
+  else if (k==="Home"){ if (S.extra) S.extra.idx=0; else S.idx=0; mostrar(); }
+  else if (k==="End"){ if (S.extra) S.extra.idx=S.extra.slides.length-1; else S.idx=S.slides.length-1; mostrar(); }
   else if (k==="Escape"){ if (!document.fullscreenElement) fechar(); }
   else if (k==="f"||k==="F"){ telaCheia(true); }
 });
@@ -1271,7 +1644,7 @@ function erroAmigavel(e){
 
 /* ---------- acervo ---------- */
 function aplicarSongs(rows){
-  const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem}; indexar(s); return s; });
+  const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem, gravacao:r.gravacao||null}; indexar(s); return s; });
   all.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR"));
   S.songs = all; S.songById = new Map(all.map(s=>[s.id,s]));
   const nomes = [...new Set(all.map(s=>s.titulo + (s.autor ? " — " + s.autor : "")))];
@@ -1281,7 +1654,7 @@ function aplicarSongs(rows){
 async function carregarAcervo(){
   const rows=[]; const passo=1000;
   for (let i=0;;i+=passo){
-    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,origem").order("id").range(i, i+passo-1);
+    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,origem,gravacao").order("id").range(i, i+passo-1);
     if (error){ $("acervo-info").textContent="Não consegui abrir o acervo. Recarregue a página."; return; }
     rows.push(...data); if (data.length < passo) break;
   }
@@ -1294,7 +1667,7 @@ async function gravarCanto(song){
   const body = {id:song.id, titulo:song.titulo, autor:song.autor||"", partes:song.partes, origem:song.origem||"manual"};
   const {error} = await sb.from("musicas").upsert(body);
   if (error) throw error;
-  const s = {...body}; indexar(s);
+  const s = {...body, gravacao: S.songById.get(song.id)?.gravacao || null}; indexar(s);
   const i = S.songs.findIndex(x=>x.id===s.id); if (i>=0) S.songs[i]=s; else S.songs.push(s);
   S.songs.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR")); S.songById=new Map(S.songs.map(x=>[x.id,x]));
   desenharAcervo(); montar();
@@ -1324,6 +1697,7 @@ function aplicarMissa(d){
   const escolhas = {}; Object.entries(d?.escolhas||{}).forEach(([k,v])=>{ if (v && typeof v==="object") escolhas[k]=v; });
   S.missa = {campos:{...camposVazios(), ...campos}, escolhas, separadores:d?.separadores};
   escreverCampos(S.missa.campos);
+  desenharOracoesRoteiro(); if (typeof desenharGravacoes==="function") desenharGravacoes();
   if (d && typeof d.separadores==="boolean") $("sep").checked = d.separadores;
   montar();
 }
@@ -1459,7 +1833,7 @@ $("arq").addEventListener("change", async e=>{
 /* ---------- login e equipe ---------- */
 function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
-  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #c-oe, #c-prefacio, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
+  document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #c-oe, #c-prefacio, #c-evangelho_modo, #c-musicos, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
   atualizarOeUI(S.missa.campos||{});
   if (typeof desenharAgenda==="function") desenharAgenda();
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
@@ -1565,7 +1939,7 @@ const FONTES = [
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
 const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, margemV:3, espacoEstrofe:60, juntarPartes:true, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
-  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true, oeImagem:true,
+  negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true, oeImagem:true, evangelhoTexto:false,
   fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
@@ -1604,7 +1978,7 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","margemV","espacoEstrofe","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["juntarPartes","negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","fundoOE"],
+const CTL_NUM = ["margem","margemV","espacoEstrofe","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["juntarPartes","negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","evangelhoTexto","fundoOE"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
 const fmtCtl = {margemV:v=>v+"%", espacoEstrofe:v=>(v/100).toFixed(2).replace(".",",")+" linha", fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
@@ -1666,8 +2040,9 @@ function previa(){
   escreverControles(S.layout);
 })();
 async function carregarOracoes(){
-  const [a, t] = await Promise.all([sb.from("config").select("valor").eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_texto").maybeSingle()]);
-  S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; atualizarOeUI(S.missa.campos||{}); montar(); desenharOracoes();
+  const [a, t, av] = await Promise.all([sb.from("config").select("valor").eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_texto").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_avulsas").maybeSingle()]);
+  S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; S.avulsas = av.data?.valor?.lista || [];
+  desenharAvulsas(); desenharOracoesRoteiro(); atualizarOeUI(S.missa.campos||{}); montar(); desenharOracoes();
 }
 async function salvarOracoes(){
   const [r1, r2] = await Promise.all([sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes}), sb.from("config").upsert({id:"oracoes_texto", valor:S.oesTexto})]);
@@ -1677,7 +2052,8 @@ async function salvarOracoes(){
 async function carregarLayout(){
   const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
   aplicarLayout(data?.valor || LAYOUT_PADRAO);
-  sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); }).subscribe();
+  sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); })
+    .on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.oracoes_avulsas"}, p=>{ if (!p.new?.valor) return; S.avulsas = p.new.valor.lista||[]; desenharAvulsas(); desenharOracoesRoteiro(); montar(); }).subscribe();
 }
 
 /* ---------- histórico ---------- */
@@ -1757,6 +2133,34 @@ async function carregarAgenda(){
   desenharAgenda();
 }
 
+/* ---------- orações avulsas (biblioteca) ---------- */
+let avSel = null;
+function desenharAvulsas(){
+  if (!$("av-lista")) return;
+  const lista = S.avulsas || [];
+  if (!avSel || !lista.some(o=>o.id===avSel)) avSel = lista[0]?.id || null;
+  $("av-lista").innerHTML = lista.map(o=>`<li><button class="btn link" type="button" data-av="${esc(o.id)}" style="text-align:left;${o.id===avSel?"text-decoration:underline":""}">${esc(o.titulo)}</button><span class="chip ${o.texto?.trim()?"":"miss"}">${o.texto?.trim()?"texto colado":"sem texto"}</span></li>`).join("") || `<li><span class="hint">Nenhuma oração cadastrada.</span></li>`;
+  const o = lista.find(x=>x.id===avSel);
+  if (document.activeElement!==$("av-tit")) $("av-tit").value = o?.titulo || "";
+  if (document.activeElement!==$("av-txt")) $("av-txt").value = o?.texto || "";
+  ["av-tit","av-txt"].forEach(id=>$(id).readOnly = !S.editor);
+  $("av-excluir").dataset.arm = "";
+}
+async function salvarAvulsas(msg){
+  const {error} = await sb.from("config").upsert({id:"oracoes_avulsas", valor:{lista:S.avulsas}});
+  setSt("st-av", error ? erroAmigavel(error) : (msg||"Salvo."), error?"err":"ok");
+  desenharAvulsas(); desenharOracoesRoteiro(); montar();
+}
+$("av-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-av]"); if (!b) return; avSel=b.dataset.av; $("av-tit").value=""; $("av-txt").value=""; desenharAvulsas(); setSt("st-av","",""); });
+$("av-nova").onclick = ()=>{ if (!S.editor) return; const id = "o"+hash(String(Date.now())); S.avulsas = [...(S.avulsas||[]), {id, titulo:"Nova oração", texto:""}]; avSel=id; desenharAvulsas(); $("av-tit").focus(); $("av-tit").select(); };
+$("av-salvar").onclick = ()=>{ if (!S.editor || !avSel) return; S.avulsas = S.avulsas.map(o=>o.id===avSel ? {...o, titulo:$("av-tit").value.trim()||"Sem título", texto:$("av-txt").value.replace(/\s+$/,"")} : o); salvarAvulsas("Salvo — já aparece no botão Orações."); };
+$("av-excluir").onclick = ()=>{ if (!S.editor || !avSel) return; const b=$("av-excluir"); if (b.dataset.arm!=="1"){ b.dataset.arm="1"; b.textContent="Confirmar exclusão"; return; } b.textContent="Excluir"; S.avulsas = S.avulsas.filter(o=>o.id!==avSel); avSel=null; salvarAvulsas("Excluída."); };
+$("av-ver").onclick = ()=>{ if (!avSel) return; const o = {...(S.avulsas.find(x=>x.id===avSel)||{}), titulo:$("av-tit").value, texto:$("av-txt").value}; const sl = slidesOracao(o); if (!sl.length){ setSt("st-av","Cole o texto antes de ver.","err"); return; }
+  if (janelaTelao && !janelaTelao.closed && avSel){ mandar("oracao",{id:avSel}); setSt("st-av","Enviada ao telão (versão salva).","ok"); return; }
+  S.extra = {id:avSel, titulo:o.titulo, slides:sl, idx:0}; $("proj").hidden=false; document.body.style.overflow="hidden"; mostrar(); };
+$("orr-add").onclick = ()=>{ if (!S.editor || !$("orr-id").value) return; S.missa.campos = {...lerCampos(), oracoes_roteiro:[...(S.missa.campos.oracoes_roteiro||[]), {id:$("orr-id").value, depois:$("orr-depois").value}]}; desenharOracoesRoteiro(); montar(); salvarMissa(); };
+$("orr-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-orr-rem]"); if (!b || !S.editor) return; const l=[...(S.missa.campos.oracoes_roteiro||[])]; l.splice(+b.dataset.orrRem,1); S.missa.campos = {...lerCampos(), oracoes_roteiro:l}; desenharOracoesRoteiro(); montar(); salvarMissa(); });
+
 /* ---------- aba Orações ---------- */
 let orSel = "II";
 function desenharOracoes(){
@@ -1797,6 +2201,7 @@ $("or-padrao").onclick = ()=>{ if (!S.editor) return; $("or-ac").value = OES_PAD
 /* ---------- abas e início ---------- */
 function aba(qual){
   ["montar","historico","acervo","oracoes","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  $("v-avulsas").hidden = qual!=="oracoes"; if (qual==="oracoes") desenharAvulsas();
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
   if (qual==="layout") previa();
@@ -1809,7 +2214,7 @@ desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
 document.querySelector("#v-montar").addEventListener("change", e=>{
-  if (!["c-oe","c-misterio","c-prefacio","c-capa_cobrir"].includes(e.target.id)) return;
+  if (!["c-oe","c-misterio","c-prefacio","c-capa_cobrir","c-evangelho_modo","c-musicos"].includes(e.target.id)) return;
   S.missa.campos = lerCampos(); atualizarOeUI(S.missa.campos); montar(); salvarMissa();
 });
 document.querySelector("#v-montar").addEventListener("input", e=>{
