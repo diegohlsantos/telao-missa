@@ -103,7 +103,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 #proj.cursor{cursor:default}
 .stage{position:relative;width:min(100vw,calc(100vh*var(--s-arn)));aspect-ratio:var(--s-ar);max-width:100%;background:var(--s-bg);color:var(--s-fg);overflow:hidden;font-family:var(--s-font)}
 .stage.prev{width:100%;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
-.sbox{position:absolute;inset:3.2% var(--s-mx) 4.5%;display:flex;flex-direction:column;align-items:var(--s-items);justify-content:var(--s-just);text-align:var(--s-align);overflow:hidden;line-height:var(--s-lh);font-weight:var(--s-fw);text-shadow:var(--s-sh)}
+.sbox{position:absolute;inset:var(--s-my,3%) var(--s-mx) calc(var(--s-my,3%) + 1%);display:flex;flex-direction:column;align-items:var(--s-items);justify-content:var(--s-just);text-align:var(--s-align);overflow:hidden;line-height:var(--s-lh);font-weight:var(--s-fw);text-shadow:var(--s-sh)}
 .sbox.mid{justify-content:center}
 .s-head{display:flex;flex-direction:column;align-items:var(--s-items);gap:.05em;margin-bottom:.55em}
 .s-title{color:var(--s-tc);text-decoration:var(--s-ul);text-underline-offset:.15em;text-transform:var(--s-tt);font-weight:400;font-size:calc(1em * var(--s-tsc))}
@@ -126,6 +126,8 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .capa-frase{position:absolute;left:0;right:0;bottom:0;padding:7% 9% 4.5%;text-align:center;font-family:"Fraunces",Georgia,serif;font-size:1.05em;line-height:1.2;color:#fff;text-wrap:balance;background:linear-gradient(rgb(0 0 0 / 0),rgb(0 0 0 / .8));text-shadow:0 .04em .25em rgb(0 0 0 / .9)}
 .capa-thumb{width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--sunk)}
 .s-lyr{white-space:pre-line;text-transform:var(--s-lt)}
+.s-lyr .est + .est{margin-top:var(--s-gap,.6em)}
+.s-head{margin-bottom:var(--s-hgap,.55em)}
 .capa-nome{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.9em;line-height:1.1;text-wrap:balance}
 .capa-data{color:var(--s-hc);margin-top:.6em;font-size:.8em;letter-spacing:.12em;text-transform:uppercase}
 .capa-cor{width:18%;height:.22em;border-radius:99px;margin:.9em auto 0}
@@ -344,6 +346,9 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-proporcao">Formato da tela</label>
         <select id="ly-proporcao" style="grid-column:2/4"><option value="16:9">16:9 — TV e projetor moderno</option><option value="16:10">16:10 — projetor de notebook</option><option value="4:3">4:3 — projetor antigo</option></select>
         <label for="ly-margem">Margem lateral</label><input type="range" id="ly-margem" min="1" max="15" step="0.5"><output id="o-margem"></output>
+        <label for="ly-margemV">Margem em cima e embaixo</label><input type="range" id="ly-margemV" min="1" max="8" step="0.5"><output id="o-margemV"></output>
+        <label for="ly-espacoEstrofe">Espaço entre estrofes</label><input type="range" id="ly-espacoEstrofe" min="15" max="120" step="5"><output id="o-espacoEstrofe"></output>
+        <span></span><label class="chk"><input type="checkbox" id="ly-juntarPartes"> juntar as partes do canto (1/2, 2/2…) quando couberem no mesmo slide</label>
       </div>
       <h3>Texto</h3>
       <div class="ctl">
@@ -613,12 +618,13 @@ function paginar({head="", tail="", units, corpo, headSempre=false, mid=false}){
   return pags.map((us,i)=>html(us, i===0, i===pags.length-1));
 }
 function unidadesTexto(texto){ return texto.replace(/\n+/g," ").split(/(?<=[.!?;:”"’])\s+/).filter(Boolean).map(t=>({t, sep:" "})); }
+function corpoLetra(t){ return `<div class="s-lyr">${String(t).split(/\n\s*\n/).map(e=>`<div class="est">${esc(e)}</div>`).join("")}</div>`; }
 function unidadesLetra(partes, head){
   const us = [];
   partes.forEach((p, pi)=>{
     String(p).split(/\n\s*\n/).forEach((estrofe, ei)=>{
       const sep = us.length ? "\n\n" : "";
-      if (cabe(head + `<div class="s-lyr">${esc(estrofe)}</div>`, false)) us.push({t:estrofe, sep});
+      if (cabe(head + corpoLetra(estrofe), false)) us.push({t:estrofe, sep});
       else estrofe.split("\n").forEach((l,li)=>us.push({t:l, sep: li ? "\n" : sep}));
     });
     if (us.length) us[us.length-1].fimParte = true;
@@ -843,8 +849,9 @@ function montar(){
         const units = unidadesLetra(escolhido.partes, headMed);
         // respeita as divisões originais quando cabem; senão quebra pela altura
         const grupos = []; let g = [];
-        units.forEach(u=>{ g.push(u); if (u.fimParte){ grupos.push(g); g=[]; } }); if (g.length) grupos.push(g);
-        const pags = grupos.flatMap(gr=>paginar({head:headMed, units:gr.map((u,i)=>i?u:{...u, sep:""}), corpo:t=>`<div class="s-lyr">${esc(t)}</div>`, headSempre:true}).map(h=>h.slice(headMed.length)));
+        if (S.layout?.juntarPartes !== false) grupos.push(units);
+        else { units.forEach(u=>{ g.push(u); if (u.fimParte){ grupos.push(g); g=[]; } }); if (g.length) grupos.push(g); }
+        const pags = grupos.flatMap(gr=>paginar({head:headMed, units:gr.map((u,i)=>i?u:{...u, sep:""}), corpo:corpoLetra, headSempre:true}).map(h=>h.slice(headMed.length)));
         const n = pags.length;
         push(mo.id, pags.map((corpo,i)=>({html: cab(n>1?` (${i+1}/${n})`:"") + corpo, rotulo:`${escolhido.titulo}${n>1?` ${i+1}/${n}`:""}`})));
       }
@@ -1462,12 +1469,13 @@ const FONTES = [
   ["Montserrat","Montserrat",true],["Open Sans","Open Sans",true],["Roboto","Roboto",true],["Lato","Lato",true],
   ["Nunito","Nunito",true],["Source Sans 3","Source Sans 3",true],["Merriweather","Merriweather (serifa)",true],["Georgia","Georgia (serifa)",false]];
 const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/object/public/capas/fundos/santa-ceia-leonardo.jpg";
-const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
+const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, margemV:3, espacoEstrofe:60, juntarPartes:true, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
   negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true, oeImagem:true,
   fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
   fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
 const PRESETS = {
   "Padrão da paróquia": {},
+  "Máximo de texto": {escala:92, escalaTitulo:85, entrelinha:114, margem:2.5, margemV:2, espacoEstrofe:35, juntarPartes:true},
   "Telão distante": {escala:140, escalaTitulo:90, entrelinha:118, negrito:true, margem:2.5},
   "Alto contraste": {fundo:"#000000", texto:"#ffffff", titulo:"#ffffff", destaque:"#ffd400", negrito:true, sombra:false},
   "Fundo claro": {fundo:"#ffffff", texto:"#111111", titulo:"#1d3f8f", destaque:"#9a1b1b"},
@@ -1490,7 +1498,7 @@ function aplicarLayout(L){
   carregarFonte(L.fonte);
   const serif = /Merriweather|Georgia/.test(L.fonte) ? "Georgia,serif" : "Arial,sans-serif";
   const vars = {"--s-bg":L.fundo,"--s-fg":L.texto,"--s-tc":L.titulo,"--s-hc":L.destaque,"--s-font":`"${L.fonte}",${serif}`,
-    "--s-ar":`${a}/${b}`,"--s-arn":String(a/b),"--s-mx":L.margem+"%","--s-lh":String(L.entrelinha/100),
+    "--s-ar":`${a}/${b}`,"--s-arn":String(a/b),"--s-mx":L.margem+"%","--s-my":L.margemV+"%","--s-gap":(L.espacoEstrofe/100)+"em","--s-hgap":Math.max(.2,(L.espacoEstrofe/100)*.9)+"em","--s-lh":String(L.entrelinha/100),
     "--s-align":L.alinhamento,"--s-items":L.alinhamento==="left"?"flex-start":"center","--s-just":L.vertical==="centro"?"center":"flex-start",
     "--s-tsc":String(L.escalaTitulo/100),"--s-ul":L.sublinhar?"underline":"none","--s-tt":L.tituloMaiusc?"uppercase":"none",
     "--s-lt":L.letraMaiusc?"uppercase":"none","--s-autor":L.mostrarAutor?"block":"none","--s-fw":L.negrito?"700":"400",
@@ -1501,9 +1509,9 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","fundoOE"],
+const CTL_NUM = ["margem","margemV","espacoEstrofe","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["juntarPartes","negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","fundoOE"],
       CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
-const fmtCtl = {fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
+const fmtCtl = {margemV:v=>v+"%", espacoEstrofe:v=>(v/100).toFixed(2).replace(".",",")+" linha", fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
   if ($("ly-fundo-thumb").getAttribute("src") !== L.fundoOEurl) $("ly-fundo-thumb").src = L.fundoOEurl || "";
   CTL_NUM.forEach(k=>{ $("ly-"+k).value=L[k]; $("o-"+k).textContent=fmtCtl[k](L[k]); });
