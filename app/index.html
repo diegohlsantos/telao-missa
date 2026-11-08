@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-10">
+<meta name="versao" content="2026-11-08-11">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -827,6 +827,15 @@ ol.roteiro li[data-first]{cursor:pointer}
     <button class="mv-bt" type="button" id="mv-voltar" hidden>Voltar ao roteiro</button>
   </div>
 </div>
+
+<dialog id="dlg-hist" aria-labelledby="hc-tit">
+  <form method="dialog">
+    <h2 id="hc-tit" style="font-family:var(--display);font-weight:600;margin:0">Abrir uma missa do histórico?</h2>
+    <p style="margin:0"><b id="hc-qual"></b></p>
+    <p class="hint" style="margin:0">A tela “Montar a missa” vai mudar para essa missa no lugar de <b id="hc-atual"></b>. Nada é apagado: para voltar, é só escolher a data de novo. O telão que já estiver aberto continua como está.</p>
+    <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn" type="button" id="hc-cancelar">Cancelar</button><button class="btn primary" type="button" id="hc-abrir">Abrir esta missa</button></div>
+  </form>
+</dialog>
 
 <dialog id="dlg-celular">
   <form method="dialog" style="align-items:center;text-align:center">
@@ -2865,7 +2874,17 @@ function desenharHistorico(){
 }
 $("hist-busca").addEventListener("input", desenharHistorico);
 $("hist-periodo").addEventListener("change", desenharHistorico);
-$("hist-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-abrir]"); if (!b) return; const [d,h]=b.dataset.abrir.split("|"); aba("montar"); carregarData(d,h); });
+let histAlvo = null;
+$("hist-lista").addEventListener("click", e=>{
+  const b = e.target.closest("[data-abrir]"); if (!b) return;
+  const [d,h] = b.dataset.abrir.split("|"); histAlvo = {d, h};
+  const cel = b.closest(".hist-item")?.querySelector(".cel")?.textContent || "";
+  $("hc-qual").textContent = fmtMissa(d, h) + (cel ? " · " + cel : "");
+  $("hc-atual").textContent = S.date && S.hora ? fmtMissa(S.date, S.hora) : "a missa atual";
+  $("dlg-hist").showModal(); $("hc-cancelar").focus();
+});
+$("hc-cancelar").onclick = ()=>{ histAlvo = null; $("dlg-hist").close(); };
+$("hc-abrir").onclick = ()=>{ $("dlg-hist").close(); if (!histAlvo) return; const {d,h} = histAlvo; histAlvo = null; aba("montar"); carregarData(d,h); };
 function desenharAgenda(){
   $("agenda-campos").innerHTML = [0,3,6,1,2,4,5].map(d=>`<label class="mom" for="ag-${d}">${DIAS[d]}</label><input type="text" id="ag-${d}" placeholder="sem missa" value="${esc((S.agenda.horarios[String(d)]||[]).join(", "))}">`).join("");
   $("agenda-vigilia").checked = !!S.agenda.vigilia;
