@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão da Missa</title>
-<meta name="versao" content="2026-11-08-2">
+<meta name="versao" content="2026-11-08-3">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -237,7 +237,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <h1>Telão da Missa</h1>
+      <h1 id="par-nome">Telão Missa</h1>
       <p id="sub">Leituras do dia, cantos e avisos num só roteiro</p>
     </div>
     <div class="auth">
@@ -594,6 +594,13 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     <div class="panel">
       <h2>Equipe com acesso</h2>
       <ul class="lista-eq" id="equipe"></ul>
+      <div id="convite-box" hidden style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
+        <h3 style="margin:0">Convidar alguém</h3>
+        <div class="row"><select id="cv-papel" style="width:auto"><option value="coordenador">Coordenação (monta e edita)</option><option value="operador">Operador do telão</option><option value="musico">Músico (só leitura)</option></select><button class="btn primary" type="button" id="cv-gerar">Gerar link de convite</button></div>
+        <input type="text" id="cv-link" readonly hidden aria-label="Link do convite">
+        <span class="status" id="st-cv"></span>
+        <p class="hint" style="margin:0">Mande o link por WhatsApp. Ele vale por 14 dias e só pode ser usado uma vez.</p>
+      </div>
     </div>
   </section>
 </div>
@@ -687,6 +694,8 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 <script>
 "use strict";
 const PARAMS = new URLSearchParams(location.search);
+const PAR = {id:null, slug:(PARAMS.get("p")||"piloto").toLowerCase().replace(/[^a-z0-9-]/g,""), nome:""};
+const comP = q => q.eq("paroquia_id", PAR.id);
 const MODO_TELAO = PARAMS.get("telao") === "1";
 const canal = "BroadcastChannel" in window ? new BroadcastChannel("telao-missa") : null;
 let janelaTelao = null;
@@ -1099,7 +1108,7 @@ function hojeISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezon
 function vencido(a, ref){ return !!a.ate && a.ate < (ref || hojeISO()); }
 function fmtData(d){ return d ? new Date(d+"T12:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : ""; }
 async function carregarAvisos(){
-  const {data, error} = await sb.from("avisos").select("id,titulo,texto,imagem_url,ate,atualizado").order("atualizado",{ascending:false});
+  const {data, error} = await sb.from("avisos").select("id,titulo,texto,imagem_url,ate,atualizado").eq("paroquia_id", PAR.id).order("atualizado",{ascending:false});
   if (error) return;
   S.avisosBanco = data || [];
   desenharAvisosMissa(); if (!$("v-avisos").hidden) desenharBanco(); montar();
@@ -1141,7 +1150,7 @@ $("avm-add").onclick = ()=>{ const id=$("avm-sel").value; if (!S.editor || !id) 
 $("avm-banco").onclick = ()=>aba("avisos");
 async function subirImagemAviso(file){
   const blob = await reduzirImagem(file);
-  const caminho = `avisos/${Date.now()}.jpg`;
+  const caminho = `${PAR.id}/avisos/${Date.now()}.jpg`;
   const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg", upsert:false});
   if (error) throw error;
   return sb.storage.from("capas").getPublicUrl(caminho).data.publicUrl;
@@ -1152,7 +1161,7 @@ $("avm-img").addEventListener("change", async e=>{
   try{
     const url = await subirImagemAviso(f);
     const titulo = f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim().slice(0,80);
-    const {data, error} = await sb.from("avisos").insert({titulo, imagem_url:url}).select("id,titulo,texto,imagem_url,ate,atualizado").single();
+    const {data, error} = await sb.from("avisos").insert({paroquia_id:PAR.id, titulo, imagem_url:url}).select("id,titulo,texto,imagem_url,ate,atualizado").single();
     if (error) throw error;
     S.avisosBanco = [data, ...(S.avisosBanco||[])];
     mudarAvisosMissa([...(S.missa.campos?.avisos_lista||[]), data.id]);
@@ -1206,7 +1215,7 @@ $("bav-salvar").onclick = async ()=>{
   if (!S.editor || !bavSel) return;
   const body = {titulo:$("bav-titulo").value.trim(), texto:$("bav-texto").value.replace(/\s+$/,""), imagem_url:bavImg, ate:$("bav-ate").value||null, atualizado:new Date().toISOString()};
   if (!body.imagem_url && !body.texto && !body.titulo){ setSt("st-bav","Coloque uma imagem ou um texto.","err"); return; }
-  const q = bavSel==="novo" ? sb.from("avisos").insert(body) : sb.from("avisos").update(body).eq("id", bavSel);
+  const q = bavSel==="novo" ? sb.from("avisos").insert({...body, paroquia_id:PAR.id}) : sb.from("avisos").update(body).eq("id", bavSel);
   const {data, error} = await q.select("id,titulo,texto,imagem_url,ate,atualizado").single();
   if (error){ setSt("st-bav", erroAmigavel(error), "err"); return; }
   S.avisosBanco = [data, ...(S.avisosBanco||[]).filter(a=>a.id!==data.id)];
@@ -1251,7 +1260,7 @@ async function definirGravacao(chave, songId, g){
   const song = S.songById.get(songId); if (!song || !S.editor) return;
   S.missa.campos = {...lerCampos(), grav:{...(S.missa.campos.grav||{}), [chave]:{id:songId, ...g}}};
   salvarMissa();
-  if (g.url){ // vira a gravação padrão do canto no acervo
+  if (g.url && (song.paroquia_id === PAR.id || (song.paroquia_id == null && PAR.curadora))){ // vira a gravação padrão do canto no acervo
     song.gravacao = {tipo:g.tipo, url:g.url, inicio:g.inicio||0};
     const {error} = await sb.from("musicas").update({gravacao:song.gravacao}).eq("id", songId);
     if (error) setSt("st-missa", erroAmigavel(error), "err");
@@ -1266,7 +1275,7 @@ $("roteiro").addEventListener("change", async e=>{
     if (f.size > 40*1024*1024){ setSt("st-missa","Arquivo grande demais (máx. 40 MB).","err"); return; }
     setSt("st-missa","Enviando o áudio…","");
     const ext = (f.name.match(/\.(\w{2,4})$/)?.[1] || "mp3").toLowerCase();
-    const caminho = `${songId}/${Date.now()}.${ext}`;
+    const caminho = `${PAR.id}/audios/${songId}/${Date.now()}.${ext}`;
     const {error} = await sb.storage.from("audios").upload(caminho, f, {contentType:f.type||"audio/mpeg"});
     if (error){ setSt("st-missa", erroAmigavel(error), "err"); return; }
     const url = sb.storage.from("audios").getPublicUrl(caminho).data.publicUrl;
@@ -1737,7 +1746,7 @@ function abrirProjecao(i=0){
   if (!S.slides.length) return;
   if (!MODO_TELAO){
     // abre (ou reaproveita) a guia do telão e manda ir para o slide escolhido
-    const url = `${location.pathname}?data=${encodeURIComponent(S.date)}&hora=${encodeURIComponent(S.hora)}&telao=1&slide=${i}`;
+    const url = `${location.pathname}?p=${encodeURIComponent(PAR.slug)}&data=${encodeURIComponent(S.date)}&hora=${encodeURIComponent(S.hora)}&telao=1&slide=${i}`;
     if (janelaTelao && !janelaTelao.closed){ canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); janelaTelao.focus(); return; }
     janelaTelao = window.open(url, "telao-missa");
     if (janelaTelao){ canal?.postMessage({tipo:"ir", data:S.date, hora:S.hora, idx:i}); return; }
@@ -1988,7 +1997,7 @@ function erroAmigavel(e){
 
 /* ---------- acervo ---------- */
 function aplicarSongs(rows){
-  const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem, gravacao:r.gravacao||null}; indexar(s); return s; });
+  const all = rows.map(r=>{ const s={id:r.id, titulo:r.titulo, autor:r.autor||"", partes:[...(r.partes||[])], origem:r.origem, gravacao:r.gravacao||null, paroquia_id:r.paroquia_id??null}; indexar(s); return s; });
   all.sort((a,b)=>a.titulo.localeCompare(b.titulo,"pt-BR"));
   S.songs = all; S.songById = new Map(all.map(s=>[s.id,s]));
   const nomes = [...new Set(all.map(s=>s.titulo + (s.autor ? " — " + s.autor : "")))];
@@ -1998,7 +2007,7 @@ function aplicarSongs(rows){
 async function carregarAcervo(){
   const rows=[]; const passo=1000;
   for (let i=0;;i+=passo){
-    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,origem,gravacao").order("id").range(i, i+passo-1);
+    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,origem,gravacao,paroquia_id").or(`paroquia_id.is.null,paroquia_id.eq.${PAR.id}`).order("id").range(i, i+passo-1);
     if (error){ $("acervo-info").textContent="Não consegui abrir o acervo. Recarregue a página."; return; }
     rows.push(...data); if (data.length < passo) break;
   }
@@ -2008,7 +2017,10 @@ let tAcervo=null;
 function recarregarAcervoEmBreve(){ clearTimeout(tAcervo); tAcervo=setTimeout(carregarAcervo, 1200); }
 
 async function gravarCanto(song){
-  const body = {id:song.id, titulo:song.titulo, autor:song.autor||"", partes:song.partes, origem:song.origem||"manual"};
+  const antes = S.songById.get(song.id);
+  const body = {id:song.id, titulo:song.titulo, autor:song.autor||"", partes:song.partes, origem:song.origem||"manual",
+    paroquia_id: antes ? (antes.paroquia_id ?? null) : (PAR.curadora ? null : PAR.id)};
+  if (antes && antes.paroquia_id == null && !PAR.curadora){ body.id = song.id + "-" + PAR.slug; body.paroquia_id = PAR.id; } // versão local de um canto comum
   const {error} = await sb.from("musicas").upsert(body);
   if (error) throw error;
   const s = {...body, gravacao: S.songById.get(song.id)?.gravacao || null}; indexar(s);
@@ -2032,7 +2044,7 @@ async function execSalvar(){
   if (!S.date || !S.hora || !S.editor) return;
   if (salvando){ pendente=true; return; }
   salvando=true; setSt("st-missa","Salvando…","");
-  const {error} = await sb.from("missas").upsert({data:S.date, horario:S.hora, campos:S.missa.campos||camposVazios(), cantos:snapshotCantos(), texto:"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
+  const {error} = await sb.from("missas").upsert({paroquia_id:PAR.id, data:S.date, horario:S.hora, campos:S.missa.campos||camposVazios(), cantos:snapshotCantos(), texto:"", escolhas:S.missa.escolhas||{}, separadores:$("sep").checked});
   if (error) setSt("st-missa", erroAmigavel(error), "err"); else setSt("st-missa","Salvo — o telão de qualquer aparelho já mostra esta versão.","ok");
   salvando=false; if (pendente){ pendente=false; execSalvar(); }
 }
@@ -2089,7 +2101,7 @@ async function carregarData(date, hora){
   if (canalData){ sb.removeChannel(canalData); canalData=null; }
   const lit = S.dataLit;
   const [m, l] = await Promise.all([
-    sb.from("missas").select("*").eq("data", date).eq("horario", hora).maybeSingle(),
+    sb.from("missas").select("*").eq("paroquia_id", PAR.id).eq("data", date).eq("horario", hora).maybeSingle(),
     sb.from("leituras").select("*").eq("data", lit).maybeSingle(),
   ]);
   if (S.date !== date || S.hora !== hora) return;
@@ -2098,7 +2110,7 @@ async function carregarData(date, hora){
   if (lit !== date) setSt("st-leit", "Missa antecipada: usa a liturgia de " + new Date(lit+"T12:00").toLocaleDateString("pt-BR",{weekday:"long", day:"numeric", month:"numeric"}) + ".", "ok");
   preencherCopiar();
   canalData = sb.channel("missa-"+date+"-"+hora)
-    .on("postgres_changes",{event:"*",schema:"public",table:"missas",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.horario===S.hora) aplicarMissa(p.new); })
+    .on("postgres_changes",{event:"*",schema:"public",table:"missas",filter:`data=eq.${date}`}, p=>{ if (p.new && p.new.horario===S.hora && p.new.paroquia_id===PAR.id) aplicarMissa(p.new); })
     .on("postgres_changes",{event:"*",schema:"public",table:"leituras",filter:`data=eq.${lit}`}, p=>{ if (p.new && p.new.data) aplicarLeituras(p.new); })
     .subscribe();
 }
@@ -2107,7 +2119,7 @@ async function preencherCopiar(){
   const lit = S.dataLit, cands = [];
   for (const d of [somaDias(lit,-1), lit]) for (const h of horariosDoDia(d)) if (dataLiturgica(d,h)===lit && !(d===S.date && h===S.hora)) cands.push([d,h]);
   if (!cands.length){ $("copiar-box").hidden = true; return; }
-  const {data} = await sb.from("missas").select("data,horario,campos").in("data", [...new Set(cands.map(c=>c[0]))]);
+  const {data} = await sb.from("missas").select("data,horario,campos").eq("paroquia_id", PAR.id).in("data", [...new Set(cands.map(c=>c[0]))]);
   const ok = cands.filter(([d,h])=> (data||[]).some(r=>r.data===d && r.horario===h && Object.values(r.campos||{}).some(v=>v && v!==true && String(v).trim())));
   $("copiar-box").hidden = !ok.length;
   $("copiar-de").innerHTML = ok.map(([d,h])=>`<option value="${d}|${h}">${fmtMissa(d,h)}</option>`).join("");
@@ -2115,7 +2127,7 @@ async function preencherCopiar(){
 $("btn-copiar").onclick = async ()=>{
   if (!S.editor) return;
   const [d,h] = $("copiar-de").value.split("|"); if (!d) return;
-  const {data} = await sb.from("missas").select("campos,escolhas,separadores").eq("data",d).eq("horario",h).maybeSingle();
+  const {data} = await sb.from("missas").select("campos,escolhas,separadores").eq("paroquia_id", PAR.id).eq("data",d).eq("horario",h).maybeSingle();
   if (!data) return;
   aplicarMissa({...data}); S.missa.campos = {...S.missa.campos}; salvarMissa();
   setSt("st-missa", `Copiado de ${fmtMissa(d,h)}. Ajuste o que for diferente.`, "ok");
@@ -2164,7 +2176,7 @@ $("arq").addEventListener("change", async e=>{
     if (!novos.length){ st.textContent += " Nada novo — esses cantos já estão no acervo."; bar.style.width="100%"; return; }
     let feitos=0; const total=novos.length;
     for (let i=0;i<novos.length;i+=150){
-      const lote = novos.slice(i,i+150).map(c=>({id:c.id, titulo:c.titulo, autor:c.autor||"", partes:c.partes, origem:c.origem}));
+      const lote = novos.slice(i,i+150).map(c=>({id: PAR.curadora ? c.id : c.id + "-" + PAR.slug, titulo:c.titulo, autor:c.autor||"", partes:c.partes, origem:c.origem, paroquia_id: PAR.curadora ? null : PAR.id}));
       const {error} = await sb.from("musicas").upsert(lote);
       if (error) throw error;
       feitos += lote.length; bar.style.width = Math.round(feitos/total*100)+"%"; st.textContent = `Gravando… ${feitos} de ${total} cantos novos`;
@@ -2194,20 +2206,28 @@ function mostrarAviso(txt, botao, acao){
   $("aviso-btn").hidden = !botao; $("aviso-btn").textContent = botao||""; $("aviso-btn").onclick = acao||null;
 }
 async function verificarConta(){
+  if (!PAR.id) return;
   const {data:{session}} = await sb.auth.getSession();
   S.user = session?.user || null; S.editor = false;
   if (S.user){
-    const {data} = await sb.from("editores").select("user_id").eq("user_id", S.user.id).maybeSingle();
-    S.editor = !!data;
+    const {data} = await sb.from("membros").select("papel").eq("paroquia_id", PAR.id).eq("user_id", S.user.id).maybeSingle();
+    S.papel = data?.papel || null;
+    S.editor = ["responsavel","coordenador","operador"].includes(S.papel);
+    const conv = PARAMS.get("convite");
+    if (conv && !S.editor){
+      const {error} = await sb.rpc("aceitar_convite", {p_codigo: conv});
+      if (!error){ history.replaceState(null, "", location.pathname + "?p=" + PAR.slug + location.hash); return verificarConta(); }
+      mostrarAviso("Este convite não vale mais. Peça um novo link a quem cuida da paróquia.");
+    }
     if (!S.editor){
-      const {data:ped} = await sb.from("pedidos").select("user_id").eq("user_id", S.user.id).maybeSingle();
+      const {data:ped} = await sb.from("pedidos").select("user_id").eq("paroquia_id", PAR.id).eq("user_id", S.user.id).maybeSingle();
       if (ped) mostrarAviso("Seu pedido de acesso foi enviado. Assim que alguém da equipe liberar, você poderá editar.");
       else mostrarAviso("Você entrou, mas ainda não faz parte da equipe de edição.", "Pedir acesso", async ()=>{
-        const {error} = await sb.from("pedidos").insert({user_id:S.user.id, email:S.user.email});
+        const {error} = await sb.from("pedidos").insert({paroquia_id:PAR.id, user_id:S.user.id, email:S.user.email});
         mostrarAviso(error ? "Não consegui enviar o pedido. Tente de novo." : "Pedido enviado. Assim que alguém da equipe liberar, você poderá editar.");
       });
     } else { mostrarAviso(""); carregarEquipe(); }
-  } else mostrarAviso("");
+  } else mostrarAviso(PARAMS.get("convite") ? "Você recebeu um convite para a equipe. Entre ou crie sua conta para aceitar." : "", PARAMS.get("convite") ? "Entrar" : null, ()=>$("btn-entrar").click());
   modoEdicao();
 }
 $("btn-entrar").onclick = ()=>{ setSt("lg-st","",""); $("dlg-login").showModal(); };
@@ -2233,20 +2253,34 @@ sb.auth.onAuthStateChange((ev)=>{ if (ev==="SIGNED_IN"||ev==="SIGNED_OUT"||ev===
 
 async function carregarEquipe(){
   if (!S.editor) return;
-  const [p, q] = await Promise.all([sb.from("pedidos").select("*").order("criado"), sb.from("editores").select("*").order("criado")]);
+  const [p, q] = await Promise.all([sb.from("pedidos").select("*").eq("paroquia_id", PAR.id).order("criado"), sb.from("membros").select("*").eq("paroquia_id", PAR.id).order("criado")]);
   const ped=$("pedidos"); ped.innerHTML="";
   (p.data||[]).forEach(r=>{ const li=document.createElement("li"); li.innerHTML=`<span>${esc(r.email)}<br><span class="hint">pediu em ${new Date(r.criado).toLocaleDateString("pt-BR")}</span></span><span class="row"><button class="btn" type="button" data-rec="${esc(r.user_id)}">Recusar</button><button class="btn primary" type="button" data-lib="${esc(r.user_id)}" data-email="${esc(r.email)}">Liberar</button></span>`; ped.appendChild(li); });
   if (!p.data?.length) ped.innerHTML=`<li><span class="hint">Nenhum pedido no momento. Peça para a pessoa abrir o link, criar conta e tocar em “Pedir acesso”.</span></li>`;
   const eq=$("equipe"); eq.innerHTML="";
-  (q.data||[]).forEach(r=>{ const li=document.createElement("li"); const eu=r.user_id===S.user.id; li.innerHTML=`<span>${esc(r.email)}${eu?' <span class="chip">você</span>':""}</span>${eu?"":`<button class="btn" type="button" data-rem="${esc(r.user_id)}">Remover</button>`}`; eq.appendChild(li); });
+  const NOMES = {responsavel:"Responsável", coordenador:"Coordenação", operador:"Operador do telão", musico:"Músico (só leitura)"};
+  const souResp = S.papel === "responsavel";
+  (q.data||[]).forEach(r=>{ const li=document.createElement("li"); const eu=r.user_id===S.user.id;
+    li.innerHTML=`<span>${esc(r.email||"")}${eu?' <span class="chip">você</span>':""}<br><span class="hint">${esc(NOMES[r.papel]||r.papel)}</span></span>${!eu && souResp && r.papel!=="responsavel" ? `<button class="btn" type="button" data-rem="${esc(r.user_id)}">Remover</button>` : ""}`; eq.appendChild(li); });
+  $("convite-box").hidden = !souResp;
 }
 $("v-equipe").addEventListener("click", async e=>{
   const lib=e.target.closest("[data-lib]"), rec=e.target.closest("[data-rec]"), rem=e.target.closest("[data-rem]");
-  if (lib){ const {error}=await sb.from("editores").insert({user_id:lib.dataset.lib, email:lib.dataset.email, aprovado_por:S.user.id}); if (!error) await sb.from("pedidos").delete().eq("user_id",lib.dataset.lib); }
-  if (rec) await sb.from("pedidos").delete().eq("user_id",rec.dataset.rec);
-  if (rem){ if (rem.dataset.arm!=="1"){ rem.dataset.arm="1"; rem.textContent="Confirmar remoção"; return; } await sb.from("editores").delete().eq("user_id",rem.dataset.rem); }
+  if (lib) await sb.rpc("aprovar_pedido", {p_paroquia:PAR.id, p_user:lib.dataset.lib, p_papel:"coordenador"});
+  if (rec) await sb.from("pedidos").delete().eq("paroquia_id", PAR.id).eq("user_id",rec.dataset.rec);
+  if (rem){ if (rem.dataset.arm!=="1"){ rem.dataset.arm="1"; rem.textContent="Confirmar remoção"; return; }
+    await sb.from("membros").delete().eq("paroquia_id", PAR.id).eq("user_id",rem.dataset.rem);
+    if (PAR.curadora) await sb.from("editores").delete().eq("user_id",rem.dataset.rem); }
   carregarEquipe();
 });
+
+$("cv-gerar").onclick = async ()=>{
+  const {data, error} = await sb.from("convites").insert({paroquia_id:PAR.id, papel:$("cv-papel").value, criado_por:S.user.id}).select("codigo").single();
+  if (error){ setSt("st-cv", erroAmigavel(error), "err"); return; }
+  const link = `${location.origin}${location.pathname}?p=${PAR.slug}&convite=${data.codigo}`;
+  $("cv-link").hidden = false; $("cv-link").value = link; $("cv-link").select();
+  try{ await navigator.clipboard.writeText(link); setSt("st-cv","Link copiado.","ok"); }catch{ setSt("st-cv","Copie o link acima.",""); }
+};
 
 /* ---------- imagem de capa ---------- */
 async function reduzirImagem(file){
@@ -2264,7 +2298,7 @@ async function enviarCapa(file){
   setSt("st-capa","Enviando imagem…","");
   try{
     const blob = await reduzirImagem(file);
-    const caminho = `${S.date}/${Date.now()}.jpg`;
+    const caminho = `${PAR.id}/${S.date}/${Date.now()}.jpg`;
     const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg", upsert:false});
     if (error) throw error;
     const {data} = sb.storage.from("capas").getPublicUrl(caminho);
@@ -2342,7 +2376,7 @@ function salvarLayout(){
   if (!S.editor) return; clearTimeout(tLayout);
   tLayout = setTimeout(async ()=>{
     setSt("st-layout","Salvando…","");
-    const {error} = await sb.from("config").upsert({id:"layout", valor:S.layout});
+    const {error} = await sb.from("config").upsert({paroquia_id:PAR.id, id:"layout", valor:S.layout});
     setSt("st-layout", error ? erroAmigavel(error) : "Salvo para todos os aparelhos.", error?"err":"ok");
   }, 600);
 }
@@ -2373,7 +2407,7 @@ function previa(){
     const f = e.target.files[0]; e.target.value=""; if (!f || !S.editor) return;
     setSt("st-fundo","Enviando…","");
     try{
-      const blob = await reduzirImagem(f); const caminho = `fundos/${Date.now()}.jpg`;
+      const blob = await reduzirImagem(f); const caminho = `${PAR.id}/fundos/${Date.now()}.jpg`;
       const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg"}); if (error) throw error;
       aplicarLayout({...S.layout, fundoOE:true, fundoOEurl: sb.storage.from("capas").getPublicUrl(caminho).data.publicUrl}); salvarLayout();
       setSt("st-fundo","Imagem enviada.","ok");
@@ -2385,20 +2419,20 @@ function previa(){
   escreverControles(S.layout);
 })();
 async function carregarOracoes(){
-  const [a, t, av] = await Promise.all([sb.from("config").select("valor").eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_texto").maybeSingle(), sb.from("config").select("valor").eq("id","oracoes_avulsas").maybeSingle()]);
+  const [a, t, av] = await Promise.all([sb.from("config").select("valor").eq("paroquia_id", PAR.id).eq("id","oracoes").maybeSingle(), sb.from("config").select("valor").eq("paroquia_id", PAR.id).eq("id","oracoes_texto").maybeSingle(), sb.from("config").select("valor").eq("paroquia_id", PAR.id).eq("id","oracoes_avulsas").maybeSingle()]);
   S.oesAjustes = a.data?.valor || {}; S.oesTexto = t.data?.valor || {}; S.avulsas = av.data?.valor?.lista || [];
   desenharAvulsas(); desenharOracoesRoteiro(); atualizarOeUI(S.missa.campos||{}); montar(); desenharOracoes();
 }
 async function salvarOracoes(){
-  const [r1, r2] = await Promise.all([sb.from("config").upsert({id:"oracoes", valor:S.oesAjustes}), sb.from("config").upsert({id:"oracoes_texto", valor:S.oesTexto})]);
+  const [r1, r2] = await Promise.all([sb.from("config").upsert({paroquia_id:PAR.id, id:"oracoes", valor:S.oesAjustes}), sb.from("config").upsert({paroquia_id:PAR.id, id:"oracoes_texto", valor:S.oesTexto})]);
   const error = r1.error || r2.error;
   setSt("st-or", error ? erroAmigavel(error) : "Salvo para todas as missas.", error?"err":"ok"); montar(); desenharOracoes();
 }
 async function carregarLayout(){
-  const {data} = await sb.from("config").select("valor").eq("id","layout").maybeSingle();
+  const {data} = await sb.from("config").select("valor").eq("paroquia_id", PAR.id).eq("id","layout").maybeSingle();
   aplicarLayout(data?.valor || LAYOUT_PADRAO);
-  sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor) aplicarLayout(p.new.valor); })
-    .on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.oracoes_avulsas"}, p=>{ if (!p.new?.valor) return; S.avulsas = p.new.valor.lista||[]; desenharAvulsas(); desenharOracoesRoteiro(); montar(); }).subscribe();
+  sb.channel("config").on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.layout"}, p=>{ if (p.new?.valor && p.new.paroquia_id===PAR.id) aplicarLayout(p.new.valor); })
+    .on("postgres_changes",{event:"*",schema:"public",table:"config",filter:"id=eq.oracoes_avulsas"}, p=>{ if (!p.new?.valor || p.new.paroquia_id!==PAR.id) return; S.avulsas = p.new.valor.lista||[]; desenharAvulsas(); desenharOracoesRoteiro(); montar(); }).subscribe();
 }
 
 /* ---------- histórico ---------- */
@@ -2419,7 +2453,7 @@ function ultimaVez(id){
   return "";
 }
 async function carregarHistorico(){
-  const {data, error} = await sb.from("missas").select("data,horario,campos,cantos,escolhas").order("data",{ascending:false}).order("horario",{ascending:false}).limit(600);
+  const {data, error} = await sb.from("missas").select("data,horario,campos,cantos,escolhas").eq("paroquia_id", PAR.id).order("data",{ascending:false}).order("horario",{ascending:false}).limit(600);
   if (error){ $("hist-info").textContent = "Não consegui abrir o histórico."; return; }
   const datas = [...new Set((data||[]).map(r=>dataLiturgica(r.data, r.horario)))];
   const cels = {};
@@ -2469,11 +2503,11 @@ $("agenda-salvar").onclick = async ()=>{
     if (v.length) horarios[String(d)] = [...new Set(v)].sort();
   }
   S.agenda = {horarios, vigilia:$("agenda-vigilia").checked};
-  const {error} = await sb.from("config").upsert({id:"agenda", valor:S.agenda});
+  const {error} = await sb.from("config").upsert({paroquia_id:PAR.id, id:"agenda", valor:S.agenda});
   setSt("st-agenda", error ? erroAmigavel(error) : "Salvo.", error?"err":"ok"); desenharAgenda(); preencherHoras(S.date, S.hora);
 };
 async function carregarAgenda(){
-  const {data} = await sb.from("config").select("valor").eq("id","agenda").maybeSingle();
+  const {data} = await sb.from("config").select("valor").eq("paroquia_id", PAR.id).eq("id","agenda").maybeSingle();
   if (data?.valor?.horarios) S.agenda = data.valor;
   desenharAgenda();
 }
@@ -2492,7 +2526,7 @@ function desenharAvulsas(){
   $("av-excluir").dataset.arm = "";
 }
 async function salvarAvulsas(msg){
-  const {error} = await sb.from("config").upsert({id:"oracoes_avulsas", valor:{lista:S.avulsas}});
+  const {error} = await sb.from("config").upsert({paroquia_id:PAR.id, id:"oracoes_avulsas", valor:{lista:S.avulsas}});
   setSt("st-av", error ? erroAmigavel(error) : (msg||"Salvo."), error?"err":"ok");
   desenharAvulsas(); desenharOracoesRoteiro(); montar();
 }
@@ -2570,7 +2604,18 @@ document.querySelector("#v-montar").addEventListener("input", e=>{
 $("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("data").value); });
 
 function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
+async function carregarParoquia(){
+  const {data} = await sb.from("paroquias").select("id,slug,nome,cidade,uf,plano,status,teste_ate,logo_url").eq("slug", PAR.slug).maybeSingle();
+  if (!data) return false;
+  Object.assign(PAR, data); PAR.curadora = data.id === "00000000-0000-4000-8000-000000000001";
+  $("par-nome").textContent = data.nome; document.title = MODO_TELAO ? "Telão — " + data.nome : data.nome + " · Telão Missa";
+  return true;
+}
 (async function iniciar(){
+  if (!(await carregarParoquia())){
+    document.body.innerHTML = `<main style="max-width:520px;margin:12vh auto;padding:0 16px;font:16px/1.5 system-ui"><h1 style="font-size:1.6rem">Paróquia não encontrada</h1><p>Confira o endereço que você recebeu. Se a sua paróquia ainda não usa o Telão Missa, <a href="cadastro.html">cadastre aqui</a>.</p></main>`;
+    return;
+  }
   if (MODO_TELAO){
     document.body.classList.add("modo-telao"); document.title = "Telão — projeção";
     S.idx = Math.max(0, parseInt(PARAMS.get("slide")||"0",10)||0);
