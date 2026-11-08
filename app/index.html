@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-9">
+<meta name="versao" content="2026-11-08-10">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -262,6 +262,30 @@ body.modo-controle .wrap, body.modo-controle #controle, body.modo-controle #nova
 select.mv-bt{appearance:none;text-align:center}
 .mv-bt.grande{width:100%;background:#FFD43B;color:#14161C;border-color:#FFD43B}
 .mv-login{display:flex;flex-direction:column;gap:12px;margin-top:20vh;text-align:center}
+.or-resumo{margin:0;font-size:.86rem;font-weight:700;color:var(--muted)}
+.or-resumo.ok{color:var(--ok)}
+.or-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.or-grupo{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 2px 4px}
+.or-grupo:first-child{padding-top:2px}
+.or-item{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid transparent;background:transparent;border-radius:8px;padding:9px 12px;cursor:pointer;color:var(--ink)}
+.or-item:hover{background:var(--sunk)}
+.or-item.sel{background:var(--surface);border-color:var(--line);box-shadow:inset 3px 0 0 var(--ink)}
+.or-n{font-weight:700;font-size:.95rem;line-height:1.3}
+.or-sub{font-size:.8rem;color:var(--muted);line-height:1.3}
+.or-est{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--muted);margin:2px 0 0}
+.or-est i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.or-est.ok{color:var(--ok)} .or-est.ok i{background:var(--ok)}
+.or-est.falta{color:var(--warn)} .or-est.falta i{background:var(--warn)}
+.or-conf{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.or-conf li.conf{display:grid;grid-template-columns:28px minmax(0,1fr) 28px;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid var(--line)}
+.or-conf li.conf:first-child{border-top:0}
+.conf-n{font-size:.78rem;font-weight:700;color:var(--muted);padding-top:2px;font-variant-numeric:tabular-nums}
+.or-conf b{display:block;line-height:1.35}
+.conf-d{display:block;font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.4}
+.conf-m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.8rem;border:1.5px solid var(--line);color:var(--muted)}
+.conf.ok .conf-m{border-color:var(--ok);color:var(--ok)}
+.conf.falta .conf-m{border-color:var(--warn);color:var(--warn)}
+.conf.falta .conf-d{color:var(--warn)}
 .ini-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .ini-tit{font-family:var(--display);font-weight:600;font-size:1.8rem;margin:0;line-height:1.1}
 .plano-tag{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 12px;border:1px solid var(--gold);color:var(--gold)}
@@ -592,10 +616,11 @@ ol.roteiro li[data-first]{cursor:pointer}
     <div class="panel">
       <h2>Orações eucarísticas</h2>
       <p class="hint">Escolha uma oração e cole o texto do padre, copiado do Missal de vocês. O texto nunca vai para o telão: serve para o controle remoto mostrar o que o padre está rezando e quando avançar.</p>
-      <ul class="lista-eq" id="or-lista"></ul>
+      <p class="or-resumo" id="or-resumo"></p>
+      <ul class="or-lista" id="or-lista"></ul>
     </div>
     <div class="panel">
-      <h2 id="or-nome">—</h2>
+      <div><h2 id="or-nome">—</h2><p class="hint" id="or-subt" style="margin-top:2px"></p></div>
       <div class="field">
         <label class="label" for="or-txt">Texto do padre (com as respostas do povo)</label>
         <textarea id="or-txt" rows="14" placeholder="Cole aqui o texto completo desta oração eucarística, do início do Prefácio até o Amém final."></textarea>
@@ -605,9 +630,10 @@ ol.roteiro li[data-first]{cursor:pointer}
         <textarea id="or-ac" rows="8"></textarea>
       </div>
       <div class="row editar"><button class="btn primary" type="button" id="or-salvar">Salvar</button><button class="btn" type="button" id="or-padrao">Respostas padrão do Missal</button><span class="status" id="st-or" aria-live="polite"></span></div>
-      <h3 class="label" style="margin-top:6px">Conferência</h3>
-      <p class="hint">Cada resposta precisa aparecer no texto colado. As que ficarem com ✗ não terão a parte do padre no controle remoto: ajuste a resposta para ficar igual à do texto.</p>
-      <ol class="lista-eq" id="or-conf"></ol>
+      <h3 class="label" style="margin-top:6px">Conferência das respostas</h3>
+      <p class="or-est" id="or-conf-res"></p>
+      <ol class="or-conf" id="or-conf"></ol>
+      <p class="hint">Cada resposta do povo precisa aparecer no texto colado, com a mesma grafia. Assim o controle remoto mostra a parte do padre que vem antes de cada resposta.</p>
     </div>
   </section>
 
@@ -615,7 +641,7 @@ ol.roteiro li[data-first]{cursor:pointer}
     <div class="panel">
       <h2>Outras orações</h2>
       <p class="hint">Orações rezadas (Ato penitencial, Glória, Santo, Cordeiro), Renovação das promessas do batismo e orações da paróquia. Aparecem no botão <b>Orações</b> do controle remoto.</p>
-      <ul class="lista-eq" id="av-lista"></ul>
+      <ul class="or-lista" id="av-lista"></ul>
       <button class="btn editar" type="button" id="av-nova">Nova oração</button>
     </div>
     <div class="panel">
@@ -2868,7 +2894,7 @@ function desenharAvulsas(){
   if (!$("av-lista")) return;
   const lista = S.avulsas || [];
   if (!avSel || !lista.some(o=>o.id===avSel)) avSel = lista[0]?.id || null;
-  $("av-lista").innerHTML = lista.map(o=>`<li><button class="btn link" type="button" data-av="${esc(o.id)}" style="text-align:left;${o.id===avSel?"text-decoration:underline":""}">${esc(o.titulo)}</button><span class="chip ${o.texto?.trim()?"":"miss"}">${o.texto?.trim()?"texto colado":"sem texto"}</span></li>`).join("") || `<li><span class="hint">Nenhuma oração cadastrada.</span></li>`;
+  $("av-lista").innerHTML = lista.map(o=>`<li><button type="button" class="or-item${o.id===avSel?" sel":""}" data-av="${esc(o.id)}"><span class="or-n">${esc(o.titulo)}</span><span class="or-est ${o.texto?.trim()?"ok":"vazio"}"><i></i>${o.texto?.trim()?"Pronta para projetar":"Sem texto — cole a oração"}</span></button></li>`).join("") || `<li><span class="hint">Nenhuma oração cadastrada.</span></li>`;
   const o = lista.find(x=>x.id===avSel);
   if (document.activeElement!==$("av-tit")) $("av-tit").value = o?.titulo || "";
   if (document.activeElement!==$("av-txt")) $("av-txt").value = o?.texto || "";
@@ -2892,13 +2918,33 @@ $("orr-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-or
 
 /* ---------- aba Orações ---------- */
 let orSel = "II";
+const OE_GRUPOS = [
+  {nome:"Orações eucarísticas", ids:["I","II","III","IV","V"]},
+  {nome:"Para diversas circunstâncias", ids:["DC1","DC2","DC3","DC4"]},
+  {nome:"Sobre a reconciliação", ids:["R1","R2"]}];
+const OE_SUB = {I:"Cânon romano", V:"Respostas próprias",
+  DC1:"A Igreja a caminho da unidade", DC2:"Deus conduz a sua Igreja pelo caminho da salvação", DC3:"Jesus, caminho para o Pai", DC4:"Jesus, que passa fazendo o bem"};
+function nomeCurtoOE(k){ const n = OES_PADRAO[k].nome; return k.startsWith("DC") ? "Diversas Circunstâncias " + n.split(" ").pop() : k.startsWith("R") ? "Reconciliação " + n.split(" ").pop() : n; }
+function estadoOE(k){
+  const acs = aclamacoes(k), tem = !!(S.oesTexto[k]||"").trim();
+  if (!tem) return {cls:"vazio", txt:"Sem texto do padre", n:0, t:acs.length};
+  const n = deixas(k).filter(Boolean).length;
+  return n === acs.length ? {cls:"ok", txt:`Conferida · ${n} de ${n} respostas no texto`, n, t:acs.length} : {cls:"falta", txt:`Revisar · ${n} de ${acs.length} respostas encontradas`, n, t:acs.length};
+}
 function desenharOracoes(){
   if (!$("or-lista")) return;
-  $("or-lista").innerHTML = Object.entries(OES_PADRAO).map(([k,v])=>{
-    const tem = !!S.oesTexto[k];
-    return `<li><button class="btn link" type="button" data-or="${k}" style="text-align:left;${k===orSel?"text-decoration:underline":""}">${esc(v.nome)}</button><span class="chip ${tem?"":"miss"}">${tem?"texto colado":"sem texto"}</span></li>`;
-  }).join("");
+  const total = Object.keys(OES_PADRAO).length, prontas = Object.keys(OES_PADRAO).filter(k=>estadoOE(k).cls==="ok").length;
+  $("or-resumo").textContent = `${prontas} de ${total} orações conferidas`;
+  $("or-resumo").className = "or-resumo " + (prontas === total ? "ok" : "");
+  $("or-lista").innerHTML = OE_GRUPOS.map(g=>`<li class="or-grupo">${esc(g.nome)}</li>` + g.ids.filter(k=>OES_PADRAO[k]).map(k=>{
+    const e = estadoOE(k);
+    return `<li><button type="button" class="or-item${k===orSel?" sel":""}" data-or="${k}" aria-current="${k===orSel}">
+      <span class="or-n">${esc(nomeCurtoOE(k))}</span>
+      ${OE_SUB[k] ? `<span class="or-sub">${esc(OE_SUB[k])}</span>` : ""}
+      <span class="or-est ${e.cls}"><i></i>${esc(e.txt)}</span></button></li>`;
+  }).join("")).join("");
   $("or-nome").textContent = OES_PADRAO[orSel].nome;
+  $("or-subt").textContent = OE_SUB[orSel] || "";
   if (document.activeElement!==$("or-txt")) $("or-txt").value = S.oesTexto[orSel] || "";
   if (document.activeElement!==$("or-ac")) $("or-ac").value = aclamacoes(orSel).join("\n");
   conferirOracao();
@@ -2910,9 +2956,12 @@ function conferirOracao(){
   S.oesAjustes[orSel] = $("or-ac").value.split("\n").map(x=>x.trim()).filter(Boolean);
   const dx = deixas(orSel), acs = aclamacoes(orSel), tem = !!S.oesTexto[orSel];
   S.oesTexto[orSel] = salvo.t; if (salvo.a) S.oesAjustes[orSel] = salvo.a; else delete S.oesAjustes[orSel];
+  const nOk = tem ? dx.filter(Boolean).length : 0;
+  $("or-conf-res").className = "or-est " + (!tem ? "vazio" : nOk === acs.length ? "ok" : "falta");
+  $("or-conf-res").innerHTML = "<i></i>" + esc(!tem ? "Cole o texto do padre para conferir as respostas" : nOk === acs.length ? `Tudo certo: as ${acs.length} respostas foram encontradas no texto` : `${acs.length - nOk} resposta${acs.length-nOk>1?"s":""} não encontrada${acs.length-nOk>1?"s":""} no texto — confira a grafia`);
   $("or-conf").innerHTML = acs.map((a,i)=>{
-    const ok = tem && dx[i]; const r = a==="[MISTÉRIO]" ? "Mistério da fé" : a;
-    return `<li style="display:block"><b>${ok?"✓":tem?"✗":"·"} ${esc(r)}</b>${ok?`<br><span class="hint">…${esc(dx[i].slice(-140))}</span>`:""}</li>`;
+    const ok = tem && dx[i]; const r = a==="[MISTÉRIO]" ? "Mistério da fé (resposta escolhida na missa)" : a;
+    return `<li class="conf ${ok?"ok":tem?"falta":""}"><span class="conf-n">${i+1}</span><div><b>${esc(r)}</b>${ok?`<span class="conf-d">Deixa do padre: “…${esc(dx[i].slice(-120).trim())}”</span>`:tem?`<span class="conf-d">Não achei esta resposta no texto colado.</span>`:""}</div><span class="conf-m" aria-label="${ok?"encontrada":tem?"não encontrada":"aguardando texto"}">${ok?"✓":tem?"!":"·"}</span></li>`;
   }).join("") || `<li><span class="hint">Sem respostas cadastradas.</span></li>`;
 }
 $("or-lista").addEventListener("click", e=>{ const b=e.target.closest("[data-or]"); if (b){ orSel=b.dataset.or; $("or-txt").value=""; $("or-ac").value=""; desenharOracoes(); $("or-txt").value=S.oesTexto[orSel]||""; $("or-ac").value=aclamacoes(orSel).join("\n"); conferirOracao(); setSt("st-or","",""); } });
