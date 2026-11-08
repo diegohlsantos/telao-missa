@@ -136,7 +136,7 @@ button:disabled{opacity:.55;cursor:default}
 <script>
 const $ = id => document.getElementById(id);
 const sb = supabase.createClient("https://xbtrwvtkdsjptnpqsaom.supabase.co", "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5");
-const BASE = location.origin + location.pathname.replace(/cadastro\.html$/, "");
+const BASE = location.origin + location.pathname.replace(/cadastro\.html$/, "") + "app/";
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 const DIAS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 let modoEntrar = false, slugMexido = false, criada = null;
