@@ -118,6 +118,12 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .sbox p{margin:0 0 .35em}
 .s-resp{color:var(--s-hc)}
 .s-strong{color:var(--s-hc);font-weight:700}
+/* oração eucarística: título pequeno no alto, resposta grande no centro */
+.sbox .oe-head{margin-bottom:0}
+.oe-head .s-title{font-size:calc(.55em * var(--s-tsc));line-height:1.15}
+.oe-corpo{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:var(--s-items);width:100%}
+.oe-corpo .s-strong{font-size:1.5em;font-weight:800;line-height:1.15;margin:0;text-wrap:balance}
+.oe-corpo .oe-conv{font-size:.85em;margin:0 0 .4em}
 .stage.med{position:fixed;left:-99999px;top:0;width:1600px;visibility:hidden;pointer-events:none}
 .sbox.full{inset:0}
 .sbox.com-fundo{text-shadow:0 0 .12em rgb(0 0 0 / .8)}
@@ -1130,8 +1136,8 @@ function montar(){
         const resp = a.trim()==="[MISTÉRIO]" ? mist : a;
         if (comImagem) arr.push({html:"", mid:true, oeImagem:true, rotulo:"Imagem — padre rezando", deixa:dx[i], proxima:resp});
         arr.push(a.trim()==="[MISTÉRIO]"
-          ? {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p style="margin:0 0 .3em">Mistério da fé!</p><p class="s-strong">${esc(mist)}</p>`, mid:true, rotulo:"Mistério da fé", deixa:dx[i], proxima:resp}
-          : {html:`<div class="s-head"><span class="s-title">${esc(curto)}</span></div><p class="s-strong">${esc(a)}</p>`, mid:true, rotulo:a, deixa:dx[i], proxima:resp});
+          ? {html:`<div class="s-head oe-head"><span class="s-title">${esc(curto)}</span></div><div class="oe-corpo"><p class="oe-conv">Mistério da fé!</p><p class="s-strong">${esc(mist)}</p></div>`, rotulo:"Mistério da fé", deixa:dx[i], proxima:resp}
+          : {html:`<div class="s-head oe-head"><span class="s-title">${esc(curto)}</span></div><div class="oe-corpo"><p class="s-strong">${esc(a)}</p></div>`, rotulo:a, deixa:dx[i], proxima:resp});
       });
       push("oe", arr);
       linhas.push({m:"oe", nome:"Oração eucarística", t:oe.nome, s:`${aclamacoes(c.oe).length} aclamações${comImagem?" · imagem entre elas":""}`, first:start});
@@ -2005,7 +2011,7 @@ const AMOSTRAS = [
   {html:`<div class="s-head"><span class="s-title">Canto de exemplo (1/2)</span><span class="s-autor">Grupo</span></div><div class="s-lyr">Primeira linha da estrofe de exemplo\nSegunda linha da estrofe de exemplo\nTerceira linha da estrofe\n\nLinha do refrão de exemplo\nOutra linha do refrão</div>`, rotulo:"Canto (exemplo)"},
   {html:`<div class="s-head"><span class="s-title">Primeira leitura</span><span class="s-ref">(Ref 1,1-5)</span></div><p class="s-sub">Leitura do livro de exemplo</p><p>Este é um texto de exemplo com o tamanho típico de um slide de leitura, para você conferir a fonte, o espaçamento e as margens antes da celebração.</p><p class="s-resp" style="margin-top:.6em">Palavra do Senhor.<br>Graças a Deus.</p>`, rotulo:"Leitura (exemplo)"},
   {html:`<div class="s-head"><span class="s-title" style="font-weight:700">Preces da assembleia</span></div><p class="s-strong">Senhor, escutai a nossa prece!</p>`, mid:true, rotulo:"Preces (exemplo)"},
-  {html:`<div class="s-head"><span class="s-title">Oração eucarística II</span></div><p class="s-strong">Enviai o vosso Espírito Santo!</p>`, mid:true, grupo:"oe", rotulo:"Oração eucarística (exemplo)"},
+  {html:`<div class="s-head oe-head"><span class="s-title">Oração eucarística II</span></div><div class="oe-corpo"><p class="s-strong">Enviai o vosso Espírito Santo!</p></div>`, grupo:"oe", rotulo:"Oração eucarística (exemplo)"},
 ];
 let pvIdx = 0;
 function slidesPrevia(){ const r = S.slides.filter(x=>!x.blank); return r.length ? r : AMOSTRAS; }
