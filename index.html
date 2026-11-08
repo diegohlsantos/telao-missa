@@ -1431,7 +1431,18 @@ function telaCheia(on){ try{ if (on && !document.fullscreenElement) $("proj").re
 $("proj-cheia").onclick = e=>{ e.stopPropagation(); telaCheia(true); $("proj-cheia").hidden = true; };
 document.addEventListener("fullscreenchange", ()=>{ if (document.fullscreenElement) $("proj-cheia").hidden = true; });
 document.addEventListener("keydown", e=>{
-  if ($("proj").hidden) return;
+  if ($("proj").hidden){
+    // controle remoto: setas do teclado (e passadores de slide) comandam o telão
+    if (MODO_TELAO || $("controle").hidden || e.ctrlKey || e.altKey || e.metaKey) return;
+    const t = e.target, tag = (t?.tagName||"").toLowerCase();
+    if (tag==="input" || tag==="textarea" || tag==="select" || t?.isContentEditable) return;
+    const k = e.key;
+    if (["ArrowRight","ArrowDown","PageDown"].includes(k)){ e.preventDefault(); mandar("passo",{d:1}); }
+    else if (["ArrowLeft","ArrowUp","PageUp"].includes(k)){ e.preventDefault(); mandar("passo",{d:-1}); }
+    else if (k==="b"||k==="B"){ mandar("preta"); }
+    else if (k==="c"||k==="C"){ mandar("congelar"); }
+    return;
+  }
   const k = e.key;
   if (["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(k)){ e.preventDefault(); ir(1); }
   else if (["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(k)){ e.preventDefault(); ir(-1); }
