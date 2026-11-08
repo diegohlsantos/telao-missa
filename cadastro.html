@@ -181,14 +181,19 @@ $("f-conta").addEventListener("submit", async e=>{
 });
 function irParaParoquia(user){ $("quem").textContent = "Conta: " + user.email; passo(2); $("x-nome").focus(); }
 
-$("x-nome").addEventListener("input", ()=>{ if (!slugMexido) $("x-slug").value = slugDe($("x-nome").value); mostrarEnd(); });
-$("x-slug").addEventListener("input", ()=>{ slugMexido = true; $("x-slug").value = $("x-slug").value.toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-{2,}/g,"-"); mostrarEnd(); });
+const sugerir = ()=>{ if (slugMexido) return;
+  const sig = $("x-nome").value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().split(/[^a-z0-9]+/).filter(w=>w && !["de","da","do","das","dos","e"].includes(w)).map(w=>w[0]).join("");
+  const cid = $("x-cidade").value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z]/g,"");
+  const ab = cid ? cid[0] + (cid.slice(1).replace(/[aeiou]/g,"").slice(0,2)) : "";
+  $("x-slug").value = sig.length >= 2 ? sig + (ab ? "." + ab : "") : slugDe($("x-nome").value); mostrarEnd(); };
+$("x-nome").addEventListener("input", sugerir); $("x-cidade").addEventListener("input", sugerir);
+$("x-slug").addEventListener("input", ()=>{ slugMexido = true; $("x-slug").value = $("x-slug").value.toLowerCase().replace(/[^a-z0-9.-]/g,"-").replace(/([.-])[.-]+/g,"$1"); mostrarEnd(); });
 
 $("f-par").addEventListener("submit", async e=>{
   e.preventDefault();
-  const nome = $("x-nome").value.trim(), slug = $("x-slug").value.replace(/^-+|-+$/g,"");
+  const nome = $("x-nome").value.trim(), slug = $("x-slug").value.replace(/^[.-]+|[.-]+$/g,"");
   if (nome.length < 3){ st("st-par","Escreva o nome da paróquia.","err"); return; }
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3){ st("st-par","O endereço precisa ter pelo menos 3 letras ou números, sem espaços.","err"); return; }
+  if (!/^[a-z0-9]+([.-][a-z0-9]+)*$/.test(slug) || slug.length < 3){ st("st-par","O endereço precisa ter pelo menos 3 letras ou números, sem espaços (pode usar ponto ou hífen).","err"); return; }
   $("b-par").disabled = true; st("st-par","Criando a paróquia…");
   const {data, error} = await sb.rpc("criar_paroquia", {p_nome:nome, p_slug:slug, p_cidade:$("x-cidade").value, p_uf:$("x-uf").value});
   $("b-par").disabled = false;

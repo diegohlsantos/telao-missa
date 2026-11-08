@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão da Missa</title>
-<meta name="versao" content="2026-11-08-3">
+<meta name="versao" content="2026-11-08-4">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -694,7 +694,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 <script>
 "use strict";
 const PARAMS = new URLSearchParams(location.search);
-const PAR = {id:null, slug:(PARAMS.get("p")||"piloto").toLowerCase().replace(/[^a-z0-9-]/g,""), nome:""};
+const PAR = {id:null, slug:(PARAMS.get("p")||"").toLowerCase().replace(/[^a-z0-9.-]/g,""), nome:""};
 const comP = q => q.eq("paroquia_id", PAR.id);
 const MODO_TELAO = PARAMS.get("telao") === "1";
 const canal = "BroadcastChannel" in window ? new BroadcastChannel("telao-missa") : null;
@@ -2605,7 +2605,10 @@ $("data").addEventListener("change", ()=>{ if ($("data").value) carregarData($("
 
 function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.setDate(d.getDate()+(7-w)); return d.toLocaleDateString("sv-SE"); }
 async function carregarParoquia(){
-  const {data} = await sb.from("paroquias").select("id,slug,nome,cidade,uf,plano,status,teste_ate,logo_url").eq("slug", PAR.slug).maybeSingle();
+  const P1 = "00000000-0000-4000-8000-000000000001";
+  let q = sb.from("paroquias").select("id,slug,nome,cidade,uf,plano,status,teste_ate,logo_url");
+  q = (!PAR.slug || PAR.slug === "piloto") ? q.eq("id", P1) : q.eq("slug", PAR.slug);  // link antigo sem ?p= abre a paróquia 1
+  const {data} = await q.maybeSingle();
   if (!data) return false;
   Object.assign(PAR, data); PAR.curadora = data.id === "00000000-0000-4000-8000-000000000001";
   $("par-nome").textContent = data.nome; document.title = MODO_TELAO ? "Telão — " + data.nome : data.nome + " · Telão Missa";
