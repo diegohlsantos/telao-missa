@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão da Missa</title>
+<meta name="versao" content="2026-11-08-1">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -171,6 +172,9 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .av-prev{width:100%;aspect-ratio:16/9;object-fit:contain;background:#000;border-radius:6px;border:1px solid var(--line)}
 .aviso-txt{position:absolute;left:0;right:0;bottom:0;padding:6% 8% 4%;text-align:center;font-weight:700;line-height:1.2;color:#fff;text-wrap:balance;background:linear-gradient(rgb(0 0 0 / 0),rgb(0 0 0 / .85));text-shadow:0 .04em .25em rgb(0 0 0 / .9)}
 .so-leitura .editar{display:none!important}
+#nova-versao{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 32px);padding:10px 12px 10px 16px;border-radius:12px;background:#1d4ed8;color:#fff;box-shadow:0 10px 30px rgb(0 0 0 / .25);font-weight:600}
+#nova-versao .btn{background:#fff;color:#1d4ed8;border-color:#fff}
+#nova-versao .btn.link{background:transparent;color:#fff;border-color:transparent}
 #controle{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgb(0 0 0 / .14);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .ctl-in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
 .ctl-linha{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
@@ -619,6 +623,12 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
       <audio id="aud" preload="auto" hidden></audio>
     </div>
   </div>
+</div>
+
+<div id="nova-versao" role="status" hidden>
+  <span>Saiu uma versão nova do site.</span>
+  <button class="btn" type="button" id="nv-atualizar">Atualizar controle e telão</button>
+  <button class="btn link" type="button" id="nv-depois">Depois</button>
 </div>
 
 <dialog id="dlg-login">
@@ -1519,6 +1529,7 @@ function voltarRoteiro(){ S.extra = null; mostrar(); }
 if (canal){
   canal.onmessage = ({data:m})=>{
     if (!m) return;
+    if (MODO_TELAO && m.tipo==="recarregar"){ recarregarTelao(); return; }
     if (MODO_TELAO){
       if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ S.extra=null; carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
       if (m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))) return;
@@ -1536,6 +1547,32 @@ if (canal){
   };
   if (!MODO_TELAO) setTimeout(()=>canal.postMessage({tipo:"quem"}), 800);
 }
+/* ---------- versão nova do site ---------- */
+const VERSAO = document.querySelector('meta[name="versao"]')?.content || "";
+function recarregarTelao(){
+  try{ sessionStorage.setItem("telao-estado", JSON.stringify({idx:S.idx, black:S.black, capa:!!S.capa, t:Date.now()})); }catch{}
+  const u = new URL(location.href); u.searchParams.set("slide", S.idx); if (S.date) u.searchParams.set("data", S.date); if (S.hora) u.searchParams.set("hora", S.hora);
+  location.replace(u.toString());
+}
+let nvAdiado = 0;
+async function checarVersao(){
+  if (MODO_TELAO || !VERSAO || Date.now() < nvAdiado) return;
+  try{
+    const t = await fetch(location.pathname + "?versao=" + Date.now(), {cache:"no-store"}).then(r=>r.ok ? r.text() : "");
+    const v = t.match(/<meta name="versao" content="([^"]+)"/)?.[1];
+    if (v && v !== VERSAO) $("nova-versao").hidden = false;
+  }catch{}
+}
+if (!MODO_TELAO){
+  setTimeout(checarVersao, 20000); setInterval(checarVersao, 3*60*1000);
+  document.addEventListener("visibilitychange", ()=>{ if (!document.hidden) checarVersao(); });
+}
+$("nv-atualizar").onclick = ()=>{
+  mandar("recarregar");
+  setTimeout(()=>{ const u = new URL(location.href); u.searchParams.set("versao", Date.now()); location.replace(u.toString()); }, 400);
+};
+$("nv-depois").onclick = ()=>{ $("nova-versao").hidden = true; nvAdiado = Date.now() + 30*60*1000; };
+
 let ultimoPos = 0;
 function atualizarControle(m){
   ultimoPos = Date.now();
@@ -2463,6 +2500,8 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
   if (MODO_TELAO){
     document.body.classList.add("modo-telao"); document.title = "Telão — projeção";
     S.idx = Math.max(0, parseInt(PARAMS.get("slide")||"0",10)||0);
+    try{ const e = JSON.parse(sessionStorage.getItem("telao-estado")||"null"); sessionStorage.removeItem("telao-estado");
+      if (e && Date.now()-e.t < 60000){ S.idx = e.idx|0; S.black = !!e.black; S.capa = !!e.capa; } }catch{}
     $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
     try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   }
