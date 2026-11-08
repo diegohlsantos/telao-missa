@@ -3,27 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Telão da Missa</title>
-<meta name="versao" content="2026-11-08-5">
+<title>Telão Missa</title>
+<meta name="versao" content="2026-11-08-6">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,500;9..144,650&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Cormorant+Garamond:wght@600&display=swap">
 <style>
 /* Layout: mesa de operação — painel de montagem à esquerda, roteiro da missa à direita; projeção ocupa a janela inteira */
 :root{
-  --bg:#f3f4f7; --surface:#ffffff; --sunk:#e9ecf2; --ink:#18202d; --muted:#5a6375; --line:#d9dee7;
-  --accent:#2b5a8c; --accent-ink:#ffffff; --gold:#9a6b00; --gold-soft:#fbf1d8; --ok:#2f7a4f; --warn:#a4451f;
-  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  /* sistema de design Telão Missa: noite + luz */
+  --bg:#F4F5F7; --surface:#FFFFFF; --sunk:#E9ECF1; --ink:#14161C; --muted:#545B68; --line:#D9DCE2;
+  --accent:#14161C; --accent-ink:#FFFFFF; --gold:#8A5A00; --gold-soft:#FBF1D8; --ok:#1F7A4D; --warn:#B3261E;
+  --foco:#8A5A00; --noite:#14161C; --luz:#FFD43B;
+  --display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
   --radius:10px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f131a; --surface:#171c25; --sunk:#1e2430; --ink:#e7ebf1; --muted:#9aa4b6; --line:#2a3240;
-  --accent:#7eb0e3; --accent-ink:#0d1622; --gold:#e5b443; --gold-soft:#2b2412; --ok:#6cc495; --warn:#f08a62; color-scheme:dark}}
+  --bg:#101218; --surface:#191C24; --sunk:#20242E; --ink:#EEF0F4; --muted:#A3AAB8; --line:#2A2F3A;
+  --accent:#FFD43B; --accent-ink:#14161C; --gold:#FFD43B; --gold-soft:#2B2412; --ok:#6FCF97; --warn:#F28B82; --foco:#FFD43B; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f131a; --surface:#171c25; --sunk:#1e2430; --ink:#e7ebf1; --muted:#9aa4b6; --line:#2a3240;
-  --accent:#7eb0e3; --accent-ink:#0d1622; --gold:#e5b443; --gold-soft:#2b2412; --ok:#6cc495; --warn:#f08a62; color-scheme:dark}
+  --bg:#101218; --surface:#191C24; --sunk:#20242E; --ink:#EEF0F4; --muted:#A3AAB8; --line:#2A2F3A;
+  --accent:#FFD43B; --accent-ink:#14161C; --gold:#FFD43B; --gold-soft:#2B2412; --ok:#6FCF97; --warn:#F28B82; --foco:#FFD43B; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 .musicos{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:14px 0 4px}
@@ -36,7 +38,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15p
 button,input,textarea,select{font:inherit;color:inherit}
 .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
-.brand h1{font-family:var(--display);font-weight:650;font-size:1.75rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .produto{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.brand .produto svg{width:26px;height:auto}
+.brand h1{font-family:var(--display);font-weight:600;font-size:2.1rem;line-height:1.05;margin:2px 0 0;letter-spacing:0;text-wrap:balance}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
 nav.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:999px}
 nav.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:700}
@@ -44,26 +49,26 @@ nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink)
 .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.panel h2{font-family:var(--display);font-weight:500;font-size:1.2rem;margin:0}
+.panel h2{font-family:var(--display);font-weight:600;font-size:1.45rem;line-height:1.15;margin:0}
 .label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
 input[type=date],input[type=text],input[type=search],textarea,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
 textarea{resize:vertical;line-height:1.5}
 #texto{min-height:230px;font-size:1rem}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;white-space:nowrap}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.big{padding:12px 20px;font-size:1.05rem}
 .btn:disabled{opacity:.55;cursor:not-allowed}
-.btn.link{border:0;background:none;padding:2px 4px;color:var(--accent);font-weight:700}
+.btn.link{border:0;background:none;padding:2px 4px;color:var(--gold);font-weight:700}
 .hint{color:var(--muted);font-size:.86rem;margin:0}
 .status{font-size:.86rem;color:var(--muted)}
 .status.ok{color:var(--ok)} .status.err{color:var(--warn)}
 .celebra{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:8px;background:var(--sunk)}
 .cor{width:14px;align-self:stretch;border-radius:4px;flex:none;border:1px solid var(--line)}
-.celebra strong{font-family:var(--display);font-weight:500;font-size:1.1rem;display:block}
+.celebra strong{font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.15;display:block}
 .refs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.86rem;color:var(--muted);font-variant-numeric:tabular-nums}
 /* roteiro */
 ol.roteiro{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
@@ -78,7 +83,7 @@ ol.roteiro li:first-child{border-top:0}
 .chip{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--gold-soft);color:var(--gold)}
 .chip.ok{background:color-mix(in srgb,#2e7d4f 14%,transparent);color:#2e7d4f}
 .chip.miss{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
-.go{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:700;padding:4px 6px;border-radius:6px}
+.go{border:0;background:none;color:var(--gold);cursor:pointer;font-weight:700;padding:4px 6px;border-radius:6px}
 .go:hover{background:var(--sunk)}
 .empty{padding:22px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
 details.leit{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
@@ -237,6 +242,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
 <div class="wrap">
   <header class="top">
     <div class="brand">
+      <a class="produto" href="../" title="Telão Missa"><svg viewBox="0 0 160 90" aria-hidden="true"><g fill="currentColor"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>Telão Missa</a>
       <h1 id="par-nome">Telão Missa</h1>
       <p id="sub">Leituras do dia, cantos e avisos num só roteiro</p>
     </div>
