@@ -75,6 +75,7 @@ ol.roteiro li:first-child{border-top:0}
 .what .s{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
 .what select{margin-top:4px;font-size:.85rem;padding:5px 8px}
 .chip{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--gold-soft);color:var(--gold)}
+.chip.ok{background:color-mix(in srgb,#2e7d4f 14%,transparent);color:#2e7d4f}
 .chip.miss{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .go{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:700;padding:4px 6px;border-radius:6px}
 .go:hover{background:var(--sunk)}
@@ -153,6 +154,22 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .lista-eq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .lista-eq li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .lista-eq li:first-child{border-top:0}
+.lista-av{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.lista-av li{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.lista-av .n{font-weight:700;color:var(--muted);width:1.4em;text-align:right;flex:none}
+.av-th{width:64px;height:36px;border-radius:4px;object-fit:cover;background:#000;flex:none;border:1px solid var(--line)}
+.av-th.txt{display:flex;align-items:center;justify-content:center;color:#ffe500;font:700 9px var(--body);letter-spacing:.06em}
+.lista-av .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lista-av .acoes{display:flex;gap:4px;flex:none}
+.lista-av .acoes .btn{padding:4px 9px;min-height:0}
+.banco{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.banco .card{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;display:flex;flex-direction:column}
+.banco .card[aria-current="true"]{box-shadow:0 0 0 2px var(--accent,#2563eb)}
+.banco .card .img{aspect-ratio:16/9;background:#000 center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;padding:6px;text-align:center;overflow:hidden}
+.banco .card .info{padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.banco .card .info b{font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av-prev{width:100%;aspect-ratio:16/9;object-fit:contain;background:#000;border-radius:6px;border:1px solid var(--line)}
+.aviso-txt{position:absolute;left:0;right:0;bottom:0;padding:6% 8% 4%;text-align:center;font-weight:700;line-height:1.2;color:#fff;text-wrap:balance;background:linear-gradient(rgb(0 0 0 / 0),rgb(0 0 0 / .85));text-shadow:0 .04em .25em rgb(0 0 0 / .9)}
 .so-leitura .editar{display:none!important}
 #controle{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgb(0 0 0 / .14);padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .ctl-in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
@@ -224,6 +241,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <button role="tab" id="tab-historico" aria-selected="false">Histórico</button>
         <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
         <button role="tab" id="tab-oracoes" aria-selected="false">Orações</button>
+        <button role="tab" id="tab-avisos" aria-selected="false">Avisos</button>
         <button role="tab" id="tab-layout" aria-selected="false">Layout</button>
         <button role="tab" id="tab-equipe" aria-selected="false" hidden>Equipe</button>
       </nav>
@@ -339,10 +357,19 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <input type="text" id="c-preces_refrao" placeholder="Refrão — ex.: Senhor, escutai a nossa prece!">
         <textarea id="c-preces" rows="6" placeholder="Cole aqui as preces do folheto, uma por parágrafo. Cada prece vira um slide com o refrão embaixo."></textarea>
       </fieldset>
-      <div class="field">
-        <label class="label" for="c-avisos">Avisos — um por linha</label>
+      <fieldset class="bloco">
+        <legend class="label">Avisos desta missa</legend>
+        <ol class="lista-av" id="avm-lista"></ol>
+        <div class="row editar">
+          <select id="avm-sel" style="width:auto;flex:1 1 200px" aria-label="Aviso do banco"></select>
+          <button class="btn" type="button" id="avm-add">Incluir</button>
+          <label class="btn" style="cursor:pointer">Novo com imagem…<input type="file" id="avm-img" accept="image/*" hidden></label>
+          <button class="btn link" type="button" id="avm-banco">Banco de avisos</button>
+        </div>
+        <span class="status" id="st-avm"></span>
+        <label class="label" for="c-avisos" style="margin-top:10px">Avisos rápidos — só texto, um por linha <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">(entram depois dos avisos acima)</span></label>
         <textarea id="c-avisos" rows="3" placeholder="Reunião do dízimo na terça, às 19h30"></textarea>
-      </div>
+      </fieldset>
       <p class="status" id="st-missa" aria-live="polite"></p>
     </div>
 
@@ -376,6 +403,33 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
   </section>
 
   <!-- ============ HISTÓRICO ============ -->
+  <section id="v-avisos" class="grid" hidden style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h2>Banco de avisos</h2>
+        <span class="row"><label class="chk"><input type="checkbox" id="bav-vencidos"> mostrar vencidos</label><button class="btn primary editar" type="button" id="bav-novo">Novo aviso</button></span>
+      </div>
+      <p class="hint">Cadastre uma vez e reutilize em qualquer missa. Pode ser só imagem (cartaz), só texto, ou imagem com uma frase embaixo. Com “válido até”, o aviso some da lista de escolha depois da data.</p>
+      <input type="search" id="bav-busca" placeholder="Buscar aviso">
+      <div class="banco" id="bav-lista" style="margin-top:12px"></div>
+    </div>
+    <div class="panel" id="bav-ed">
+      <h2 id="bav-ed-tit">Aviso</h2>
+      <div class="field"><label class="label" for="bav-titulo">Título <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">(para achar no banco; aparece no slide só nos avisos de texto)</span></label><input type="text" id="bav-titulo" placeholder="Ex.: Festa de Cristo Rei"></div>
+      <div class="field"><label class="label" for="bav-texto">Texto</label><textarea id="bav-texto" rows="4" placeholder="Opcional se houver imagem. Com imagem, aparece como faixa embaixo."></textarea></div>
+      <div class="field">
+        <span class="label">Imagem</span>
+        <img id="bav-prev" class="av-prev" alt="" hidden>
+        <div class="row editar" style="margin-top:6px"><label class="btn" style="cursor:pointer">Escolher imagem…<input type="file" id="bav-arq" accept="image/*" hidden></label><button class="btn link" type="button" id="bav-img-rem" hidden>Remover imagem</button><span class="hint">ou cole (Ctrl+V) aqui</span></div>
+      </div>
+      <div class="field"><label class="label" for="bav-ate">Válido até <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">(opcional)</span></label><input type="date" id="bav-ate" style="width:auto"></div>
+      <div class="row editar" style="justify-content:space-between">
+        <button class="btn" type="button" id="bav-excluir">Excluir</button>
+        <span class="row"><span class="status" id="st-bav"></span><button class="btn" type="button" id="bav-incluir">Incluir na missa</button><button class="btn primary" type="button" id="bav-salvar">Salvar</button></span>
+      </div>
+    </div>
+  </section>
+
   <section id="v-historico" class="grid" hidden style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
     <div class="panel">
       <div class="row" style="justify-content:space-between"><h2>Missas realizadas</h2><span class="hint" id="hist-info"></span></div>
@@ -870,7 +924,7 @@ function slidesOracao(o){
 /* ---------------- Campos fixos ---------------- */
 const CAMPOS_CANTO = MOMENTOS.filter(m=>m.kw && !m.texto).map(m=>m.id);
 const MULTI = new Set(["comunhao","acaodegracas"]);
-function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; c.oe=""; c.misterio="0"; c.prefacio=true; c.evangelho_modo=""; c.musicos="sim"; c.grav={}; c.oracoes_roteiro=[]; return c; }
+function camposVazios(){ const c={}; CAMPOS_CANTO.forEach(k=>c[k]=""); c.preces_refrao=""; c.preces=""; c.avisos=""; c.capa_url=""; c.capa_frase=""; c.capa_cobrir=false; c.oe=""; c.misterio="0"; c.prefacio=true; c.evangelho_modo=""; c.musicos="sim"; c.grav={}; c.oracoes_roteiro=[]; c.avisos_lista=[]; return c; }
 function camposDoTexto(texto){ // converte o formato antigo (texto livre)
   const c = camposVazios(); const {itens, avisos} = interpretar(texto);
   for (const it of itens){
@@ -942,6 +996,148 @@ function desenharOracoesRoteiro(){
   $("orr-id").innerHTML = (S.avulsas||[]).map(o=>`<option value="${esc(o.id)}">${esc(o.titulo)}</option>`).join("");
   if (!$("orr-depois").options.length) $("orr-depois").innerHTML = `<option value="inicio">No início</option>` + MOMENTOS.map(m=>`<option value="${m.id}">Depois de: ${esc(m.nome)}</option>`).join("");
 }
+
+/* ---------------- Avisos (banco) ---------------- */
+function slidesAviso(a){
+  const img = a.imagem_url, txt = String(a.texto||"").trim(), tit = String(a.titulo||"").trim();
+  if (img){
+    return [{html:`<div class="capa-img"><img class="fundo" src="${esc(img)}" alt=""><img class="frente" src="${esc(img)}" alt=""></div>${txt?`<div class="aviso-txt">${esc(txt).replace(/\n/g,"<br>")}</div>`:""}`, full:true, rotulo: tit || "imagem"}];
+  }
+  if (!txt && !tit) return [];
+  const head = `<div class="s-head"><span class="s-title">Avisos</span></div>`;
+  const units = [];
+  if (tit && txt) units.push({t:`<p class="s-strong">${esc(tit)}</p>`, sep:""});
+  (txt || tit).split(/\n\s*\n|\n/).map(x=>x.trim()).filter(Boolean).forEach(par=>units.push({t:`<p>${esc(par)}</p>`, sep:""}));
+  const pags = paginar({head, units, corpo:t=>t, headSempre:true});
+  return pags.map((h,i)=>({html:h, mid:pags.length===1, rotulo:(tit || txt.slice(0,30)) + (pags.length>1?` ${i+1}/${pags.length}`:"")}));
+}
+function hojeISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function vencido(a, ref){ return !!a.ate && a.ate < (ref || hojeISO()); }
+function fmtData(d){ return d ? new Date(d+"T12:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : ""; }
+async function carregarAvisos(){
+  const {data, error} = await sb.from("avisos").select("id,titulo,texto,imagem_url,ate,atualizado").order("atualizado",{ascending:false});
+  if (error) return;
+  S.avisosBanco = data || [];
+  desenharAvisosMissa(); if (!$("v-avisos").hidden) desenharBanco(); montar();
+}
+let tAvisos=null;
+function recarregarAvisosEmBreve(){ clearTimeout(tAvisos); tAvisos=setTimeout(carregarAvisos, 600); }
+function miniAviso(a){
+  return a.imagem_url ? `<img class="av-th" src="${esc(a.imagem_url)}" alt="">` : `<span class="av-th txt">TEXTO</span>`;
+}
+function desenharAvisosMissa(){
+  if (!$("avm-lista")) return;
+  const lista = S.missa?.campos?.avisos_lista || [];
+  const ref = S.date || hojeISO();
+  $("avm-lista").innerHTML = lista.map((id,i)=>{
+    const a = (S.avisosBanco||[]).find(x=>x.id===id);
+    if (!a) return `<li><span class="n">${i+1}</span><span class="tt hint">Aviso excluído do banco</span>${S.editor?`<span class="acoes"><button class="btn" type="button" data-avm-rem="${i}">Tirar</button></span>`:""}</li>`;
+    return `<li><span class="n">${i+1}</span>${miniAviso(a)}<span class="tt" title="${esc(a.titulo||a.texto||"")}">${esc(a.titulo || a.texto || "Imagem")}${vencido(a, ref)?` <span class="chip miss">vencido</span>`:""}</span>
+      ${S.editor?`<span class="acoes"><button class="btn" type="button" data-avm-up="${i}" ${i===0?"disabled":""} aria-label="Subir">↑</button><button class="btn" type="button" data-avm-down="${i}" ${i===lista.length-1?"disabled":""} aria-label="Descer">↓</button><button class="btn" type="button" data-avm-rem="${i}">Tirar</button></span>`:""}</li>`;
+  }).join("") || `<li style="border-style:dashed"><span class="hint">Nenhum aviso do banco nesta missa.</span></li>`;
+  const disp = (S.avisosBanco||[]).filter(a=>!lista.includes(a.id) && !vencido(a, ref));
+  $("avm-sel").innerHTML = disp.length ? disp.map(a=>`<option value="${esc(a.id)}">${esc((a.imagem_url?"🖼 ":"")+(a.titulo || a.texto?.slice(0,50) || "Imagem"))}${a.ate?` · até ${fmtData(a.ate)}`:""}</option>`).join("") : `<option value="">Nenhum outro aviso no banco</option>`;
+  $("avm-add").disabled = !disp.length;
+}
+function mudarAvisosMissa(nova){
+  S.missa.campos = {...lerCampos(), avisos_lista:nova};
+  desenharAvisosMissa(); montar(); salvarMissa();
+}
+$("avm-lista").addEventListener("click", e=>{
+  if (!S.editor) return;
+  const l = [...(S.missa.campos?.avisos_lista||[])];
+  const up=e.target.closest("[data-avm-up]"), dn=e.target.closest("[data-avm-down]"), rm=e.target.closest("[data-avm-rem]");
+  if (up){ const i=+up.dataset.avmUp; [l[i-1],l[i]]=[l[i],l[i-1]]; }
+  else if (dn){ const i=+dn.dataset.avmDown; [l[i+1],l[i]]=[l[i],l[i+1]]; }
+  else if (rm){ l.splice(+rm.dataset.avmRem,1); }
+  else return;
+  mudarAvisosMissa(l);
+});
+$("avm-add").onclick = ()=>{ const id=$("avm-sel").value; if (!S.editor || !id) return; mudarAvisosMissa([...(S.missa.campos?.avisos_lista||[]), id]); };
+$("avm-banco").onclick = ()=>aba("avisos");
+async function subirImagemAviso(file){
+  const blob = await reduzirImagem(file);
+  const caminho = `avisos/${Date.now()}.jpg`;
+  const {error} = await sb.storage.from("capas").upload(caminho, blob, {contentType:"image/jpeg", upsert:false});
+  if (error) throw error;
+  return sb.storage.from("capas").getPublicUrl(caminho).data.publicUrl;
+}
+$("avm-img").addEventListener("change", async e=>{
+  const f = e.target.files[0]; e.target.value=""; if (!f || !S.editor) return;
+  setSt("st-avm","Enviando imagem…","");
+  try{
+    const url = await subirImagemAviso(f);
+    const titulo = f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim().slice(0,80);
+    const {data, error} = await sb.from("avisos").insert({titulo, imagem_url:url}).select("id,titulo,texto,imagem_url,ate,atualizado").single();
+    if (error) throw error;
+    S.avisosBanco = [data, ...(S.avisosBanco||[])];
+    mudarAvisosMissa([...(S.missa.campos?.avisos_lista||[]), data.id]);
+    setSt("st-avm","Imagem incluída e guardada no banco de avisos.","ok");
+  }catch(err){ setSt("st-avm", erroAmigavel(err), "err"); }
+});
+
+/* aba Banco de avisos */
+let bavSel = null, bavImg = null; // bavSel: id ou "novo"
+function desenharBanco(){
+  const q = norm($("bav-busca").value||""), vencidos = $("bav-vencidos").checked;
+  const naMissa = new Set(S.missa?.campos?.avisos_lista||[]);
+  const lista = (S.avisosBanco||[]).filter(a=>(vencidos || !vencido(a)) && (!q || norm((a.titulo||"")+" "+(a.texto||"")).includes(q)));
+  $("bav-lista").innerHTML = lista.map(a=>`<button type="button" class="card" data-bav="${esc(a.id)}" aria-current="${a.id===bavSel}">
+      <span class="img" style="${a.imagem_url?`background-image:url('${esc(a.imagem_url)}')`:""}">${a.imagem_url?"":esc((a.texto||a.titulo||"").slice(0,90))}</span>
+      <span class="info"><b>${esc(a.titulo || "Sem título")}</b><span class="row" style="gap:4px">${naMissa.has(a.id)?`<span class="chip ok">nesta missa</span>`:""}${a.ate?`<span class="chip ${vencido(a)?"miss":""}">${vencido(a)?"venceu":"até"} ${fmtData(a.ate)}</span>`:""}</span></span>
+    </button>`).join("") || `<p class="hint">Nenhum aviso ${q?"encontrado":"cadastrado ainda"}.</p>`;
+  if (bavSel && bavSel!=="novo" && !(S.avisosBanco||[]).some(a=>a.id===bavSel)) bavSel = null;
+  editorBanco();
+}
+function editorBanco(){
+  const a = bavSel==="novo" ? {titulo:"",texto:"",imagem_url:null,ate:null} : (S.avisosBanco||[]).find(x=>x.id===bavSel);
+  $("bav-ed").style.opacity = a ? "" : ".55";
+  ["bav-titulo","bav-texto","bav-ate"].forEach(id=>$(id).disabled = !a || !S.editor);
+  $("bav-ed-tit").textContent = bavSel==="novo" ? "Novo aviso" : a ? "Editar aviso" : "Escolha um aviso ou crie um novo";
+  if (!a){ $("bav-titulo").value=""; $("bav-texto").value=""; $("bav-ate").value=""; bavImg=null; }
+  else if ($("bav-ed").dataset.id !== String(bavSel)){ $("bav-titulo").value=a.titulo||""; $("bav-texto").value=a.texto||""; $("bav-ate").value=a.ate||""; bavImg=a.imagem_url||null; }
+  $("bav-ed").dataset.id = String(bavSel);
+  $("bav-prev").hidden = !bavImg; if (bavImg) $("bav-prev").src = bavImg; else $("bav-prev").removeAttribute("src");
+  $("bav-img-rem").hidden = !bavImg;
+  const naMissa = (S.missa?.campos?.avisos_lista||[]).includes(bavSel);
+  $("bav-incluir").textContent = naMissa ? "Já está nesta missa" : `Incluir na missa ${S.date?fmtData(S.date):""}${S.hora?" "+S.hora:""}`;
+  $("bav-incluir").disabled = !a || bavSel==="novo" || naMissa;
+  $("bav-excluir").disabled = !a || bavSel==="novo"; $("bav-excluir").textContent="Excluir"; $("bav-excluir").dataset.arm="";
+  $("bav-salvar").disabled = !a;
+}
+$("bav-lista").addEventListener("click", e=>{ const c=e.target.closest("[data-bav]"); if (!c) return; bavSel=c.dataset.bav; setSt("st-bav","",""); desenharBanco(); });
+$("bav-busca").addEventListener("input", desenharBanco);
+$("bav-vencidos").addEventListener("change", desenharBanco);
+$("bav-novo").onclick = ()=>{ if (!S.editor) return; bavSel="novo"; $("bav-ed").dataset.id=""; setSt("st-bav","",""); desenharBanco(); $("bav-titulo").focus(); };
+async function trocarImagemBanco(f){
+  if (!f || !S.editor || !bavSel || !/^image\//.test(f.type)) return;
+  setSt("st-bav","Enviando imagem…","");
+  try{ bavImg = await subirImagemAviso(f); setSt("st-bav","Imagem pronta — clique em Salvar.",""); editorBanco(); }
+  catch(err){ setSt("st-bav", erroAmigavel(err), "err"); }
+}
+$("bav-arq").addEventListener("change", e=>{ const f=e.target.files[0]; e.target.value=""; trocarImagemBanco(f); });
+$("bav-ed").addEventListener("paste", e=>{ const f=[...(e.clipboardData?.files||[])].find(x=>/^image\//.test(x.type)); if (f){ e.preventDefault(); trocarImagemBanco(f); } });
+$("bav-img-rem").onclick = ()=>{ bavImg=null; editorBanco(); setSt("st-bav","Clique em Salvar para confirmar.",""); };
+$("bav-salvar").onclick = async ()=>{
+  if (!S.editor || !bavSel) return;
+  const body = {titulo:$("bav-titulo").value.trim(), texto:$("bav-texto").value.replace(/\s+$/,""), imagem_url:bavImg, ate:$("bav-ate").value||null, atualizado:new Date().toISOString()};
+  if (!body.imagem_url && !body.texto && !body.titulo){ setSt("st-bav","Coloque uma imagem ou um texto.","err"); return; }
+  const q = bavSel==="novo" ? sb.from("avisos").insert(body) : sb.from("avisos").update(body).eq("id", bavSel);
+  const {data, error} = await q.select("id,titulo,texto,imagem_url,ate,atualizado").single();
+  if (error){ setSt("st-bav", erroAmigavel(error), "err"); return; }
+  S.avisosBanco = [data, ...(S.avisosBanco||[]).filter(a=>a.id!==data.id)];
+  bavSel = data.id; $("bav-ed").dataset.id = data.id;
+  setSt("st-bav","Salvo no banco.","ok"); desenharBanco(); desenharAvisosMissa(); montar();
+};
+$("bav-excluir").onclick = async ()=>{
+  if (!S.editor || !bavSel || bavSel==="novo") return;
+  const b=$("bav-excluir"); if (b.dataset.arm!=="1"){ b.dataset.arm="1"; b.textContent="Confirmar exclusão"; return; }
+  const {error} = await sb.from("avisos").delete().eq("id", bavSel);
+  if (error){ setSt("st-bav", erroAmigavel(error), "err"); return; }
+  S.avisosBanco = (S.avisosBanco||[]).filter(a=>a.id!==bavSel); bavSel=null;
+  setSt("st-bav","Excluído.","ok"); desenharBanco(); desenharAvisosMissa(); montar();
+};
+$("bav-incluir").onclick = ()=>{ if (!S.editor || !bavSel || bavSel==="novo") return; mudarAvisosMissa([...(S.missa.campos?.avisos_lista||[]), bavSel]); editorBanco(); desenharBanco(); setSt("st-bav","Incluído no fim dos avisos da missa.","ok"); };
 
 /* ---------------- Gravações (missa sem músicos) ---------------- */
 function semMusicos(){ return (S.missa?.campos?.musicos || "sim") === "nao"; }
@@ -1146,9 +1342,14 @@ function montar(){
       continue;
     }
     if (mo.id==="avisos"){
-      if (!avisos.length) continue;
-      push("avisos", avisos.map((a,i)=>({html:`<div class="s-head"><span class="s-title">Avisos</span></div><p>${esc(a)}</p>`, mid:true, rotulo:`Aviso ${i+1}`})));
-      linhas.push({m:"avisos", nome:"Avisos", t:`${avisos.length} aviso${avisos.length>1?"s":""}`, s:avisos.join(" · "), first:start});
+      const doBanco = (S.missa.campos?.avisos_lista||[]).map(id=>(S.avisosBanco||[]).find(a=>a.id===id)).filter(Boolean);
+      const arr = [], nomes = [];
+      doBanco.forEach(a=>{ const sl = slidesAviso(a); arr.push(...sl); if (sl.length) nomes.push(a.titulo || (a.imagem_url ? "imagem" : "aviso")); });
+      avisos.forEach(a=>{ arr.push({html:`<div class="s-head"><span class="s-title">Avisos</span></div><p>${esc(a)}</p>`, mid:true}); nomes.push(a); });
+      if (!arr.length) continue;
+      arr.forEach((x,i)=>{ x.rotulo = `Aviso ${i+1}/${arr.length}` + (x.rotulo ? ` · ${x.rotulo}` : ""); });
+      push("avisos", arr);
+      linhas.push({m:"avisos", nome:"Avisos", t:`${arr.length} slide${arr.length>1?"s":""} de aviso`, s:nomes.join(" · "), first:start});
       continue;
     }
     if (mo.id==="preces"){
@@ -1729,7 +1930,7 @@ function aplicarMissa(d){
   const escolhas = {}; Object.entries(d?.escolhas||{}).forEach(([k,v])=>{ if (v && typeof v==="object") escolhas[k]=v; });
   S.missa = {campos:{...camposVazios(), ...campos}, escolhas, separadores:d?.separadores};
   escreverCampos(S.missa.campos);
-  desenharOracoesRoteiro(); if (typeof desenharGravacoes==="function") desenharGravacoes();
+  desenharOracoesRoteiro(); desenharAvisosMissa(); if (!$("v-avisos").hidden) editorBanco();
   if (d && typeof d.separadores==="boolean") $("sep").checked = d.separadores;
   montar();
 }
@@ -1867,6 +2068,7 @@ function modoEdicao(){
   document.body.classList.toggle("so-leitura", !S.editor);
   document.querySelectorAll("#campos input, #campos textarea, #c-preces, #c-preces_refrao, #c-avisos, #c-capa_frase, #c-capa_cobrir, #c-oe, #c-prefacio, #c-evangelho_modo, #c-musicos, #sep, #v-layout [id^=ly-]").forEach(el=>el.disabled=!S.editor);
   atualizarOeUI(S.missa.campos||{});
+  desenharAvisosMissa();
   if (typeof desenharAgenda==="function") desenharAgenda();
   document.querySelectorAll("#det-leit input, #det-leit textarea").forEach(el=>el.readOnly=!S.editor);
   $("tab-equipe").hidden = !S.editor;
@@ -2232,16 +2434,17 @@ $("or-padrao").onclick = ()=>{ if (!S.editor) return; $("or-ac").value = OES_PAD
 
 /* ---------- abas e início ---------- */
 function aba(qual){
-  ["montar","historico","acervo","oracoes","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  ["montar","historico","acervo","oracoes","avisos","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
   $("v-avulsas").hidden = qual!=="oracoes"; if (qual==="oracoes") desenharAvulsas();
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
   if (qual==="layout") previa();
   if (qual==="historico") carregarHistorico();
+  if (qual==="avisos") desenharBanco();
   if (qual==="oracoes"){ if (S.missa?.campos?.oe && OES_PADRAO[S.missa.campos.oe]) orSel = S.missa.campos.oe; desenharOracoes(); }
 }
-$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-historico").onclick=()=>aba("historico"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-equipe").onclick=()=>aba("equipe");
-window.addEventListener("hashchange", ()=>aba(["historico","acervo","oracoes","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-historico").onclick=()=>aba("historico"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-avisos").onclick=()=>aba("avisos"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["historico","acervo","oracoes","avisos","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
@@ -2263,13 +2466,15 @@ function proximoDomingo(){ const d=new Date(); const w=d.getDay(); if (w!==0) d.
     $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
     try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   }
-  aba(["historico","acervo","oracoes","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
+  aba(["historico","acervo","oracoes","avisos","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
   desenharAcervo(); modoEdicao();
   await Promise.all([verificarConta(), carregarAgenda()]);
   const q = PARAMS.get("data"), qh = PARAMS.get("hora");
   const alvo = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? {date:q, hora:/^\d\d:\d\d$/.test(qh||"") ? qh : null} : proximaMissa();
   carregarLayout();
   carregarOracoes();
+  carregarAvisos();
+  sb.channel("avisos").on("postgres_changes",{event:"*",schema:"public",table:"avisos"}, recarregarAvisosEmBreve).subscribe();
   document.fonts?.ready.then(()=>{ cacheCabe.clear(); montar(); });
   carregarAcervo();
   carregarData(alvo.date, alvo.hora);
