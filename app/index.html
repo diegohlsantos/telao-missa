@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-6">
+<meta name="versao" content="2026-11-08-7">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,8 +43,9 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .brand .produto svg{width:26px;height:auto}
 .brand h1{font-family:var(--display);font-weight:600;font-size:2.1rem;line-height:1.05;margin:2px 0 0;letter-spacing:0;text-wrap:balance}
 .brand p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
-nav.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:999px}
-nav.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:700}
+nav.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:999px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:700;white-space:nowrap;flex:none}
 nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
 .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
@@ -155,7 +156,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .hud button{background:rgb(255 255 255 / .1);border:1px solid rgb(255 255 255 / .2);color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer}
 .hud .where{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 @media (prefers-reduced-motion:reduce){.hud{transition:none}}
-.auth{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.auth{display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:100%;min-width:0}
 .who{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
 .aviso{border:1px solid var(--line);background:var(--gold-soft);color:var(--ink);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .lista-eq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
@@ -235,6 +236,30 @@ body.modo-telao .wrap{display:none}
 .presets{display:flex;flex-wrap:wrap;gap:8px}
 .lay h3{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
 fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.etapas-top{display:flex;flex-direction:column;gap:8px;margin:-4px 0 4px}
+.etapas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.etapas button{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;cursor:pointer;min-width:0}
+.etapas .num{grid-row:1/3;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem;border:1.5px solid var(--muted);color:var(--muted)}
+.etapas .nome{font-weight:700;font-size:.86rem;line-height:1.2;overflow-wrap:anywhere}
+.etapas .est{font-size:.74rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.etapas button[aria-current="step"]{border-color:var(--ink);background:var(--surface);box-shadow:inset 0 -3px 0 var(--ink)}
+.etapas button[aria-current="step"] .num{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.etapas button.feito .num{border-color:var(--ok);color:var(--ok)}
+.etapas button.feito .est{color:var(--ok)}
+.etapas button.falta .est{color:var(--warn)}
+.tudo{display:flex;gap:6px;align-items:center;align-self:flex-end}
+.etapa{display:flex;flex-direction:column;gap:14px;min-width:0}
+.etapa-pe{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:6px;border-top:1px dashed var(--line)}
+body.passo-a-passo .etapa:not(.ativa){display:none}
+body:not(.passo-a-passo) .etapa-pe{display:none}
+body:not(.passo-a-passo) .etapa + .etapa{border-top:1px solid var(--line);padding-top:16px}
+.previa-montar{display:flex;flex-direction:column;gap:8px}
+.previa-montar .stage{border-radius:8px;cursor:pointer}
+.pm-nav{gap:6px}
+.pm-nav .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ol.roteiro li.na-previa{background:color-mix(in srgb,var(--gold) 9%,transparent);box-shadow:inset 3px 0 0 var(--gold)}
+ol.roteiro li[data-first]{cursor:pointer}
+@media (max-width:720px){ .etapas{grid-template-columns:repeat(2,minmax(0,1fr))} }
 </style>
 </head>
 <body>
@@ -266,6 +291,16 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
   <!-- ============ MONTAR ============ -->
   <section id="v-montar" class="grid">
     <div class="panel">
+      <div class="etapas-top">
+        <nav class="etapas" id="etapas" aria-label="Etapas para montar a missa">
+          <button type="button" data-ir="1" aria-current="step"><span class="num">1</span><span class="nome">Leituras</span><span class="est" id="est-1"></span></button>
+          <button type="button" data-ir="2"><span class="num">2</span><span class="nome">Cantos</span><span class="est" id="est-2"></span></button>
+          <button type="button" data-ir="3"><span class="num">3</span><span class="nome">Orações</span><span class="est" id="est-3"></span></button>
+          <button type="button" data-ir="4"><span class="num">4</span><span class="nome">Capa e avisos</span><span class="est" id="est-4"></span></button>
+        </nav>
+        <label class="hint tudo"><input type="checkbox" id="ver-tudo"> ver tudo numa página</label>
+      </div>
+      <div class="etapa" data-etapa="1">
       <div class="row" style="align-items:flex-end">
         <div class="field" style="flex:1 1 160px">
           <label class="label" for="data">Data e horário da missa</label>
@@ -290,22 +325,6 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <select id="copiar-de" style="width:auto"></select>
         <button class="btn" type="button" id="btn-copiar">Copiar cantos e capa</button>
       </div>
-      <details class="leit" id="det-capa">
-        <summary>Imagem de capa <span class="hint" id="capa-resumo" style="font-weight:400"></span></summary>
-        <div class="field" style="margin-top:12px;gap:10px">
-          <p class="hint">O primeiro slide da missa. Envie a imagem com o contexto do Evangelho (ou cole uma imagem copiada com Ctrl+V aqui). Sem imagem, a capa mostra o nome da celebração.</p>
-          <img class="capa-thumb" id="capa-thumb" alt="Imagem de capa desta missa" hidden>
-          <div class="row editar">
-            <label class="btn" for="capa-arq">Escolher imagem</label>
-            <input type="file" id="capa-arq" accept="image/*" hidden>
-            <button class="btn" type="button" id="capa-rem" hidden>Remover imagem</button>
-            <span class="status" id="st-capa" aria-live="polite"></span>
-          </div>
-          <label class="label" for="c-capa_frase">Frase sobre a imagem (opcional)</label>
-          <input type="text" id="c-capa_frase" placeholder="Ex.: Felizes os que promovem a paz">
-          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-capa_cobrir"> imagem ocupa a tela toda (pode cortar as bordas)</label>
-        </div>
-      </details>
       <div class="row">
         <label class="hint" for="c-evangelho_modo">Evangelho no telão</label>
         <select id="c-evangelho_modo" style="width:auto"><option value="">Padrão do Layout</option><option value="titulo">Só o título</option><option value="texto">Título e texto</option></select>
@@ -329,6 +348,9 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </details>
 
+      <div class="etapa-pe"><span></span><button class="btn primary" type="button" data-ir="2">Próximo: cantos →</button></div>
+      </div>
+      <div class="etapa" data-etapa="2">
       <div class="musicos" role="group" aria-labelledby="mus-q">
         <span class="label" id="mus-q">Tem músicos hoje?</span>
         <select id="c-musicos" style="width:auto"><option value="sim">Sim — os músicos tocam</option><option value="nao">Não — tocar gravações (YouTube ou MP3)</option></select>
@@ -342,6 +364,9 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         </div>
       </details>
       <datalist id="lista-cantos"></datalist>
+      <div class="etapa-pe"><button class="btn" type="button" data-ir="1">← Missa e leituras</button><button class="btn primary" type="button" data-ir="3">Próximo: orações e preces →</button></div>
+      </div>
+      <div class="etapa" data-etapa="3">
       <fieldset class="bloco">
         <legend class="label">Oração eucarística</legend>
         <div class="campos" style="grid-template-columns:132px minmax(0,1fr)">
@@ -368,6 +393,25 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <input type="text" id="c-preces_refrao" placeholder="Refrão — ex.: Senhor, escutai a nossa prece!">
         <textarea id="c-preces" rows="6" placeholder="Cole aqui as preces do folheto, uma por parágrafo. Cada prece vira um slide com o refrão embaixo."></textarea>
       </fieldset>
+      <div class="etapa-pe"><button class="btn" type="button" data-ir="2">← Cantos</button><button class="btn primary" type="button" data-ir="4">Próximo: capa e avisos →</button></div>
+      </div>
+      <div class="etapa" data-etapa="4">
+      <details class="leit" id="det-capa">
+        <summary>Imagem de capa <span class="hint" id="capa-resumo" style="font-weight:400"></span></summary>
+        <div class="field" style="margin-top:12px;gap:10px">
+          <p class="hint">O primeiro slide da missa. Envie a imagem com o contexto do Evangelho (ou cole uma imagem copiada com Ctrl+V aqui). Sem imagem, a capa mostra o nome da celebração.</p>
+          <img class="capa-thumb" id="capa-thumb" alt="Imagem de capa desta missa" hidden>
+          <div class="row editar">
+            <label class="btn" for="capa-arq">Escolher imagem</label>
+            <input type="file" id="capa-arq" accept="image/*" hidden>
+            <button class="btn" type="button" id="capa-rem" hidden>Remover imagem</button>
+            <span class="status" id="st-capa" aria-live="polite"></span>
+          </div>
+          <label class="label" for="c-capa_frase">Frase sobre a imagem (opcional)</label>
+          <input type="text" id="c-capa_frase" placeholder="Ex.: Felizes os que promovem a paz">
+          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="c-capa_cobrir"> imagem ocupa a tela toda (pode cortar as bordas)</label>
+        </div>
+      </details>
       <fieldset class="bloco">
         <legend class="label">Avisos desta missa</legend>
         <ol class="lista-av" id="avm-lista"></ol>
@@ -381,6 +425,8 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label class="label" for="c-avisos" style="margin-top:10px">Avisos rápidos — só texto, um por linha <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:400">(entram depois dos avisos acima)</span></label>
         <textarea id="c-avisos" rows="3" placeholder="Reunião do dízimo na terça, às 19h30"></textarea>
       </fieldset>
+      <div class="etapa-pe"><button class="btn" type="button" data-ir="3">← Orações e preces</button><button class="btn primary" type="button" id="btn-pronto">Tudo pronto: projetar</button></div>
+      </div>
       <p class="status" id="st-missa" aria-live="polite"></p>
     </div>
 
@@ -391,7 +437,17 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
           <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="sep" checked> pausa entre momentos (papel de parede)</label>
         </div>
       </div>
+      <div class="previa-montar">
+        <div class="stage prev" id="pm-stage"><div class="sbox" id="pm-box"></div></div>
+        <div class="row pm-nav">
+          <button class="btn" type="button" id="pm-ant" aria-label="Slide anterior na prévia">◀</button>
+          <button class="btn" type="button" id="pm-prox" aria-label="Próximo slide na prévia">▶</button>
+          <span class="hint" id="pm-rot" aria-live="polite"></span>
+          <button class="btn link" type="button" id="pm-projetar">Projetar este</button>
+        </div>
+      </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
+      <p class="hint">Toque num momento do roteiro para ver os slides dele na prévia.</p>
       <ol class="roteiro" id="roteiro"></ol>
       <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>C</b> congelar, <b>Esc</b> sai. Passadores de slide funcionam.</p>
     </div>
@@ -1365,6 +1421,72 @@ $("pl-play").onclick = ()=>{
 };
 $("pl-fade").onclick = ()=>fadeOut(3);
 
+/* ---------------- Etapas e prévia (Montar a missa) ---------------- */
+let etapaAtual = 1;
+function irEtapa(n){
+  etapaAtual = Math.max(1, Math.min(4, n|0));
+  document.querySelectorAll(".etapa").forEach(e=>e.classList.toggle("ativa", +e.dataset.etapa===etapaAtual));
+  document.querySelectorAll("#etapas button").forEach(b=>{ if (+b.dataset.ir===etapaAtual) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current"); });
+  // a prévia acompanha a etapa
+  const alvo = {1:["leitura1","salmo","evangelho","capa"], 2:CAMPOS_CANTO, 3:["oe","prefacio","preces","oracao"], 4:["capa","avisos"]}[etapaAtual];
+  const li = (S.itens||[]).find(it=>alvo.includes(it.m) && it.first!=null);
+  if (li) previaMontar(li.first);
+}
+function modoPassos(on){
+  document.body.classList.toggle("passo-a-passo", on);
+  $("ver-tudo").checked = !on;
+  try{ localStorage.setItem("telao-ver-tudo", on ? "0" : "1"); }catch{}
+  if (on) irEtapa(etapaAtual);
+}
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-ir]"); if (!b) return;
+  if (!document.body.classList.contains("passo-a-passo")){ document.querySelector(`.etapa[data-etapa="${b.dataset.ir}"]`)?.scrollIntoView({behavior:"smooth", block:"start"}); return; }
+  irEtapa(+b.dataset.ir); $("v-montar").scrollIntoView({block:"start"});
+});
+$("ver-tudo").addEventListener("change", ()=>modoPassos(!$("ver-tudo").checked));
+$("btn-pronto").onclick = ()=>abrirProjecao(0);
+function atualizarEtapas(){
+  const L = S.leit, c = S.missa?.campos || {}, itens = S.itens || [];
+  const set = (n, txt, est) => { $("est-"+n).textContent = txt; const b = document.querySelector(`#etapas button[data-ir="${n}"]`); b.classList.toggle("feito", est==="ok"); b.classList.toggle("falta", est==="falta"); };
+  set(1, L?.celebracao ? "leituras ok" : "sem leituras", L?.celebracao ? "ok" : "falta");
+  const ok = itens.filter(l=>CAMPOS_CANTO.includes(l.m) && l.song).length, falta = itens.filter(l=>CAMPOS_CANTO.includes(l.m) && !l.song).length;
+  set(2, falta ? `${falta} não encontrado${falta>1?"s":""}` : ok ? `${ok} canto${ok>1?"s":""}` : "nenhum ainda", falta ? "falta" : ok ? "ok" : "");
+  const nPreces = itens.find(l=>l.m==="preces") ? "preces" : "", oe = OES_PADRAO[c.oe] ? "oração eucarística" : "";
+  set(3, [oe, nPreces].filter(Boolean).join(" + ") || "nada escolhido", oe || nPreces ? "ok" : "");
+  const nAv = (c.avisos_lista||[]).length + String(c.avisos||"").split("\n").filter(x=>x.trim()).length;
+  set(4, [c.capa_url ? "capa" : "", nAv ? `${nAv} aviso${nAv>1?"s":""}` : ""].filter(Boolean).join(" + ") || "opcional", c.capa_url || nAv ? "ok" : "");
+}
+let pmIdx = 0;
+function previaMontar(i){
+  const box = $("pm-box"), st = $("pm-stage"), lista = S.slides || [];
+  if (!lista.length){ box.className = "sbox mid"; box.innerHTML = ""; st.style.background = ""; $("pm-rot").textContent = "Os slides aparecem aqui conforme a missa é montada."; return; }
+  if (i != null) pmIdx = i;
+  pmIdx = Math.max(0, Math.min(pmIdx, lista.length-1));
+  const s = lista[pmIdx], cc = S.missa?.campos || {};
+  if (s.blank){
+    const papel = S.layout?.papelParede !== false && cc.capa_url;
+    box.className = papel ? "sbox full" : "sbox"; box.innerHTML = papel ? `<div class="capa-img ${cc.capa_cobrir?"cobrir":""}"><img class="fundo" src="${esc(cc.capa_url)}" alt=""><img class="frente" src="${esc(cc.capa_url)}" alt=""></div>` : "";
+  } else { box.className = "sbox" + (s.mid ? " mid" : "") + (s.full ? " full" : ""); box.innerHTML = s.html; }
+  aplicarFundo(st, box, s.blank ? null : s);
+  ajustar(box, st);
+  $("pm-rot").textContent = `${pmIdx+1} de ${lista.length} · ${rotuloDe(s)}`;
+  document.querySelectorAll("#roteiro li[data-first]").forEach(li=>{
+    const a = +li.dataset.first; let n = li.nextElementSibling; while (n && !n.dataset.first) n = n.nextElementSibling;
+    const fim = n ? +n.dataset.first : lista.length;
+    li.classList.toggle("na-previa", pmIdx >= a && pmIdx < fim);
+  });
+}
+$("pm-ant").onclick = ()=>previaMontar(pmIdx-1);
+$("pm-prox").onclick = ()=>previaMontar(pmIdx+1);
+$("pm-stage").onclick = ()=>previaMontar(pmIdx+1);
+$("pm-projetar").onclick = ()=>abrirProjecao(pmIdx);
+$("roteiro").addEventListener("click", e=>{
+  if (e.target.closest("button, select, input, a, label")) return;
+  const li = e.target.closest("li[data-first]"); if (li && li.dataset.first !== "") previaMontar(+li.dataset.first);
+});
+if (window.ResizeObserver) new ResizeObserver(()=>{ if (!$("v-montar").hidden) previaMontar(); }).observe($("pm-stage"));
+try{ modoPassos(localStorage.getItem("telao-ver-tudo") !== "1"); }catch{ modoPassos(true); }
+
 /* ---------------- Montagem do roteiro ---------------- */
 function montar(){
   const {itens, avisos, preces} = doCampos(S.missa.campos);
@@ -1506,6 +1628,7 @@ function montar(){
     el.className = "match " + (falta ? "miss" : "ok");
   }
   desenharRoteiro();
+  if (typeof atualizarEtapas === "function"){ atualizarEtapas(); previaMontar(); }
 }
 
 function desenharRoteiro(){
