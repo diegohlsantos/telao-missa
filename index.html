@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão da Missa</title>
-<meta name="versao" content="2026-11-08-1">
+<meta name="versao" content="2026-11-08-2">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23000%27/%3E%3Cpath d=%27M16 6v20M9 13h14%27 stroke=%27%23ffe500%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,6 +120,7 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .sbox p{margin:0 0 .35em}
 .s-resp{color:var(--s-hc)}
 .s-strong{color:var(--s-hc);font-weight:700}
+.s-refrao{color:var(--s-rc,var(--s-hc))}
 /* oração eucarística: título pequeno no alto, resposta grande no centro */
 .sbox .oe-head{margin-bottom:0}
 .oe-head .s-title{font-size:calc(.55em * var(--s-tsc));line-height:1.15}
@@ -542,7 +543,14 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
         <label for="ly-fundo">Fundo</label><input type="color" id="ly-fundo"><span></span>
         <label for="ly-texto">Texto</label><input type="color" id="ly-texto"><span></span>
         <label for="ly-titulo">Títulos</label><input type="color" id="ly-titulo"><span></span>
-        <label for="ly-destaque">Respostas e refrões</label><input type="color" id="ly-destaque"><span></span>
+        <label for="ly-destaque">Respostas</label><input type="color" id="ly-destaque"><span></span>
+        <label for="ly-refrao">Refrão dos cantos</label><input type="color" id="ly-refrao"><span></span>
+      </div>
+      <h3>Refrão dos cantos</h3>
+      <div class="ctl">
+        <span></span><label class="chk"><input type="checkbox" id="ly-refraoDestacar"> pintar o refrão com a cor acima</label>
+        <span></span><label class="chk"><input type="checkbox" id="ly-refraoRepetir"> nos cantos com 2 ou mais slides, repetir o refrão depois das estrofes que vierem sem ele</label>
+        <span></span><p class="hint" style="margin:0">O refrão é reconhecido quando aparece pelo menos duas vezes no canto. Se no acervo ele estiver escrito uma vez só, comece a estrofe com “Refrão:”.</p>
       </div>
       <h3>Evangelho</h3>
       <div class="ctl">
@@ -654,6 +662,7 @@ fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;ga
     </div>
     <div class="field">
       <label class="label" for="ed-partes">Letra — cole a letra inteira; o sistema divide em slides (separados por ---)</label>
+      <p class="hint" style="margin:0 0 6px">Refrão: se ele aparece só uma vez na letra, comece a estrofe com “Refrão:” — no telão ele fica colorido e é repetido depois das outras estrofes.</p>
       <textarea id="ed-partes" placeholder="Cole aqui a letra copiada do site ou do folheto. Ela é formatada sozinha: estrofes viram slides, linhas de cifra saem e o texto fica em maiúsculas."></textarea>
       <div class="row editar" style="justify-content:space-between">
         <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="ed-mai" checked> tudo em maiúsculas</label>
@@ -829,7 +838,72 @@ function paginar({head="", tail="", units, corpo, headSempre=false, mid=false}){
   return pags.map((us,i)=>html(us, i===0, i===pags.length-1));
 }
 function unidadesTexto(texto){ return texto.replace(/\n+/g," ").split(/(?<=[.!?;:”"’])\s+/).filter(Boolean).map(t=>({t, sep:" "})); }
-function corpoLetra(t){ return `<div class="s-lyr">${String(t).split(/\n\s*\n/).map(e=>`<div class="est">${esc(e)}</div>`).join("")}</div>`; }
+const MR = "\u2063"; // marca invisível: linha de refrão
+function linhaLetra(l){ return l.startsWith(MR) ? `<span class="s-refrao">${esc(l.slice(1))}</span>` : esc(l); }
+function corpoLetra(t){ return `<div class="s-lyr">${String(t).split(/\n\s*\n/).map(e=>`<div class="est">${e.split("\n").map(linhaLetra).join("\n")}</div>`).join("")}</div>`; }
+
+/* refrão: linhas que se repetem em estrofes diferentes, ou estrofe marcada com "Refrão:" */
+const RE_ROT_REFRAO = /^\s*(refr[aã]o|ref\.?|r\.?)\s*[:\-–—)]\s*/i;
+function normLinha(l){ return norm(l.replace(/\((?:\s*\d+\s*x|bis)\s*\)/gi,"").replace(RE_ROT_REFRAO,"")).replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
+function parecidas(a, b){
+  if (a===b) return true;
+  const A=a.split(" "), B=b.split(" "); if (A.length<4 || B.length<4) return false;
+  const big = x=>{ const s=new Set(); for (let i=0;i<x.length-1;i++) s.add(x[i]+" "+x[i+1]); return s; };
+  const sa=big(A), sb=big(B); let c=0; sa.forEach(x=>{ if (sb.has(x)) c++; });
+  return c / (sa.size + sb.size - c) >= 0.8;
+}
+const cacheRefrao = new Map();
+function analisarRefrao(song){
+  const chave = song.id + "|" + song.partes.join("\u0001");
+  if (cacheRefrao.has(chave)) return cacheRefrao.get(chave);
+  // blocos[pi][bi] = linhas
+  const blocos = song.partes.map(p=>String(p).split(/\n\s*\n/).map(b=>b.split("\n")));
+  const linhas = []; // {pi,bi,li,n}
+  blocos.forEach((bs,pi)=>bs.forEach((ls,bi)=>ls.forEach((l,li)=>{ const n=normLinha(l); if (n.split(" ").length>=3) linhas.push({pi,bi,li,n}); })));
+  const marca = new Set(); const k = x=>`${x.pi}.${x.bi}.${x.li}`;
+  for (let i=0;i<linhas.length;i++) for (let j=i+1;j<linhas.length;j++){
+    const a=linhas[i], b=linhas[j];
+    if (a.pi===b.pi && a.bi===b.bi) continue;          // repetição dentro da mesma estrofe não conta
+    if (parecidas(a.n, b.n)){ marca.add(k(a)); marca.add(k(b)); }
+  }
+  // estrofes inteiras repetidas (mesmo com quebras de linha diferentes)
+  const bl = []; blocos.forEach((bs,pi)=>bs.forEach((ls,bi)=>{ const n=normLinha(ls.join(" ")); if (n.split(" ").length>=4) bl.push({pi,bi,n,ls}); }));
+  for (let i=0;i<bl.length;i++) for (let j=i+1;j<bl.length;j++){
+    if (parecidas(bl[i].n, bl[j].n)) [bl[i],bl[j]].forEach(x=>x.ls.forEach((_,li)=>marca.add(`${x.pi}.${x.bi}.${li}`)));
+  }
+  // estrofes rotuladas "Refrão:"
+  const rotuladas = new Set();
+  blocos.forEach((bs,pi)=>bs.forEach((ls,bi)=>{ if (RE_ROT_REFRAO.test(ls[0]||"") && /refr|^\s*r\b|ref/i.test(ls[0])){ rotuladas.add(`${pi}.${bi}`); ls.forEach((_,li)=>marca.add(`${pi}.${bi}.${li}`)); } }));
+  // trecho do refrão para repetir: maior sequência de linhas marcadas (na primeira vez que aparece)
+  let melhor = null;
+  blocos.forEach((bs,pi)=>bs.forEach((ls,bi)=>{ let ini=-1;
+    for (let li=0; li<=ls.length; li++){
+      const m = li<ls.length && marca.has(`${pi}.${bi}.${li}`);
+      if (m && ini<0) ini=li;
+      if (!m && ini>=0){ const tam = ls.slice(ini,li).join(" ").length; if (!melhor || tam > melhor.tam) melhor = {tam, linhas:ls.slice(ini,li).map(l=>l.replace(RE_ROT_REFRAO,""))}; ini=-1; }
+    } }));
+  const r = {marca, rotuladas, trecho: melhor?.linhas || null, tem: marca.size>0};
+  cacheRefrao.set(chave, r); if (cacheRefrao.size > 500) cacheRefrao.clear();
+  return r;
+}
+function partesComRefrao(song){
+  const L = S.layout || {};
+  const destacar = L.refraoDestacar !== false, repetir = L.refraoRepetir !== false;
+  if (!destacar && !repetir) return song.partes;
+  const r = analisarRefrao(song);
+  if (!r.tem) return song.partes;
+  return song.partes.map((p,pi)=>{
+    const bs = String(p).split(/\n\s*\n/);
+    let temRefrao = false;
+    const out = bs.map((b,bi)=>b.split("\n").map((l,li)=>{
+      const m = r.marca.has(`${pi}.${bi}.${li}`); if (m) temRefrao = true;
+      const t = r.rotuladas.has(`${pi}.${bi}`) && li===0 ? l.replace(RE_ROT_REFRAO,"") : l;
+      return (m && destacar ? MR : "") + t;
+    }).join("\n"));
+    if (repetir && !temRefrao && song.partes.length>1 && r.trecho) out.push(r.trecho.map(l=>(destacar?MR:"")+l).join("\n"));
+    return out.join("\n\n");
+  });
+}
 function unidadesLetra(partes, head){
   const us = [];
   partes.forEach((p, pi)=>{
@@ -1383,7 +1457,7 @@ function montar(){
       if (escolhido){
         const cab = n => `<div class="s-head"><span class="s-title">${esc(escolhido.titulo)}${n}</span>${escolhido.autor?`<span class="s-autor">${esc(escolhido.autor)}</span>`:""}</div>`;
         const headMed = cab(" (9/9)");
-        const units = unidadesLetra(escolhido.partes, headMed);
+        const units = unidadesLetra(partesComRefrao(escolhido), headMed);
         // respeita as divisões originais quando cabem; senão quebra pela altura
         const grupos = []; let g = [];
         if (S.layout?.juntarPartes !== false) grupos.push(units);
@@ -2212,14 +2286,14 @@ const FUNDO_SANTA_CEIA = "https://xbtrwvtkdsjptnpqsaom.supabase.co/storage/v1/ob
 const LAYOUT_PADRAO = {proporcao:"16:9", margem:4, margemV:3, espacoEstrofe:60, juntarPartes:true, fonte:"Atkinson Hyperlegible", escala:100, entrelinha:128, alinhamento:"center", vertical:"topo",
   negrito:false, letraMaiusc:false, sombra:false, mostrarAutor:false, papelParede:true, oeImagem:true, evangelhoTexto:false,
   fundoOE:true, fundoOEurl:FUNDO_SANTA_CEIA, fundoOEescuro:88, escalaTitulo:100, sublinhar:true, tituloMaiusc:true,
-  fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500"};
+  fundo:"#000000", texto:"#ffffff", titulo:"#ffe500", destaque:"#ffe500", refrao:"#ffe500", refraoDestacar:true, refraoRepetir:true};
 const PRESETS = {
   "Padrão da paróquia": {},
   "Máximo de texto": {escala:92, escalaTitulo:85, entrelinha:114, margem:2.5, margemV:2, espacoEstrofe:35, juntarPartes:true},
   "Telão distante": {escala:140, escalaTitulo:90, entrelinha:118, negrito:true, margem:2.5},
-  "Alto contraste": {fundo:"#000000", texto:"#ffffff", titulo:"#ffffff", destaque:"#ffd400", negrito:true, sombra:false},
-  "Fundo claro": {fundo:"#ffffff", texto:"#111111", titulo:"#1d3f8f", destaque:"#9a1b1b"},
-  "Azul suave": {fundo:"#0b1d3a", texto:"#f3f6fb", titulo:"#9fd0ff", destaque:"#ffd76a"},
+  "Alto contraste": {fundo:"#000000", texto:"#ffffff", titulo:"#ffffff", destaque:"#ffd400", refrao:"#ffd400", negrito:true, sombra:false},
+  "Fundo claro": {fundo:"#ffffff", texto:"#111111", titulo:"#1d3f8f", destaque:"#9a1b1b", refrao:"#9a1b1b"},
+  "Azul suave": {fundo:"#0b1d3a", texto:"#f3f6fb", titulo:"#9fd0ff", destaque:"#ffd76a", refrao:"#ffd76a"},
 };
 S.layout = {...LAYOUT_PADRAO};
 const fontesCarregadas = new Set(["Atkinson Hyperlegible"]);
@@ -2237,7 +2311,7 @@ function aplicarLayout(L){
   const [a,b] = L.proporcao.split(":").map(Number);
   carregarFonte(L.fonte);
   const serif = /Merriweather|Georgia/.test(L.fonte) ? "Georgia,serif" : "Arial,sans-serif";
-  const vars = {"--s-bg":L.fundo,"--s-fg":L.texto,"--s-tc":L.titulo,"--s-hc":L.destaque,"--s-font":`"${L.fonte}",${serif}`,
+  const vars = {"--s-bg":L.fundo,"--s-fg":L.texto,"--s-tc":L.titulo,"--s-hc":L.destaque,"--s-rc":L.refraoDestacar===false?"inherit":L.refrao,"--s-font":`"${L.fonte}",${serif}`,
     "--s-ar":`${a}/${b}`,"--s-arn":String(a/b),"--s-mx":L.margem+"%","--s-my":L.margemV+"%","--s-gap":(L.espacoEstrofe/100)+"em","--s-hgap":Math.max(.2,(L.espacoEstrofe/100)*.9)+"em","--s-lh":String(L.entrelinha/100),
     "--s-align":L.alinhamento,"--s-items":L.alinhamento==="left"?"flex-start":"center","--s-just":L.vertical==="centro"?"center":"flex-start",
     "--s-tsc":String(L.escalaTitulo/100),"--s-ul":L.sublinhar?"underline":"none","--s-tt":L.tituloMaiusc?"uppercase":"none",
@@ -2249,8 +2323,8 @@ function aplicarLayout(L){
   if (!$("proj").hidden) mostrar();
   previa();
 }
-const CTL_NUM = ["margem","margemV","espacoEstrofe","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["juntarPartes","negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","evangelhoTexto","fundoOE"],
-      CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque"];
+const CTL_NUM = ["margem","margemV","espacoEstrofe","escala","entrelinha","escalaTitulo","fundoOEescuro"], CTL_CHK = ["juntarPartes","negrito","letraMaiusc","sombra","sublinhar","tituloMaiusc","mostrarAutor","papelParede","oeImagem","evangelhoTexto","fundoOE","refraoDestacar","refraoRepetir"],
+      CTL_TXT = ["proporcao","fonte","alinhamento","vertical","fundo","texto","titulo","destaque","refrao"];
 const fmtCtl = {margemV:v=>v+"%", espacoEstrofe:v=>(v/100).toFixed(2).replace(".",",")+" linha", fundoOEescuro:v=>v+"%", margem:v=>v+"%", escala:v=>v+"%", entrelinha:v=>(v/100).toFixed(2).replace(".",","), escalaTitulo:v=>v+"%"};
 function escreverControles(L){
   if ($("ly-fundo-thumb").getAttribute("src") !== L.fundoOEurl) $("ly-fundo-thumb").src = L.fundoOEurl || "";
