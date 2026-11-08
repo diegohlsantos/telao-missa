@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="versao" content="2026-11-08-6">
+<meta name="versao" content="2026-11-08-8">
 <script>
   // links antigos do sistema (paróquia, telão, convite) seguem para o app
   (function(){
     var q = new URLSearchParams(location.search), h = location.hash.slice(1);
     var app = ["p","data","hora","telao","slide","convite","versao"].some(function(k){ return q.has(k); })
-           || ["montar","historico","acervo","oracoes","avisos","layout","equipe"].indexOf(h) >= 0;
+           || ["inicio","montar","historico","acervo","oracoes","avisos","layout","equipe"].indexOf(h) >= 0;
     if (app) location.replace("app/" + location.search + location.hash);
   })();
 </script>

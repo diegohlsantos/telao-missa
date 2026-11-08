@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-7">
+<meta name="versao" content="2026-11-08-8">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -236,6 +236,28 @@ body.modo-telao .wrap{display:none}
 .presets{display:flex;flex-wrap:wrap;gap:8px}
 .lay h3{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
 fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ini-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.ini-tit{font-family:var(--display);font-weight:600;font-size:1.8rem;margin:0;line-height:1.1}
+.plano-tag{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 12px;border:1px solid var(--gold);color:var(--gold)}
+.ini-missas{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.mcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;min-width:0}
+.mcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--cor-lit,var(--line))}
+.mcard.hoje{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.mcard .quando{display:flex;align-items:baseline;gap:10px}
+.mcard .quando b{font-family:var(--display);font-weight:600;font-size:1.7rem;line-height:1}
+.mcard .quando span{color:var(--muted);font-size:.86rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.mcard .cel{font-weight:700;line-height:1.3;min-height:2.6em}
+.mcard ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:.84rem}
+.mcard li{display:flex;gap:6px;align-items:center;color:var(--muted)}
+.mcard li i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--line)}
+.mcard li.ok{color:var(--ink)} .mcard li.ok i{background:var(--ok)}
+.mcard li.falta i{background:var(--warn)}
+.mcard .bts{display:flex;gap:8px;margin-top:auto}
+.mcard .bts .btn{flex:1}
+.ini-atalhos{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:18px}
+.atalho{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.atalho:hover{border-color:var(--ink)}
+.atalho span{color:var(--muted);font-size:.86rem}
 .etapas-top{display:flex;flex-direction:column;gap:8px;margin:-4px 0 4px}
 .etapas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .etapas button{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;cursor:pointer;min-width:0}
@@ -273,6 +295,7 @@ ol.roteiro li[data-first]{cursor:pointer}
     </div>
     <div class="auth">
       <nav class="tabs" role="tablist">
+        <button role="tab" id="tab-inicio" aria-selected="false">Início</button>
         <button role="tab" id="tab-montar" aria-selected="true">Montar a missa</button>
         <button role="tab" id="tab-historico" aria-selected="false">Histórico</button>
         <button role="tab" id="tab-acervo" aria-selected="false">Acervo de cantos</button>
@@ -287,6 +310,24 @@ ol.roteiro li[data-first]{cursor:pointer}
     </div>
   </header>
   <div class="aviso" id="aviso" hidden><span id="aviso-txt"></span><button class="btn" type="button" id="aviso-btn" hidden></button></div>
+
+  <!-- ============ INÍCIO ============ -->
+  <section id="v-inicio" hidden>
+    <div class="ini-topo">
+      <div>
+        <h2 class="ini-tit">Próximas missas</h2>
+        <p class="hint" id="ini-sub">O que já está pronto e o que falta em cada celebração.</p>
+      </div>
+      <span class="plano-tag" id="ini-plano" hidden></span>
+    </div>
+    <div class="ini-missas" id="ini-lista"><p class="hint">Carregando…</p></div>
+    <div class="ini-atalhos">
+      <a class="atalho" href="#acervo"><b>Acervo de cantos</b><span id="ini-acervo">cantos disponíveis</span></a>
+      <a class="atalho" href="#avisos"><b>Banco de avisos</b><span id="ini-avisos">avisos para reutilizar</span></a>
+      <a class="atalho" href="#layout"><b>Layout do telão</b><span>letra, cores e margens da sua igreja</span></a>
+      <a class="atalho" href="#historico"><b>Histórico</b><span>missas realizadas e cantos tocados</span></a>
+    </div>
+  </section>
 
   <!-- ============ MONTAR ============ -->
   <section id="v-montar" class="grid">
@@ -1421,6 +1462,44 @@ $("pl-play").onclick = ()=>{
 };
 $("pl-fade").onclick = ()=>fadeOut(3);
 
+/* ---------------- Início (painel) ---------------- */
+async function carregarInicio(){
+  const hoje = new Date().toLocaleDateString("sv-SE"); const lista = [];
+  for (let i=0; i<21 && lista.length<8; i++){ const d = somaDias(hoje, i); for (const h of horariosDoDia(d)) if (!jaAconteceu(d,h) && lista.length<8) lista.push({date:d, hora:h, lit:dataLiturgica(d,h)}); }
+  if (!lista.length){ $("ini-lista").innerHTML = `<p class="hint">Nenhuma missa nos próximos dias. Confira os horários na aba Layout.</p>`; return; }
+  const datas = [...new Set(lista.map(x=>x.date))], lits = [...new Set(lista.map(x=>x.lit))];
+  const [m, l] = await Promise.all([
+    sb.from("missas").select("data,horario,campos").eq("paroquia_id", PAR.id).in("data", datas),
+    sb.from("leituras").select("data, celebracao:dados->>celebracao, cor:dados->>cor").in("data", lits)]);
+  const M = new Map((m.data||[]).map(r=>[r.data+" "+r.horario, r.campos||{}])), Lt = new Map((l.data||[]).map(r=>[r.data, r]));
+  $("ini-lista").innerHTML = lista.map(x=>{
+    const c = M.get(x.date+" "+x.hora) || {}, lt = Lt.get(x.lit);
+    const cantos = CAMPOS_CANTO.filter(k=>String(c[k]||"").trim()).length;
+    const nAv = (c.avisos_lista||[]).length + String(c.avisos||"").split("\n").filter(t=>t.trim()).length;
+    const d = new Date(x.date+"T12:00"), eHoje = x.date === hoje;
+    const item = (ok, txt, falta) => `<li class="${ok?"ok":falta?"falta":""}"><i></i>${esc(txt)}</li>`;
+    return `<article class="mcard${eHoje?" hoje":""}" style="--cor-lit:${!lt?.cor ? "var(--line)" : /^branc/.test(norm(lt.cor)) ? "var(--gold)" : corHex(lt.cor)}">
+      <div class="quando"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b><span>${eHoje?"hoje":DIAS[d.getDay()]} · ${x.hora.replace(":00","h").replace(":","h")}</span></div>
+      <div class="cel">${esc(lt?.celebracao || "Leituras buscadas ao abrir")}</div>
+      <ul>${item(!!lt, lt ? "leituras prontas" : "leituras")}${item(cantos>0, cantos ? cantos+" canto"+(cantos>1?"s":"") : "sem cantos", !cantos && eHoje)}
+        ${item(OES_PADRAO[c.oe], OES_PADRAO[c.oe] ? "oração eucarística" : "sem oração euc.")}${item(!!c.capa_url, c.capa_url ? "com capa" : "sem capa")}
+        ${item(nAv>0, nAv ? nAv+" aviso"+(nAv>1?"s":"") : "sem avisos")}${c.musicos==="nao" ? item(true, "gravações") : ""}</ul>
+      <div class="bts"><button class="btn" type="button" data-montar="${x.date}|${x.hora}">Montar</button>${eHoje?`<button class="btn primary" type="button" data-projetar="${x.date}|${x.hora}">Projetar</button>`:""}</div>
+    </article>`;
+  }).join("");
+  $("ini-acervo").textContent = `${(S.songs||[]).length} cantos disponíveis`;
+  $("ini-avisos").textContent = `${(S.avisosBanco||[]).length} avisos para reutilizar`;
+  const pt = $("ini-plano");
+  if (PAR.status === "teste" && PAR.teste_ate){ pt.hidden = false; pt.textContent = "Teste grátis até " + new Date(PAR.teste_ate+"T12:00").toLocaleDateString("pt-BR"); }
+  else if (PAR.plano === "fundadora"){ pt.hidden = false; pt.textContent = "Paróquia fundadora"; }
+}
+$("ini-lista").addEventListener("click", async e=>{
+  const b = e.target.closest("[data-montar],[data-projetar]"); if (!b) return;
+  const [d, h] = (b.dataset.montar || b.dataset.projetar).split("|");
+  aba("montar"); await carregarData(d, h);
+  if (b.dataset.projetar) setTimeout(()=>abrirProjecao(0), 600);
+});
+
 /* ---------------- Etapas e prévia (Montar a missa) ---------------- */
 let etapaAtual = 1;
 function irEtapa(n){
@@ -2132,6 +2211,7 @@ function aplicarSongs(rows){
   const nomes = [...new Set(all.map(s=>s.titulo + (s.autor ? " — " + s.autor : "")))];
   $("lista-cantos").innerHTML = nomes.map(n=>`<option value="${esc(n)}"></option>`).join("");
   desenharAcervo(); montar();
+  if ($("ini-acervo")) $("ini-acervo").textContent = `${all.length} cantos disponíveis`;
 }
 async function carregarAcervo(){
   const rows=[]; const passo=1000;
@@ -2708,17 +2788,18 @@ $("or-padrao").onclick = ()=>{ if (!S.editor) return; $("or-ac").value = OES_PAD
 
 /* ---------- abas e início ---------- */
 function aba(qual){
-  ["montar","historico","acervo","oracoes","avisos","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
+  ["inicio","montar","historico","acervo","oracoes","avisos","layout","equipe"].forEach(k=>{ $("tab-"+k).setAttribute("aria-selected", k===qual); $("v-"+k).hidden = k!==qual; });
   $("v-avulsas").hidden = qual!=="oracoes"; if (qual==="oracoes") desenharAvulsas();
   if (location.hash !== "#"+qual) history.replaceState(null,"","#"+qual);
   if (qual==="equipe") carregarEquipe();
   if (qual==="layout") previa();
   if (qual==="historico") carregarHistorico();
+  if (qual==="inicio") carregarInicio();
   if (qual==="avisos") desenharBanco();
   if (qual==="oracoes"){ if (S.missa?.campos?.oe && OES_PADRAO[S.missa.campos.oe]) orSel = S.missa.campos.oe; desenharOracoes(); }
 }
-$("tab-montar").onclick=()=>aba("montar"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-historico").onclick=()=>aba("historico"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-avisos").onclick=()=>aba("avisos"); $("tab-equipe").onclick=()=>aba("equipe");
-window.addEventListener("hashchange", ()=>aba(["historico","acervo","oracoes","avisos","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
+$("tab-montar").onclick=()=>aba("montar"); $("tab-inicio").onclick=()=>aba("inicio"); $("tab-acervo").onclick=()=>aba("acervo"); $("tab-layout").onclick=()=>aba("layout"); $("tab-historico").onclick=()=>aba("historico"); $("tab-oracoes").onclick=()=>aba("oracoes"); $("tab-avisos").onclick=()=>aba("avisos"); $("tab-equipe").onclick=()=>aba("equipe");
+window.addEventListener("hashchange", ()=>aba(["inicio","historico","acervo","oracoes","avisos","layout","equipe"].includes(location.hash.slice(1))?location.hash.slice(1):"montar"));
 desenharCampos();
 try{ if (localStorage.getItem("telao-cantos-aberto")==="0") $("det-cantos").open=false; }catch{}
 $("det-cantos").addEventListener("toggle", ()=>{ try{ localStorage.setItem("telao-cantos-aberto", $("det-cantos").open?"1":"0"); }catch{} });
@@ -2757,9 +2838,11 @@ async function carregarParoquia(){
     $("proj").hidden = false; $("proj-cheia").hidden = false; $("hud-exit").textContent = "Fechar telão";
     try { navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); } catch {}
   }
-  aba(["historico","acervo","oracoes","avisos","layout"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "montar");
+  const h0 = location.hash.slice(1);
+  aba(["inicio","montar","historico","acervo","oracoes","avisos","layout"].includes(h0) ? h0 : (MODO_TELAO || PARAMS.get("data") ? "montar" : "inicio"));
   desenharAcervo(); modoEdicao();
   await Promise.all([verificarConta(), carregarAgenda()]);
+  if (!$("v-inicio").hidden) carregarInicio();
   const q = PARAMS.get("data"), qh = PARAMS.get("hora");
   const alvo = /^\d{4}-\d{2}-\d{2}$/.test(q||"") ? {date:q, hora:/^\d\d:\d\d$/.test(qh||"") ? qh : null} : proximaMissa();
   carregarLayout();
