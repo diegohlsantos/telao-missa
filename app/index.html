@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-8">
+<meta name="versao" content="2026-11-08-9">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -236,6 +236,32 @@ body.modo-telao .wrap{display:none}
 .presets{display:flex;flex-wrap:wrap;gap:8px}
 .lay h3{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
 fieldset.bloco{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+body.modo-controle{padding:0;background:#101218;color:#EEF0F4;min-height:100vh}
+body.modo-controle .wrap, body.modo-controle #controle, body.modo-controle #nova-versao{display:none!important}
+#movel{display:flex;flex-direction:column;min-height:100vh;padding:calc(12px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));gap:14px;font-family:var(--body)}
+#movel[hidden]{display:none!important}
+.mv-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.85rem;color:#A3AAB8}
+.mv-marca{display:flex;gap:8px;align-items:center;font-weight:700;color:#EEF0F4;letter-spacing:.06em;text-transform:uppercase;font-size:.78rem}
+.mv-marca svg{width:28px}
+#mv-painel{display:flex;flex-direction:column;gap:14px;flex:1}
+.mv-status{margin:0;font-size:.85rem;color:#A3AAB8}
+.mv-ar{background:#000;border:1px solid #2A2F3A;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.mv-noar{font-size:1.35rem;font-weight:700;color:#FFE500;line-height:1.25;overflow-wrap:anywhere}
+.mv-onde{font-size:.88rem;color:#A3AAB8}
+.mv-ar .badge{align-self:flex-start;margin-bottom:4px}
+.mv-deixa{background:#191C24;border:1px solid #2A2F3A;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.mv-deixa div{max-height:7.5em;overflow:auto;line-height:1.45;color:#DDE1E8}
+.mv-deixa span{color:#A3AAB8;font-size:.82rem}
+.mv-setas{display:grid;grid-template-columns:1fr 1.6fr;gap:10px;flex:1;min-height:150px}
+.mv-bt{font:700 1rem var(--body);border-radius:12px;border:1px solid #3A404D;background:#191C24;color:#EEF0F4;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mv-bt:active{transform:scale(.98)}
+.mv-setas .mv-bt{font-size:2.4rem}
+.mv-setas .prox{background:#FFD43B;color:#14161C;border-color:#FFD43B}
+.mv-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mv-bt.ligado{background:#EEF0F4;color:#14161C;border-color:#EEF0F4}
+select.mv-bt{appearance:none;text-align:center}
+.mv-bt.grande{width:100%;background:#FFD43B;color:#14161C;border-color:#FFD43B}
+.mv-login{display:flex;flex-direction:column;gap:12px;margin-top:20vh;text-align:center}
 .ini-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .ini-tit{font-family:var(--display);font-weight:600;font-size:1.8rem;margin:0;line-height:1.1}
 .plano-tag{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 12px;border:1px solid var(--gold);color:var(--gold)}
@@ -488,6 +514,7 @@ ol.roteiro li[data-first]{cursor:pointer}
         </div>
       </div>
       <button class="btn primary big" type="button" id="btn-projetar">Projetar do início</button>
+      <button class="btn editar" type="button" id="btn-celular">Controle no celular</button>
       <p class="hint">Toque num momento do roteiro para ver os slides dele na prévia.</p>
       <ol class="roteiro" id="roteiro"></ol>
       <p class="kbd">No telão: <b>→</b>/<b>Espaço</b> avança, <b>←</b> volta, <b>B</b> tela preta, <b>C</b> congelar, <b>Esc</b> sai. Passadores de slide funcionam.</p>
@@ -749,6 +776,43 @@ ol.roteiro li[data-first]{cursor:pointer}
   <button class="btn link" type="button" id="nv-depois">Depois</button>
 </div>
 
+<div id="movel" hidden>
+  <header class="mv-topo"><span class="mv-marca"><svg viewBox="0 0 160 90" aria-hidden="true"><g fill="#FFD43B"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>Controle remoto</span><span id="mv-par"></span></header>
+  <div id="mv-login" class="mv-login">
+    <p id="mv-login-txt">Entre com a sua conta da equipe para controlar o telão.</p>
+    <button class="mv-bt grande" type="button" id="mv-entrar">Entrar</button>
+  </div>
+  <div id="mv-painel" hidden>
+    <p class="mv-status" id="mv-status">Conectando…</p>
+    <div class="mv-ar">
+      <span class="badge" id="mv-badge" hidden></span>
+      <div class="mv-noar" id="mv-noar">—</div>
+      <div class="mv-onde" id="mv-onde"></div>
+      <div class="mv-onde" id="mv-missa"></div>
+    </div>
+    <div class="mv-deixa" id="mv-deixa" hidden><b id="mv-deixa-tit"></b><div id="mv-deixa-txt"></div><span id="mv-deixa-prox"></span></div>
+    <div class="mv-setas"><button class="mv-bt" type="button" id="mv-ant" aria-label="Voltar slide">◀</button><button class="mv-bt prox" type="button" id="mv-prox" aria-label="Avançar slide">▶</button></div>
+    <div class="mv-grade">
+      <button class="mv-bt" type="button" id="mv-preta">Tela preta</button>
+      <button class="mv-bt" type="button" id="mv-capa">Capa</button>
+      <button class="mv-bt" type="button" id="mv-congelar">Congelar</button>
+      <select class="mv-bt" id="mv-oracoes" aria-label="Projetar uma oração"><option value="">Orações…</option></select>
+    </div>
+    <button class="mv-bt" type="button" id="mv-voltar" hidden>Voltar ao roteiro</button>
+  </div>
+</div>
+
+<dialog id="dlg-celular">
+  <form method="dialog" style="align-items:center;text-align:center">
+    <h2 style="font-family:var(--display);font-weight:600;margin:0">Controle no celular</h2>
+    <p class="hint">Aponte a câmera do celular para o código, ou envie o link por WhatsApp. Entre com a sua conta da equipe no celular.</p>
+    <div id="cel-qr" style="background:#fff;padding:10px;border-radius:8px;min-height:220px;min-width:220px;display:grid;place-items:center"></div>
+    <input type="text" id="cel-link" readonly aria-label="Link do controle remoto" style="width:100%">
+    <div class="row" style="justify-content:center"><button class="btn" type="button" id="cel-copiar">Copiar link</button><button class="btn primary" type="button" id="cel-fechar">Fechar</button></div>
+    <p class="hint">Funciona com o telão aberto neste computador, com a mesma conta.</p>
+  </form>
+</dialog>
+
 <dialog id="dlg-login">
   <form id="login-form">
     <h2 style="font-family:var(--display);font-weight:500;margin:0">Entrar na equipe</h2>
@@ -793,6 +857,7 @@ ol.roteiro li[data-first]{cursor:pointer}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 "use strict";
@@ -800,6 +865,7 @@ const PARAMS = new URLSearchParams(location.search);
 const PAR = {id:null, slug:(PARAMS.get("p")||"").toLowerCase().replace(/[^a-z0-9.-]/g,""), nome:""};
 const comP = q => q.eq("paroquia_id", PAR.id);
 const MODO_TELAO = PARAMS.get("telao") === "1";
+const MODO_CONTROLE = PARAMS.get("controle") === "1";
 const canal = "BroadcastChannel" in window ? new BroadcastChannel("telao-missa") : null;
 let janelaTelao = null;
 const $ = id => document.getElementById(id);
@@ -1821,23 +1887,94 @@ if (canal){
   canal.onmessage = ({data:m})=>{
     if (!m) return;
     if (MODO_TELAO && m.tipo==="recarregar"){ recarregarTelao(); return; }
-    if (MODO_TELAO){
-      if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ S.extra=null; carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
-      if (m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))) return;
-      if (m.tipo==="ir"){ S.extra=null; S.idx=Math.max(0,m.idx|0); mostrar(); }
-      else if (m.tipo==="passo") ir(m.d);
-      else if (m.tipo==="preta") alternarPreta();
-      else if (m.tipo==="capa") alternarCapa();
-      else if (m.tipo==="congelar") alternarCongelar();
-      else if (m.tipo==="oracao") abrirOracao(m.id);
-      else if (m.tipo==="voltar") voltarRoteiro();
-      else if (m.tipo==="quem") avisarPosicao();
-    } else if (m.tipo==="pos" && m.data===S.date && (!m.hora || m.hora===S.hora)){
+    if (MODO_TELAO){ tratarComando(m, false); }
+    else if (m.tipo==="pos" && m.data===S.date && (!m.hora || m.hora===S.hora)){
       atualizarControle(m);
     }
   };
   if (!MODO_TELAO) setTimeout(()=>canal.postMessage({tipo:"quem"}), 800);
 }
+function tratarComando(m, remoto){
+  if (!remoto){
+    if (m.tipo==="ir" && m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))){ S.extra=null; carregarData(m.data, m.hora); S.idx=Math.max(0,m.idx|0); return; }
+    if (m.data && (m.data!==S.date || (m.hora && m.hora!==S.hora))) return;
+  }
+  if (m.tipo==="ir"){ S.extra=null; S.idx=Math.max(0,m.idx|0); mostrar(); }
+  else if (m.tipo==="passo") ir(m.d);
+  else if (m.tipo==="preta") alternarPreta();
+  else if (m.tipo==="capa") alternarCapa();
+  else if (m.tipo==="congelar") alternarCongelar();
+  else if (m.tipo==="oracao") abrirOracao(m.id);
+  else if (m.tipo==="voltar") voltarRoteiro();
+  else if (m.tipo==="quem") avisarPosicao();
+}
+
+/* ---------- controle pelo celular (canal da paróquia no servidor) ---------- */
+let canalRT = null, rtOk = false;
+function conectarControleRemoto(){
+  if (canalRT || !PAR.id || !S.editor || !(MODO_TELAO || MODO_CONTROLE)) return;
+  canalRT = sb.channel("tm:" + PAR.id, {config:{private:true, broadcast:{self:false}}})
+    .on("broadcast", {event:"cmd"}, ({payload})=>{ if (MODO_TELAO && payload) tratarComando(payload, true); })
+    .on("broadcast", {event:"pos"}, ({payload})=>{ if (MODO_CONTROLE && payload) atualizarMovel(payload); })
+    .subscribe(st=>{ rtOk = st === "SUBSCRIBED";
+      if (MODO_CONTROLE){ movelStatus(rtOk ? "Procurando o telão…" : "Sem conexão com o servidor"); if (rtOk) mandarRT("quem"); }
+      if (MODO_TELAO && rtOk) avisarPosicao(); });
+}
+function mandarRT(tipo, extra){ if (canalRT && rtOk) canalRT.send({type:"broadcast", event:"cmd", payload:{tipo, ...(extra||{})}}); }
+function deixaDe(idx){
+  const s = S.slides[idx]; if (!s || s.grupo !== "oe") return null;
+  const seg = S.slides[idx+1];
+  const alvo = s.oeImagem ? s : (seg && seg.grupo==="oe" ? seg : null);
+  const prox = s.oeImagem ? s.proxima : (seg?.grupo==="oe" ? (seg.oeImagem ? "imagem (padre volta a rezar)" : seg.proxima) : "fim da oração eucarística");
+  const d = alvo?.deixa || "";
+  return {titulo: s.oeImagem ? "O padre está rezando — avance quando ele terminar:" : "No telão: resposta do povo. Próxima parte do padre:", texto: d.length > 420 ? "… " + d.slice(-420) : d, prox: prox || ""};
+}
+
+/* tela do celular */
+let movelUlt = 0;
+function movelStatus(t){ const e = $("mv-status"); if (e) e.textContent = t; }
+function atualizarMovel(m){
+  movelUlt = Date.now(); movelStatus("Conectado ao telão");
+  $("mv-noar").textContent = m.noAr || "—";
+  $("mv-onde").textContent = m.extra ? `Oração: ${m.extra.titulo} · ${m.extra.idx+1} de ${m.extra.total}` : `slide ${m.idx+1} de ${m.total} · ${m.rotulo}`;
+  $("mv-missa").textContent = m.data ? fmtMissa(m.data, m.hora) : "";
+  const b = $("mv-badge"); b.hidden = !(m.preta || m.capa || m.congelado || m.extra);
+  b.textContent = m.preta ? "TELA PRETA" : m.capa ? "CAPA" : m.congelado ? "CONGELADO" : m.extra ? "ORAÇÃO" : "";
+  b.className = "badge " + (m.preta ? "preta" : m.capa ? "capa" : m.congelado ? "cong" : "ora");
+  $("mv-preta").classList.toggle("ligado", !!m.preta); $("mv-capa").classList.toggle("ligado", !!m.capa); $("mv-congelar").classList.toggle("ligado", !!m.congelado);
+  $("mv-voltar").hidden = !m.extra;
+  const d = m.deixa; $("mv-deixa").hidden = !d;
+  if (d){ $("mv-deixa-tit").textContent = d.titulo; $("mv-deixa-txt").textContent = d.texto || "Cole o texto do padre na aba Orações para acompanhar aqui."; $("mv-deixa-prox").textContent = d.prox ? "Próximo: " + d.prox : ""; $("mv-deixa-txt").scrollTop = 1e6; }
+}
+if (MODO_CONTROLE){
+  document.body.classList.add("modo-controle"); $("movel").hidden = false;
+  setInterval(()=>{ if (rtOk && Date.now() - movelUlt > 9000) movelStatus("Procurando o telão… abra o telão no computador da igreja."); }, 3000);
+  const cmd = (id, tipo, extra) => $(id).onclick = ()=>{ mandarRT(tipo, extra); try{ navigator.vibrate?.(15); }catch{} };
+  cmd("mv-ant","passo",{d:-1}); cmd("mv-prox","passo",{d:1}); cmd("mv-preta","preta"); cmd("mv-capa","capa"); cmd("mv-congelar","congelar"); cmd("mv-voltar","voltar");
+  $("mv-oracoes").onchange = e=>{ if (e.target.value){ mandarRT("oracao",{id:e.target.value}); e.target.value=""; } };
+  $("mv-entrar").onclick = ()=>$("btn-entrar").click();
+  try{ navigator.wakeLock?.request("screen").catch(()=>{}); document.addEventListener("visibilitychange", ()=>{ if (!document.hidden) navigator.wakeLock?.request("screen").catch(()=>{}); }); }catch{}
+}
+function movelConta(){
+  if (!MODO_CONTROLE) return;
+  $("mv-login").hidden = !!S.editor; $("mv-painel").hidden = !S.editor;
+  if (S.user && !S.editor) $("mv-login-txt").textContent = "Esta conta ainda não faz parte da equipe desta paróquia.";
+  $("mv-par").textContent = PAR.nome || "";
+  const ops = (S.avulsas||[]).filter(o=>o.texto?.trim());
+  $("mv-oracoes").innerHTML = `<option value="">Orações…</option>` + ops.map(o=>`<option value="${esc(o.id)}">${esc(o.titulo)}</option>`).join("");
+  conectarControleRemoto();
+}
+
+/* QR para abrir o controle no celular */
+function linkControle(){ return `${location.origin}${location.pathname}?p=${encodeURIComponent(PAR.slug)}&controle=1`; }
+$("btn-celular").onclick = ()=>{
+  const link = linkControle(); $("cel-link").value = link; $("cel-qr").innerHTML = "";
+  try{ new QRCode($("cel-qr"), {text:link, width:200, height:200, colorDark:"#14161C", colorLight:"#FFFFFF"}); }catch{ $("cel-qr").textContent = ""; }
+  $("dlg-celular").showModal();
+};
+$("cel-fechar").onclick = ()=>$("dlg-celular").close();
+$("cel-copiar").onclick = async ()=>{ try{ await navigator.clipboard.writeText($("cel-link").value); $("cel-copiar").textContent = "Copiado"; }catch{ $("cel-link").select(); } };
+
 /* ---------- versão nova do site ---------- */
 const VERSAO = document.querySelector('meta[name="versao"]')?.content || "";
 function recarregarTelao(){
@@ -1944,10 +2081,12 @@ function marcarAndamento(idx){
 function aoPosicao(idx){ marcarAndamento(idx); if (typeof musicaPosicao === "function") musicaPosicao(idx); }
 let wake=null, hudT=null;
 function avisarPosicao(){
-  if (!MODO_TELAO || !canal) return;
+  if (!MODO_TELAO) return;
   const noAr = S.black ? "Tela preta" : S.capa ? "Capa" : rotuloDe(S.congelado ? S.frozen : slideOperador()) + (S.congelado ? " (congelado)" : "");
-  canal.postMessage({tipo:"pos", data:S.date, hora:S.hora, idx:S.idx, total:S.slides.length, rotulo: rotuloDe(S.slides[S.idx]), preta:S.black, capa:!!S.capa, congelado:S.congelado, noAr,
-    extra: S.extra ? {titulo:S.extra.titulo, idx:S.extra.idx, total:S.extra.slides.length} : null});
+  const pos = {tipo:"pos", data:S.date, hora:S.hora, idx:S.idx, total:S.slides.length, rotulo: rotuloDe(S.slides[S.idx]), preta:S.black, capa:!!S.capa, congelado:S.congelado, noAr,
+    extra: S.extra ? {titulo:S.extra.titulo, idx:S.extra.idx, total:S.extra.slides.length} : null};
+  canal?.postMessage(pos);
+  if (canalRT && rtOk) canalRT.send({type:"broadcast", event:"pos", payload:{...pos, deixa: S.extra ? null : deixaDe(S.idx)}});
 }
 if (MODO_TELAO) setInterval(avisarPosicao, 4000);
 function abrirProjecao(i=0){
@@ -2422,6 +2561,7 @@ async function verificarConta(){
     const {data} = await sb.from("membros").select("papel").eq("paroquia_id", PAR.id).eq("user_id", S.user.id).maybeSingle();
     S.papel = data?.papel || null;
     S.editor = ["responsavel","coordenador","operador"].includes(S.papel);
+    setTimeout(()=>{ movelConta(); conectarControleRemoto(); }, 0);
     const conv = PARAMS.get("convite");
     if (conv && !S.editor){
       const {error} = await sb.rpc("aceitar_convite", {p_codigo: conv});
@@ -2436,7 +2576,8 @@ async function verificarConta(){
         mostrarAviso(error ? "Não consegui enviar o pedido. Tente de novo." : "Pedido enviado. Assim que alguém da equipe liberar, você poderá editar.");
       });
     } else { mostrarAviso(""); carregarEquipe(); }
-  } else mostrarAviso(PARAMS.get("convite") ? "Você recebeu um convite para a equipe. Entre ou crie sua conta para aceitar." : "", PARAMS.get("convite") ? "Entrar" : null, ()=>$("btn-entrar").click());
+  } else { if (MODO_CONTROLE) setTimeout(movelConta, 0); }
+  if (!S.user) mostrarAviso(PARAMS.get("convite") ? "Você recebeu um convite para a equipe. Entre ou crie sua conta para aceitar." : "", PARAMS.get("convite") ? "Entrar" : null, ()=>$("btn-entrar").click());
   modoEdicao();
 }
 $("btn-entrar").onclick = ()=>{ setSt("lg-st","",""); $("dlg-login").showModal(); };
