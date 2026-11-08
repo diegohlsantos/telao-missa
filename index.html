@@ -171,6 +171,10 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
 .final{background:var(--luz);color:#14161C}
 .final .miolo{display:flex;gap:28px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:64px}
 .final h2{max-width:18ch}
+.contato-linha{margin:14px 0 0;font-size:16px}
+.contato-linha a{font-weight:700}
+.final-bts{display:flex;gap:10px;flex-wrap:wrap}
+.final .btn-contorno{color:#14161C}
 .rodape{background:var(--noite);color:#A3AAB8;font-size:14px}
 .rodape .miolo{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;padding-block:28px}
 .rodape a{color:#EEF0F4;text-decoration:none;margin-left:18px}
@@ -210,6 +214,7 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
       <a href="#recursos">Recursos</a>
       <a href="#planos">Planos</a>
       <a href="#perguntas">Perguntas</a>
+      <a href="#contato">Contato</a>
     </nav>
     <div class="acoes">
       <a class="entrar" href="app/">Entrar</a>
@@ -383,22 +388,29 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
         <details><summary>Serve para qualquer projetor ou TV?</summary><p>Sim. No Layout você escolhe o formato da tela (16:9, 16:10 ou 4:3), o tamanho da letra e as margens, conforme a distância da assembleia.</p></details>
         <details><summary>Dá para usar os cantos que a paróquia já tem?</summary><p>Dá. Importe os arquivos de PowerPoint (.pptx) dos seus cantos ou cole a letra de um site: o sistema formata sozinho, separa as estrofes e reconhece o refrão.</p></details>
         <details><summary>Quantas pessoas podem usar?</summary><p>No plano Comunidade, até 3 pessoas na equipe. Nos planos Paróquia e Paróquia + comunidades, quantas a paróquia precisar, cada uma com o seu papel.</p></details>
+        <details><summary>Posso falar com alguém antes de começar?</summary><p>Claro. Chame no <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener">WhatsApp (43) 99155-0595</a> ou escreva para contato@telaomissa.com.br. A gente ajuda a configurar a primeira missa.</p></details>
         <details><summary>Como funciona o pagamento?</summary><p>Você testa 30 dias sem cartão. Depois, escolhe o plano e paga por Pix, cartão ou boleto, mensal ou anual. Dá para cancelar a qualquer momento.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="final faixa">
+  <section class="final faixa" id="contato">
     <div class="miolo">
-      <h2>O próximo domingo já pode ser mais tranquilo.</h2>
-      <a class="btn btn-acao" href="cadastro.html" style="background:#14161C;color:#fff">Cadastrar minha paróquia</a>
+      <div>
+        <h2>O próximo domingo já pode ser mais tranquilo.</h2>
+        <p class="contato-linha">Dúvidas? Fale com a gente: <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener">WhatsApp (43) 99155-0595</a> · <a href="mailto:contato@telaomissa.com.br">contato@telaomissa.com.br</a></p>
+      </div>
+      <div class="final-bts">
+        <a class="btn btn-acao" href="cadastro.html" style="background:#14161C;color:#fff">Cadastrar minha paróquia</a>
+        <a class="btn btn-contorno" href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener">Falar no WhatsApp</a>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="rodape faixa">
   <div class="miolo">
-    <span>© 2026 Telão Missa</span>
+    <span>© 2026 Telão Missa · <a href="mailto:contato@telaomissa.com.br" style="margin:0">contato@telaomissa.com.br</a> · <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener" style="margin:0">WhatsApp (43) 99155-0595</a></span>
     <span><a href="app/">Entrar</a><a href="cadastro.html">Cadastrar paróquia</a><a href="#planos">Planos</a></span>
   </div>
 </footer>
