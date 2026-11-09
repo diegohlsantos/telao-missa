@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-16">
+<meta name="versao" content="2026-11-08-17">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -336,16 +336,73 @@ body:not(.passo-a-passo) .etapa + .etapa{border-top:1px solid var(--line);paddin
 ol.roteiro li.na-previa{background:color-mix(in srgb,var(--gold) 9%,transparent);box-shadow:inset 3px 0 0 var(--gold)}
 ol.roteiro li[data-first]{cursor:pointer}
 @media (max-width:720px){ .etapas{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* ===== Nave e luz: a mesma linguagem do site ===== */
+:root{--lit-verde:#3E9A6B;--lit-roxo:#8B63B5;--lit-vermelho:#C8483F;--lit-branco:#E9DDB8;--lit-rosa:#D987A7;
+  --faixa-lit:linear-gradient(90deg,#3E9A6B 0 20%,#8B63B5 20% 40%,#C8483F 40% 60%,#E9DDB8 60% 80%,#D987A7 80%);
+  --nave:#14161C;--nave-2:#1B1E27;--nave-texto:#EEF0F4;--nave-2texto:#B9BFCB;--radius:14px;--accent-ink:#FFD43B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--nave:#0B0C10;--nave-2:#151820;--accent-ink:#14161C}}
+:root[data-theme="dark"]{--nave:#0B0C10;--nave-2:#151820;--accent-ink:#14161C}
+html{overflow-x:clip}
+body{padding-block:0 40px;margin:0;overflow-x:clip}
+header.top{position:relative;isolation:isolate;align-items:center;color:var(--nave-texto);padding-block:26px 30px;margin-bottom:4px;
+  background:var(--nave);box-shadow:0 0 0 100vmax var(--nave);clip-path:inset(0 -100vmax)}
+header.top::before{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 50vw);right:calc(50% - 50vw);z-index:-1;pointer-events:none;
+  background:radial-gradient(38% 120% at 78% 0%,rgba(255,212,59,.14),transparent 70%),radial-gradient(30% 90% at 12% 100%,rgba(139,99,181,.12),transparent 70%)}
+header.top::after{content:"";position:absolute;left:calc(50% - 50vw);right:calc(50% - 50vw);bottom:0;height:4px;background:var(--faixa-lit);transition:background .6s}
+.rosacea-top{position:absolute;right:-40px;top:50%;width:230px;height:230px;transform:translateY(-50%);opacity:.22;z-index:-1;pointer-events:none}
+.rosacea-top g.gira{transform-origin:0 0;animation:gira 160s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+@media (max-width:700px){.rosacea-top{width:170px;height:170px;right:-50px;top:30%}}
+.brand .produto{color:var(--nave-2texto)} .brand .produto svg{color:var(--luz)}
+.brand h1{color:#fff;font-size:2.5rem}
+.brand p{color:var(--nave-2texto);display:flex;align-items:center;gap:8px}
+.brand p .lit{display:none;flex:none;width:10px;height:10px;border-radius:50%;background:var(--cor-lit-atual,transparent);box-shadow:0 0 12px var(--cor-lit-atual,transparent)}
+header.top nav.tabs{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+header.top nav.tabs button{color:var(--nave-2texto)}
+header.top nav.tabs button:hover{color:#fff}
+header.top nav.tabs button[aria-selected="true"]{background:var(--luz);color:#14161C;box-shadow:0 0 18px -4px rgba(255,212,59,.6)}
+header.top .who{color:var(--nave-2texto)}
+header.top .btn{background:transparent;color:var(--nave-texto);border-color:rgba(255,255,255,.28)}
+header.top .btn:hover{border-color:var(--luz)}
+.panel{border-radius:var(--radius)}
+.panel h2{font-size:1.6rem}
+/* Início: próxima missa como janela de vitral, as demais em arco */
+.ini-tit{font-size:2.1rem}
+.mcard{border-radius:110px 110px var(--radius) var(--radius) / 34px 34px var(--radius) var(--radius);padding-top:26px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--cor-lit,var(--line)) 16%,var(--surface)) 0,var(--surface) 46%);
+  border-color:color-mix(in srgb,var(--cor-lit,var(--line)) 45%,var(--line));transition:transform .3s,box-shadow .3s}
+.mcard::before{display:none}
+.mcard:hover{transform:translateY(-3px);box-shadow:0 16px 36px -22px color-mix(in srgb,var(--cor-lit,#000) 80%,transparent)}
+.mcard .quando{justify-content:center}.mcard .cel{text-align:center}
+.mcard.destaque{grid-column:1/-1;color:var(--nave-texto);border:1px solid color-mix(in srgb,var(--cor-lit,var(--luz)) 50%,transparent);
+  border-radius:999px 999px var(--radius) var(--radius) / 120px 120px var(--radius) var(--radius);padding:40px clamp(18px,5vw,56px) 26px;isolation:isolate;
+  background:radial-gradient(50% 70% at 50% 0%,color-mix(in srgb,var(--cor-lit,var(--luz)) 30%,transparent),transparent 70%),radial-gradient(40% 60% at 50% 100%,rgba(255,212,59,.10),transparent 70%),var(--nave)}
+.mcard.destaque .rot-d{text-align:center;font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--luz)}
+.mcard.destaque .quando b{font-size:clamp(2.6rem,6vw,3.6rem);color:#fff;text-shadow:0 0 40px rgba(255,212,59,.25)}
+.mcard.destaque .quando span{color:var(--nave-2texto)}
+.mcard.destaque .cel{font-family:var(--display);font-weight:600;font-size:1.6rem;min-height:0;color:#fff}
+.mcard.destaque ul{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));max-width:720px;margin:0 auto;width:100%}
+.mcard.destaque li{color:var(--nave-2texto)} .mcard.destaque li.ok{color:#fff} .mcard.destaque li i{background:rgba(255,255,255,.2)}
+.mcard.destaque li.ok i{background:#6FCF97} .mcard.destaque li.falta i{background:#F28B82}
+.mcard.destaque .bts{justify-content:center;max-width:420px;margin:6px auto 0;width:100%}
+.mcard.destaque .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}
+.mcard.destaque .btn.primary,.mcard.destaque .btn:only-child{background:var(--luz);color:#14161C;border-color:var(--luz)}
+.atalho{position:relative;padding-left:34px}
+.atalho::before{content:"";position:absolute;left:14px;top:19px;width:10px;height:10px;border-radius:2px;background:var(--luz);box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.atalho:hover{border-color:var(--gold)}
+@media (prefers-reduced-motion: reduce){.rosacea-top g.gira{animation:none}.mcard{transition:none}}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="top">
+<svg class="rosacea-top" viewBox="-120 -120 240 240" aria-hidden="true"><g class="gira" id="rosacea-g"></g><circle r="22" fill="#FFD43B"/><circle r="104" fill="none" stroke="#FFD43B" stroke-width="2" opacity=".5"/></svg>
     <div class="brand">
       <a class="produto" href="../" title="Telão Missa"><svg viewBox="0 0 160 90" aria-hidden="true"><g fill="currentColor"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>Telão Missa</a>
       <h1 id="par-nome">Telão Missa</h1>
-      <p id="sub">Leituras do dia, cantos e avisos num só roteiro</p>
+      <p id="sub"><span class="lit" aria-hidden="true"></span><span id="sub-txt">Leituras do dia, cantos e avisos num só roteiro</span></p>
     </div>
     <div class="auth">
       <nav class="tabs" role="tablist">
@@ -1163,6 +1220,13 @@ function slidesLeitura(nome, l, resp, evangelho){
 }
 const CORES = {verde:"#2e8b3e", branco:"#f4f4f4", roxo:"#6b3fa0", vermelho:"#c0262d", rosa:"#e58bb5", preto:"#555", dourado:"#d4a017", azul:"#2b6cb0"};
 function corHex(c){ return CORES[norm(c).split(" ")[0]] || "transparent"; }
+const COR_NAVE = {verde:"#3E9A6B", roxo:"#8B63B5", vermelho:"#C8483F", branco:"#E9DDB8", dourado:"#E9DDB8", rosa:"#D987A7", preto:"#545B68", azul:"#5B8BD0"};
+function corNave(c){ return COR_NAVE[norm(c).split(" ")[0]] || ""; }
+(function rosacea(){
+  const g = $("rosacea-g"); if (!g) return;
+  const cores = ["#8B63B5","#E9DDB8","#3E9A6B","#C8483F","#8B63B5","#E9DDB8","#3E9A6B","#D987A7","#8B63B5","#E9DDB8","#3E9A6B","#C8483F"];
+  g.innerHTML = cores.map((c,i)=>`<path d="M0 -30 L-18 -92 Q0 -108 18 -92 Z" fill="${c}" transform="rotate(${i*30})"/><line x1="0" y1="-26" x2="0" y2="-100" stroke="#0B0C10" stroke-width="3" transform="rotate(${i*30+15})"/>`).join("");
+})();
 
 /* ---------------- Orações eucarísticas (Missal Romano, 3ª ed. típica, Brasil) ---------------- */
 const MISTERIO = [
@@ -1613,14 +1677,14 @@ async function carregarInicio(){
     sb.from("missas").select("data,horario,campos").eq("paroquia_id", PAR.id).in("data", datas),
     sb.from("leituras").select("data, celebracao:dados->>celebracao, cor:dados->>cor").in("data", lits)]);
   const M = new Map((m.data||[]).map(r=>[r.data+" "+r.horario, r.campos||{}])), Lt = new Map((l.data||[]).map(r=>[r.data, r]));
-  $("ini-lista").innerHTML = lista.map(x=>{
+  $("ini-lista").innerHTML = lista.map((x, idx)=>{
     const c = M.get(x.date+" "+x.hora) || {}, lt = Lt.get(x.lit);
     const cantos = CAMPOS_CANTO.filter(k=>String(c[k]||"").trim()).length;
     const nAv = (c.avisos_lista||[]).length + String(c.avisos||"").split("\n").filter(t=>t.trim()).length;
     const d = new Date(x.date+"T12:00"), eHoje = x.date === hoje;
     const item = (ok, txt, falta) => `<li class="${ok?"ok":falta?"falta":""}"><i></i>${esc(txt)}</li>`;
-    return `<article class="mcard${eHoje?" hoje":""}" style="--cor-lit:${!lt?.cor ? "var(--line)" : /^branc/.test(norm(lt.cor)) ? "var(--gold)" : corHex(lt.cor)}">
-      <div class="quando"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b><span>${eHoje?"hoje":DIAS[d.getDay()]} · ${x.hora.replace(":00","h").replace(":","h")}</span></div>
+    return `<article class="mcard${eHoje?" hoje":""}${idx===0?" destaque":""}" style="--cor-lit:${!lt?.cor ? (idx===0 ? "var(--luz)" : "var(--line)") : corNave(lt.cor) || corHex(lt.cor)}">
+      ${idx===0 ? `<div class="rot-d">${eHoje ? "Hoje" : "Próxima missa"}</div>` : ""}<div class="quando"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b><span>${eHoje?"hoje":DIAS[d.getDay()]} · ${x.hora.replace(":00","h").replace(":","h")}</span></div>
       <div class="cel">${esc(lt?.celebracao || "Leituras buscadas ao abrir")}</div>
       <ul>${item(!!lt, lt ? "leituras prontas" : "leituras")}${item(cantos>0, cantos ? cantos+" canto"+(cantos>1?"s":"") : "sem cantos", !cantos && eHoje)}
         ${item(OES_PADRAO[c.oe], OES_PADRAO[c.oe] ? "oração eucarística" : "sem oração euc.")}${item(!!c.capa_url, c.capa_url ? "com capa" : "sem capa")}
@@ -2574,6 +2638,10 @@ function preencherLeituras(){
   const L = S.leit || {};
   $("cel-nome").textContent = L.celebracao || "Leituras ainda não carregadas";
   $("cor-chip").style.background = L.cor ? corHex(L.cor) : "transparent";
+  { const cn = L.cor ? corNave(L.cor) : "", rs = document.documentElement.style;
+    if (cn){ rs.setProperty("--faixa-lit", cn); rs.setProperty("--cor-lit-atual", cn); } else { rs.removeProperty("--faixa-lit"); rs.removeProperty("--cor-lit-atual"); }
+    document.querySelector("#sub .lit").style.display = cn ? "block" : "";
+    $("sub-txt").textContent = L.celebracao || "Leituras do dia, cantos e avisos num só roteiro"; }
   $("cel-refs").innerHTML = [L.primeira?.ref&&`1ª ${esc(L.primeira.ref)}`, L.salmo?.ref&&esc(L.salmo.ref), L.segunda?.ref&&`2ª ${esc(L.segunda.ref)}`, L.evangelho?.ref&&`Ev ${esc(L.evangelho.ref)}`, L.cor&&`cor ${esc(L.cor.toLowerCase())}`].filter(Boolean).map(x=>`<span>${x}</span>`).join("");
   const set=(id,v)=>{ if (document.activeElement!==$(id)) $(id).value=v||""; };
   set("l-cel",L.celebracao); set("l1-ref",L.primeira?.ref); set("l1-tit",L.primeira?.titulo); set("l1-txt",L.primeira?.texto);
