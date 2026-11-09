@@ -53,6 +53,7 @@ else {
   let t = null;
   sb.channel("vivo:" + cod, {config:{private:true}})
     .on("broadcast", {event:"slide"}, ({payload:p}) => {
+      if ((p.local || "") !== (P.get("local") || "")) return;  // matriz e capelas transmitem separadas
       aviso("");
       const linhas = (p.linhas || []).filter(l => !/^\(?\d+\/\d+\)?$/.test(l));
       // tira o título repetido do canto e mostra só o trecho atual

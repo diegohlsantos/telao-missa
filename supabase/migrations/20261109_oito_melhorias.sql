@@ -8,3 +8,11 @@
 -- limites_dos_planos: private.plano_completo(paroquia) = status 'teste' ou plano <> 'comunidade'.
 --   Trigger membros_limite_plano: Comunidade (assinante) até 3 pessoas. pedido_cantos_criar e canal_vivo exigem plano completo.
 --   Erros de limite usam errcode P0001 com hint 'limite_plano' (o app mostra a mensagem do banco).
+-- teste_vencido_comunidades_leituras:
+--   private.paroquia_liberada (ativa/pendente, ou teste até teste_ate + 7 dias); private.membro_equipe = antigo pode_editar;
+--   pode_editar = membro_equipe e liberada (bloqueia toda escrita depois da tolerância). Leitura de intenções, pedidos,
+--   canal vivo e controle remoto usam membro_equipe. rpc painel_alterar_paroquia (dono muda plano/situação/teste_ate).
+--   public.comunidades (até 5, plano paroquia_comunidades/fundadora ou teste); coluna "local" ('' = matriz ou id da comunidade)
+--   em missas (PK paroquia_id, local, data, horario), intencoes, pedidos_cantos (unique com local); agenda em config id 'agenda:<id>'.
+--   Apagar comunidade apaga missas, intenções, pedidos e agenda dela. pedido_cantos_criar(..., p_local).
+--   public.leituras_paroquia (paroquia_id, data, dados): correção manual só da paróquia; correções antigas da paróquia 1 copiadas.

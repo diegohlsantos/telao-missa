@@ -152,7 +152,7 @@ async function iniciar(){
   P = data;
   const d = new Date(P.data + "T12:00");
   const hora = P.horario.replace(":00","h").replace(":","h");
-  $("t-par").textContent = P.paroquia.nome;
+  $("t-par").textContent = P.paroquia.nome + (P.comunidade ? " · " + P.comunidade : "");
   $("t-missa").textContent = `Missa de ${DIAS[d.getDay()]}, ${d.toLocaleDateString("pt-BR",{day:"numeric", month:"long"})}, às ${hora}`;
   document.title = `Cantos · ${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})} ${hora} · ${P.paroquia.nome}`;
   carregarLiturgia(P.data_lit);
@@ -320,7 +320,7 @@ function estadoVivo(){
 let ultimoCanto = null;
 let ultimoP = null;
 function desenharVivo(p){
-  if (!p || (p.data && p.data !== P.data) || (p.hora && p.hora !== P.horario)) return;
+  if (!p || (p.data && p.data !== P.data) || (p.hora && p.hora !== P.horario) || (p.local || "") !== (P.local || "")) return;
   ultimoP = p;
   ultimoVivo = Date.now(); estadoVivo();
   const s = p.songId ? BYID.get(p.songId) : null;

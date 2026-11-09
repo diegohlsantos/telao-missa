@@ -38,7 +38,7 @@ h2{font:600 1.6rem/1.1 var(--display);margin:0 0 10px}
 .procurar small{color:var(--suave)}
 .motivo{font-size:.85rem;font-weight:700;color:var(--atencao)}
 .tabela{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:860px}
+table{border-collapse:collapse;width:100%;min-width:1000px}
 th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--linha);vertical-align:top}
 th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);font-weight:700}
 td.n{text-align:right;font-variant-numeric:tabular-nums}
@@ -48,6 +48,12 @@ td small{color:var(--suave);display:block}
 .sim{color:var(--ok);font-weight:700} .nao{color:var(--suave)}
 .st{color:var(--suave)} .st.err{color:var(--erro)}
 a{color:var(--ambar)}
+details.alt summary{cursor:pointer;color:var(--ambar);font-weight:700}
+details.alt form{display:grid;gap:6px;margin-top:8px;min-width:190px}
+details.alt label{display:grid;gap:2px;font-size:.8rem;color:var(--suave)}
+details.alt select,details.alt input{font:inherit;color:var(--tinta);background:var(--sup);border:1px solid var(--linha);border-radius:6px;padding:5px 6px}
+details.alt button{font:700 .9rem var(--texto);border:0;border-radius:6px;padding:7px 10px;background:var(--tinta);color:var(--bg);cursor:pointer}
+.ok-alt{font-size:.8rem;color:var(--ok)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -62,7 +68,7 @@ a{color:var(--ambar)}
   <div id="conteudo" hidden>
     <section class="nums" id="nums" aria-label="Resumo"></section>
     <section class="cartao" style="margin-top:22px"><h2>Quem procurar</h2><ul class="procurar" id="procurar"></ul></section>
-    <section class="cartao" style="margin-top:22px"><h2>Todas as paróquias</h2><div class="tabela"><table><thead><tr><th>Paróquia</th><th>Situação</th><th>Responsável</th><th>Equipe</th><th>Missas</th><th>Últimos 7 dias</th><th>Último domingo</th><th>Último uso</th><th>Envios dos músicos</th></tr></thead><tbody id="linhas"></tbody></table></div></section>
+    <section class="cartao" style="margin-top:22px"><h2>Todas as paróquias</h2><div class="tabela"><table><thead><tr><th>Paróquia</th><th>Situação</th><th>Responsável</th><th>Equipe</th><th>Missas</th><th>Últimos 7 dias</th><th>Último domingo</th><th>Último uso</th><th>Envios dos músicos</th><th>Plano</th></tr></thead><tbody id="linhas"></tbody></table></div></section>
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -84,6 +90,15 @@ function situacao(p){
   if (p.status === "ativa") return {cls:"ativa", txt: p.plano ? "assinante · " + p.plano : "ativa"};
   return {cls:"outra", txt: p.status || "—"};
 }
+const PLANOS = [["teste","Teste"],["comunidade","Comunidade"],["paroquia","Paróquia"],["paroquia_comunidades","Paróquia + comunidades"],["fundadora","Fundadora"]];
+const SITS = [["teste","Em teste"],["ativa","Ativa (pagando)"],["pendente","Pagamento pendente"],["suspensa","Suspensa"],["cancelada","Cancelada"]];
+document.addEventListener("submit", async e => {
+  const f = e.target.closest("form[data-par]"); if (!f) return; e.preventDefault();
+  const fd = new FormData(f), ok = f.querySelector(".ok-alt");
+  ok.textContent = "Salvando…";
+  const {error} = await sb.rpc("painel_alterar_paroquia", {p_paroquia: f.dataset.par, p_plano: fd.get("plano"), p_status: fd.get("status"), p_teste_ate: fd.get("teste_ate") || null});
+  ok.textContent = error ? "Não salvou: " + error.message : "Salvo. Recarregue para ver os números.";
+});
 (async function(){
   const {data:{session}} = await sb.auth.getSession();
   if (!session){ location.replace("entrar.html?volta=" + encodeURIComponent("/painel.html")); return; }
@@ -112,7 +127,12 @@ function situacao(p){
     <td>${esc(p.responsavel || "—")}</td>
     <td class="n">${p.membros}</td><td class="n">${p.missas}</td><td class="n">${p.missas_7d}</td>
     <td>${p.usou_domingo ? '<span class="sim">usou</span>' : '<span class="nao">não</span>'}</td>
-    <td>${esc(quando(p.ultima_atividade))}</td><td class="n">${p.envios_musicos}</td></tr>`; }).join("");
+    <td>${esc(quando(p.ultima_atividade))}</td><td class="n">${p.envios_musicos}</td>
+    <td><details class="alt"><summary>Alterar</summary><form data-par="${esc(p.id)}">
+      <label>Plano<select name="plano">${PLANOS.map(([v,n])=>`<option value="${v}"${p.plano===v?" selected":""}>${n}</option>`).join("")}</select></label>
+      <label>Situação<select name="status">${SITS.map(([v,n])=>`<option value="${v}"${p.status===v?" selected":""}>${n}</option>`).join("")}</select></label>
+      <label>Teste até<input type="date" name="teste_ate" value="${esc(p.teste_ate||"")}"></label>
+      <button type="submit">Salvar</button><span class="ok-alt" aria-live="polite"></span></form></details></td></tr>`; }).join("");
   $("conteudo").hidden = false;
 })();
 </script>
