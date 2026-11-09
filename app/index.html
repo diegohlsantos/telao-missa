@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-11">
+<meta name="versao" content="2026-11-08-12">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2615,9 +2615,9 @@ async function verificarConta(){
   if (!S.user) mostrarAviso(PARAMS.get("convite") ? "Você recebeu um convite para a equipe. Entre ou crie sua conta para aceitar." : "", PARAMS.get("convite") ? "Entrar" : null, ()=>$("btn-entrar").click());
   modoEdicao();
 }
-$("btn-entrar").onclick = ()=>{ setSt("lg-st","",""); $("dlg-login").showModal(); };
+$("btn-entrar").onclick = ()=>{ location.href = "../entrar.html?trocar=1&volta=" + encodeURIComponent(location.pathname + location.search); };
 $("lg-fechar").onclick = ()=>$("dlg-login").close();
-$("btn-sair").onclick = async ()=>{ await sb.auth.signOut(); };
+$("btn-sair").onclick = async ()=>{ await sb.auth.signOut(); location.replace("../entrar.html"); };
 $("login-form").addEventListener("submit", async e=>{
   e.preventDefault();
   setSt("lg-st","Entrando…","");
@@ -2634,7 +2634,7 @@ $("lg-criar").onclick = async ()=>{
   else if (!data.session) setSt("lg-st","Conta criada. Confirme pelo link enviado ao seu e-mail e depois entre.","ok");
   else $("dlg-login").close();
 };
-sb.auth.onAuthStateChange((ev)=>{ if (ev==="SIGNED_IN"||ev==="SIGNED_OUT"||ev==="USER_UPDATED") setTimeout(verificarConta,0); });
+sb.auth.onAuthStateChange((ev)=>{ if (ev==="SIGNED_OUT"){ irParaLogin(); return; } if (ev==="SIGNED_IN"||ev==="USER_UPDATED") setTimeout(verificarConta,0); });
 
 async function carregarEquipe(){
   if (!S.editor) return;
@@ -3034,7 +3034,11 @@ async function carregarParoquia(){
   $("par-nome").textContent = data.nome; document.title = MODO_TELAO ? "Telão — " + data.nome : data.nome + " · Telão Missa";
   return true;
 }
+function irParaLogin(){ location.replace("../entrar.html?volta=" + encodeURIComponent(location.pathname + location.search + location.hash)); }
 (async function iniciar(){
+  // o sistema só abre com login; quem não entrou vai para a tela de entrada
+  const {data:{session:s0}} = await sb.auth.getSession();
+  if (!s0){ irParaLogin(); return; }
   if (!(await carregarParoquia())){
     document.body.innerHTML = `<main style="max-width:520px;margin:12vh auto;padding:0 16px;font:16px/1.5 system-ui"><h1 style="font-size:1.6rem">Paróquia não encontrada</h1><p>Confira o endereço que você recebeu. Se a sua paróquia ainda não usa o Telão Missa, <a href="../cadastro.html">cadastre aqui</a>.</p></main>`;
     return;

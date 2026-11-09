@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="versao" content="2026-11-08-11">
+<meta name="versao" content="2026-11-08-12">
 <script>
   // links antigos do sistema (paróquia, telão, convite) seguem para o app
   (function(){
@@ -217,7 +217,7 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
       <a href="#contato">Contato</a>
     </nav>
     <div class="acoes">
-      <a class="entrar" href="app/">Entrar</a>
+      <a class="entrar" href="entrar.html">Entrar</a>
       <a class="btn btn-luz" href="cadastro.html">Teste grátis</a>
     </div>
   </div>
@@ -411,7 +411,7 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
 <footer class="rodape faixa">
   <div class="miolo">
     <span>© 2026 Telão Missa · <a href="mailto:contato@telaomissa.com.br" style="margin:0">contato@telaomissa.com.br</a> · <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener" style="margin:0">WhatsApp (43) 99155-0595</a></span>
-    <span><a href="app/">Entrar</a><a href="cadastro.html">Cadastrar paróquia</a><a href="#planos">Planos</a></span>
+    <span><a href="entrar.html">Entrar</a><a href="cadastro.html">Cadastrar paróquia</a><a href="#planos">Planos</a></span>
   </div>
 </footer>
 
@@ -424,7 +424,6 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
       document.getElementById("ult-nome").textContent = u.nome || u.slug;
       document.getElementById("ult-link").href = "app/?p=" + encodeURIComponent(u.slug);
       document.getElementById("continuar").hidden = false;
-      document.querySelector(".topo .entrar").href = "app/?p=" + encodeURIComponent(u.slug);
     }
   }catch(e){}
 
