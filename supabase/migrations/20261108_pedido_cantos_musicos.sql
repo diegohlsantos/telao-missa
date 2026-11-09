@@ -1,0 +1,4 @@
+-- Pedido de cantos aos músicos: link por missa (sem login) que grava os cantos em missas.campos.
+-- Aplicado em 08/11/2026 pelas migrations pedido_cantos_musicos e pedido_cantos_enviar_fix.
+-- Tabela public.pedidos_cantos (codigo, paroquia_id, data, horario, data_lit, expira, enviado_em, enviado_por, obs)
+-- RPCs: pedido_cantos_criar (equipe), pedido_cantos_ler e pedido_cantos_enviar (anon, pelo código).
