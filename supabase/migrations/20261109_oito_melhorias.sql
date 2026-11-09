@@ -1,0 +1,7 @@
+-- 09/11/2026 — aplicado pelas migrations: intencoes_da_missa, canal_ao_vivo, painel_do_dono, painel_do_dono_fix.
+-- public.intencoes (paroquia_id, data, horario nulo = todas as missas do dia, tipo, nome, pedido_por) — só a equipe lê e escreve; realtime.
+-- public.canais_vivo (paroquia_id, codigo) + rpc canal_vivo(p_paroquia, p_novo); canal realtime privado "vivo:<codigo>":
+--   ouvir: anon/authenticated com código válido; enviar: só equipe da paróquia (private.pode_editar).
+-- pedido_cantos_ler agora devolve 'vivo' (código do canal) e 'ao_vivo_ate' (horário da missa + 3 h).
+-- musicas.cifra (texto livre, só para o celular dos músicos).
+-- private.donos + private.eh_dono() + rpc painel_dono() (números de todas as paróquias, só para o dono).

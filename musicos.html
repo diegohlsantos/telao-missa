@@ -64,6 +64,29 @@ button.principal{font:700 16px var(--font-texto);border-radius:var(--raio-p);pad
 button:disabled{opacity:.55;cursor:default}
 .carregando{color:var(--tinta-suave)}
 [hidden]{display:none!important}
+.abas{display:flex;gap:6px;background:var(--superficie);border:1px solid var(--linha);border-radius:999px;padding:4px;align-self:flex-start}
+.abas button{border:0;background:none;font:700 15px var(--font-texto);color:var(--tinta-suave);padding:8px 16px;border-radius:999px;cursor:pointer}
+.abas button[aria-selected="true"]{background:var(--acao);color:var(--sobre-acao)}
+.abas .pulso{display:inline-block;width:8px;height:8px;border-radius:50%;background:#C8483F;margin-right:6px;vertical-align:1px}
+#vivo{display:flex;flex-direction:column;gap:14px}
+.v-estado{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tinta-suave)}
+.v-estado i{width:10px;height:10px;border-radius:50%;background:var(--linha-forte)}
+.v-estado.on i{background:#C8483F;box-shadow:0 0 0 0 rgba(200,72,63,.6);animation:pulsa 1.6s infinite}
+@keyframes pulsa{70%{box-shadow:0 0 0 10px rgba(200,72,63,0)}100%{box-shadow:0 0 0 0 rgba(200,72,63,0)}}
+.v-agora{background:var(--noite);color:#fff;border-radius:var(--raio-m);padding:18px 18px 20px;border-bottom:4px solid var(--lit)}
+.v-agora .mom{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--luz);margin:0}
+.v-agora h2{font:600 28px/1.1 var(--font-display);margin:4px 0 10px}
+.v-agora .linhas{font-size:calc(19px * var(--zoom,1));line-height:1.45}
+.v-agora .linhas p{margin:0}
+.v-agora .pausa{color:#A3AAB8;font-style:italic}
+.v-ferr{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.v-ferr button{font:700 14px var(--font-texto);padding:8px 12px;border-radius:var(--raio-p);border:1px solid var(--linha-forte);background:var(--superficie);color:var(--tinta);cursor:pointer}
+.v-ferr button[aria-pressed="true"]{background:var(--acao);color:var(--sobre-acao);border-color:var(--acao)}
+.v-musica{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--raio-m);padding:16px;margin:0;white-space:pre-wrap;overflow-x:auto;font-size:calc(16px * var(--zoom,1));line-height:1.5}
+.v-musica.cifra{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;font-size:calc(14px * var(--zoom,1))}
+.v-musica .atual{background:var(--sel);border-radius:4px;outline:3px solid var(--sel)}
+.v-prox{margin:0;color:var(--tinta-suave)}
+@media (prefers-reduced-motion:reduce){.v-estado.on i{animation:none}}
 </style>
 </head>
 <body>
@@ -76,7 +99,15 @@ button:disabled{opacity:.55;cursor:default}
 </div></header>
 
 <main id="main">
+  <div class="abas" id="abas" role="tablist" hidden><button role="tab" id="ab-escolher" aria-selected="true">Escolher cantos</button><button role="tab" id="ab-vivo" aria-selected="false"><span class="pulso" aria-hidden="true"></span>Ao vivo na missa</button></div>
   <div class="aviso" id="aviso"><span class="carregando">Abrindo o pedido de cantos…</span></div>
+  <section id="vivo" hidden aria-live="polite">
+    <div class="v-estado" id="v-estado"><i></i><span id="v-estado-txt">Aguardando o telão começar…</span></div>
+    <div class="v-agora"><p class="mom" id="v-mom">Ao vivo</p><h2 id="v-tit">Quando o telão estiver projetando, o canto aparece aqui.</h2><div class="linhas" id="v-linhas"></div></div>
+    <p class="v-prox" id="v-prox" hidden></p>
+    <div class="v-ferr"><button type="button" id="v-cifra" aria-pressed="false" hidden>Cifra</button><button type="button" id="v-menos" aria-label="Diminuir letra">A−</button><button type="button" id="v-mais" aria-label="Aumentar letra">A+</button></div>
+    <pre class="v-musica" id="v-musica" hidden></pre>
+  </section>
   <form id="form" hidden novalidate>
     <div style="display:grid;gap:18px">
       <label class="campo">Seu nome ou ministério
@@ -108,7 +139,7 @@ const MOMENTOS = [
 const DIAS = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
 const CORES = {verde:"#2E7D4F", roxo:"#6B3FA0", vermelho:"#B3261E", branco:"#C9A227", dourado:"#C9A227", rosa:"#D96C9A"};
 const codigo = new URLSearchParams(location.search).get("c") || "";
-let P = null, SONGS = [], porTitulo = new Map();
+let P = null, SONGS = [], porTitulo = new Map(), BYID = new Map();
 
 function aviso(html, cls){ $("aviso").innerHTML = html; $("aviso").className = "aviso " + (cls||""); $("aviso").hidden = false; }
 function st(t, cls){ $("st").textContent = t; $("st").className = "st " + (cls||""); }
@@ -125,7 +156,12 @@ async function iniciar(){
   $("t-missa").textContent = `Missa de ${DIAS[d.getDay()]}, ${d.toLocaleDateString("pt-BR",{day:"numeric", month:"long"})}, às ${hora}`;
   document.title = `Cantos · ${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})} ${hora} · ${P.paroquia.nome}`;
   carregarLiturgia(P.data_lit);
-  if (!P.aberto){ aviso("<b>Este pedido já encerrou.</b>O link vale até o horário da missa. Se ainda precisar mudar algum canto, fale com a coordenação.", ""); return; }
+  const vivoAte = P.ao_vivo_ate ? new Date(P.ao_vivo_ate) : null, vivoAberto = P.vivo && vivoAte && Date.now() < vivoAte.getTime();
+  if (!P.aberto){
+    if (vivoAberto){ $("aviso").hidden = true; st(""); await carregarAcervo(); ligarVivo(); mostrarAba("vivo"); $("abas").hidden = true; return; }
+    aviso("<b>Este pedido já encerrou.</b>O link vale até o horário da missa. Se ainda precisar mudar algum canto, fale com a coordenação.", ""); return;
+  }
+  if (P.vivo){ $("abas").hidden = false; ligarVivo(); }
   try{ $("nome").value = localStorage.getItem("tm-musico-nome") || P.enviado_por || ""; }catch{ $("nome").value = P.enviado_por || ""; }
   $("obs").value = P.obs || "";
   desenharMomentos(P.campos || {});
@@ -152,7 +188,7 @@ async function carregarLiturgia(data){
 async function carregarAcervo(){
   const todos = [];
   for (let de = 0; de < 10000; de += 1000){
-    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,paroquia_id")
+    const {data, error} = await sb.from("musicas").select("id,titulo,autor,partes,paroquia_id,cifra")
       .or(`paroquia_id.is.null,paroquia_id.eq.${P.paroquia.id}`).order("titulo").range(de, de + 999);
     if (error){ st("Não consegui carregar o acervo. Você ainda pode digitar os nomes dos cantos.", "err"); break; }
     todos.push(...data); if (data.length < 1000) break;
@@ -160,6 +196,7 @@ async function carregarAcervo(){
   // versão local da paróquia substitui a comum de mesmo título
   const m = new Map();
   for (const s of todos){ const k = norm(s.titulo); if (!m.has(k) || s.paroquia_id) m.set(k, s); }
+  BYID = new Map(todos.map(s => [s.id, s]));
   SONGS = [...m.values()].map(s => ({id:s.id, titulo:s.titulo, autor:s.autor||"", n:norm(s.titulo), na:norm(s.autor), nl:norm((s.partes||[]).join(" ")).slice(0, 600), trecho:String((s.partes||[])[0]||"").split("\n").find(l=>l.trim())||""}));
   porTitulo = new Map(SONGS.map(s => [s.n, s]));
 }
@@ -252,6 +289,71 @@ $("enviar").onclick = async () => {
   window.scrollTo({top:0, behavior:"smooth"});
   await carregarAcervo(); document.querySelectorAll(".busca input").forEach(i => avaliar(i));
 };
+/* ---------------- Ao vivo ---------------- */
+let VIVO = null, ultimoVivo = 0, zoom = 1, comCifra = true, wake = null;
+try{ zoom = +localStorage.getItem("tm-musico-zoom") || 1; }catch{}
+document.documentElement.style.setProperty("--zoom", zoom);
+function mostrarAba(q){
+  const vivo = q === "vivo";
+  $("ab-vivo").setAttribute("aria-selected", vivo); $("ab-escolher").setAttribute("aria-selected", !vivo);
+  $("vivo").hidden = !vivo; $("form").hidden = vivo || !P.aberto; $("barra").hidden = vivo || !P.aberto;
+  if (vivo){ $("aviso").hidden = true; try{ navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); }catch{} }
+}
+$("ab-vivo").onclick = () => mostrarAba("vivo");
+$("ab-escolher").onclick = () => mostrarAba("escolher");
+function ligarVivo(){
+  if (VIVO) return;
+  VIVO = sb.channel("vivo:" + P.vivo, {config:{private:true}});
+  VIVO.on("broadcast", {event:"slide"}, ({payload}) => desenharVivo(payload)).subscribe(s => {
+    if (s === "SUBSCRIBED") estadoVivo(); else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT"){ $("v-estado-txt").textContent = "Não consegui ligar ao telão. Confira a internet."; }
+  });
+  setInterval(estadoVivo, 5000);
+  // missa ao vivo começando: abre direto na aba ao vivo
+  const inicio = new Date(P.data + "T" + P.horario + ":00").getTime();
+  if (Date.now() > inicio - 20*60000) mostrarAba("vivo");
+}
+function estadoVivo(){
+  const on = Date.now() - ultimoVivo < 40000;
+  $("v-estado").classList.toggle("on", on);
+  $("v-estado-txt").textContent = on ? "Ao vivo: acompanhando o telão" : "Aguardando o telão começar…";
+}
+let ultimoCanto = null;
+let ultimoP = null;
+function desenharVivo(p){
+  if (!p || (p.data && p.data !== P.data) || (p.hora && p.hora !== P.horario)) return;
+  ultimoP = p;
+  ultimoVivo = Date.now(); estadoVivo();
+  const s = p.songId ? BYID.get(p.songId) : null;
+  $("v-mom").textContent = p.preta ? "Tela preta" : p.capa ? "Capa" : (p.momento || "Ao vivo");
+  $("v-tit").textContent = s ? s.titulo : (p.rotulo || "");
+  $("v-linhas").innerHTML = p.preta || p.capa || !p.linhas?.length ? `<p class="pausa">${p.preta ? "O telão está apagado." : p.capa ? "O telão mostra a capa." : ""}</p>` : p.linhas.filter(l => !s || norm(l) !== norm(s.titulo) && !/^\(?\d+\/\d+\)?$/.test(l)).map(l => `<p>${esc(l)}</p>`).join("");
+  $("v-prox").hidden = !p.prox; if (p.prox) $("v-prox").innerHTML = `Próximo canto: <b>${esc(p.prox.titulo)}</b>${p.prox.momento ? " · " + esc(p.prox.momento) : ""}`;
+  // letra inteira ou cifra do canto atual
+  if (s){
+    $("v-cifra").hidden = !s.cifra;
+    const usarCifra = s.cifra && comCifra; $("v-cifra").setAttribute("aria-pressed", String(!!usarCifra));
+    if (ultimoCanto !== s.id + "|" + usarCifra){
+      ultimoCanto = s.id + "|" + usarCifra;
+      $("v-musica").className = "v-musica" + (usarCifra ? " cifra" : "");
+      $("v-musica").textContent = usarCifra ? s.cifra : (s.partes || []).join("\n\n").replace(/\u2063/g, "").replace(/^refr[aã]o:\s*/gim, "");
+    }
+    $("v-musica").hidden = false;
+    destacarAtual(p.linhas || []);
+  } else { $("v-musica").hidden = true; $("v-cifra").hidden = true; ultimoCanto = null; }
+}
+function destacarAtual(linhas){
+  // marca na letra inteira o trecho que está no telão
+  const pre = $("v-musica"); const txt = pre.textContent; const alvo = linhas.find(l => l.length > 8 && norm(l) && norm(txt).includes(norm(l)));
+  if (!alvo) return;
+  const linhasPre = txt.split("\n"); const i = linhasPre.findIndex(l => norm(l).includes(norm(alvo)) || norm(alvo).includes(norm(l)) && norm(l).length > 8);
+  if (i < 0) return;
+  pre.innerHTML = linhasPre.map((l, j) => j === i ? `<span class="atual">${esc(l)}</span>` : esc(l)).join("\n");
+  pre.querySelector(".atual")?.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+$("v-cifra").onclick = () => { comCifra = !comCifra; ultimoCanto = null; if (ultimoP) desenharVivo(ultimoP); };
+$("v-mais").onclick = () => { zoom = Math.min(2, +(zoom + .1).toFixed(2)); document.documentElement.style.setProperty("--zoom", zoom); try{ localStorage.setItem("tm-musico-zoom", zoom); }catch{} };
+$("v-menos").onclick = () => { zoom = Math.max(.7, +(zoom - .1).toFixed(2)); document.documentElement.style.setProperty("--zoom", zoom); try{ localStorage.setItem("tm-musico-zoom", zoom); }catch{} };
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !$("vivo").hidden){ try{ navigator.wakeLock?.request("screen").then(w=>wake=w).catch(()=>{}); }catch{} } });
 iniciar();
 </script>
 </body>

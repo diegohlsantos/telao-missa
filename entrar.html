@@ -157,7 +157,7 @@ const $ = id => document.getElementById(id);
 const sb = supabase.createClient("https://xbtrwvtkdsjptnpqsaom.supabase.co", "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5");
 const P = new URLSearchParams(location.search);
 // para onde voltar depois de entrar (só caminhos deste site)
-const volta = (()=>{ const v = P.get("volta") || ""; return /^\/(app\/|$)/.test(v) && !v.startsWith("//") ? v : ""; })();
+const volta = (()=>{ const v = P.get("volta") || ""; return /^\/(app\/|painel\.html|$)/.test(v) && !v.startsWith("//") ? v : ""; })();
 const convite = (()=>{ try{ return new URLSearchParams((volta.split("?")[1]||"").split("#")[0]).get("convite"); }catch{ return null; } })();
 const PAPEL = {responsavel:"Responsável", coordenador:"Coordenação", operador:"Operador do telão", musico:"Músico"};
 let modo = "entrar";
@@ -176,6 +176,7 @@ $("b-criar").onclick = ()=>{
 
 async function seguir(user){
   if (volta && convite){ location.replace(volta); return; }          // o app aceita o convite
+  if (volta.startsWith("/painel.html")){ location.replace(volta); return; }
   const {data, error} = await sb.from("membros").select("papel, paroquias(slug, nome, cidade, uf)").eq("user_id", user.id);
   const ps = (data||[]).filter(m=>m.paroquias);
   if (error || !ps.length){

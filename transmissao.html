@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legenda da transmissão · Telão Missa</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:wght@600&display=swap">
+<style>
+/* Fonte de navegador do OBS: fundo transparente, legenda no terço inferior.
+   Parâmetros: c=código · pos=baixo|alto · tam=p|m|g · fundo=transparente|verde|preto · estilo=faixa|cheio */
+:root{--luz:#FFD43B;--noite:#14161C;--tam:1;--lit:#FFD43B;
+  --font-display:"Cormorant Garamond",Georgia,serif;--font-texto:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
+html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+body.verde{background:#00B140}
+body.preto{background:#000}
+.faixa{position:fixed;left:4vw;right:4vw;bottom:5vh;display:flex;flex-direction:column;gap:.4vw;
+  background:linear-gradient(90deg,rgba(14,15,20,.92),rgba(20,22,28,.86));border-left:.5vw solid var(--lit);border-radius:.6vw;
+  padding:1.3vw 2vw 1.5vw;color:#fff;font-family:var(--font-texto);box-shadow:0 1vw 3vw rgba(0,0,0,.35);
+  transition:opacity .45s ease, transform .45s ease}
+body.alto .faixa{bottom:auto;top:5vh}
+.faixa.some{opacity:0;transform:translateY(1.2vw)}
+.mom{font-size:calc(1.15vw * var(--tam));font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--luz);margin:0}
+.txt{font-size:calc(2.35vw * var(--tam));font-weight:700;line-height:1.28;margin:0;text-shadow:0 .1vw .4vw rgba(0,0,0,.5)}
+.txt span{display:block}
+body.cheio .faixa{inset:0;border:0;border-radius:0;justify-content:center;align-items:center;text-align:center;background:rgba(10,11,15,.88);padding:6vh 8vw}
+body.cheio .txt{font-size:calc(3.6vw * var(--tam))}
+body.cheio .mom{font-size:calc(1.5vw * var(--tam))}
+.aviso{position:fixed;inset:auto 2vw 2vh;color:#fff;font:600 16px var(--font-texto);background:rgba(0,0,0,.7);padding:10px 14px;border-radius:8px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.faixa{transition:none}}
+</style>
+</head>
+<body>
+<div class="faixa some" id="faixa"><p class="mom" id="mom"></p><p class="txt" id="txt"></p></div>
+<div class="aviso" id="aviso" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const P = new URLSearchParams(location.search);
+const cod = (P.get("c") || "").toLowerCase();
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+document.body.classList.add(P.get("pos") === "alto" ? "alto" : "baixo");
+if (["verde","preto"].includes(P.get("fundo"))) document.body.classList.add(P.get("fundo"));
+if (P.get("estilo") === "cheio") document.body.classList.add("cheio");
+document.documentElement.style.setProperty("--tam", {p:.8, m:1, g:1.25}[P.get("tam")] || 1);
+const maxLinhas = P.get("estilo") === "cheio" ? 8 : (+P.get("linhas") || 3);
+function aviso(t){ $("aviso").textContent = t; $("aviso").hidden = !t; }
+if (!/^[a-z0-9]{8,32}$/.test(cod)) aviso("Link da legenda incompleto. Copie de novo no Telão Missa.");
+else {
+  const sb = supabase.createClient("https://xbtrwvtkdsjptnpqsaom.supabase.co", "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5", {auth:{persistSession:false, autoRefreshToken:false, detectSessionInUrl:false}});
+  let t = null;
+  sb.channel("vivo:" + cod, {config:{private:true}})
+    .on("broadcast", {event:"slide"}, ({payload:p}) => {
+      aviso("");
+      const linhas = (p.linhas || []).filter(l => !/^\(?\d+\/\d+\)?$/.test(l));
+      // tira o título repetido do canto e mostra só o trecho atual
+      const corpo = p.songId && linhas.length > 1 ? linhas.slice(1) : linhas;
+      const some = p.preta || p.capa || !corpo.length;
+      $("faixa").classList.toggle("some", some);
+      if (some) return;
+      clearTimeout(t);
+      const atualiza = () => {
+        $("mom").textContent = p.momento || "";
+        const mostrar = corpo.length > maxLinhas ? corpo.slice(0, maxLinhas) : corpo;
+        $("txt").innerHTML = mostrar.map(l => `<span>${esc(l)}</span>`).join("");
+      };
+      atualiza();
+    })
+    .subscribe(s => { if (s === "CHANNEL_ERROR") aviso("Este link de legenda não vale mais. Copie o novo no Telão Missa."); });
+}
+</script>
+</body>
+</html>

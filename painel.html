@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel · Telão Missa</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:wght@600&display=swap">
+<style>
+/* Painel do dono: números no topo, quem procurar, tabela de paróquias */
+:root{--bg:#F4F5F7;--sup:#FFFFFF;--tinta:#14161C;--suave:#545B68;--linha:#D9DCE2;--luz:#FFD43B;--ambar:#8A5A00;--ok:#1F7A4D;--atencao:#8A5A00;--erro:#B3261E;--nave:#14161C;
+  --display:"Cormorant Garamond",Georgia,serif;--texto:"Atkinson Hyperlegible",system-ui,"Segoe UI",Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#101218;--sup:#191C24;--tinta:#EEF0F4;--suave:#A3AAB8;--linha:#2A2F3A;--ambar:#FFD43B;--ok:#6FCF97;--atencao:#FFD43B;--erro:#F28B82;--nave:#0B0C10;color-scheme:dark}}
+*{box-sizing:border-box}
+html{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--tinta);font:15px/1.5 var(--texto)}
+.in{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--nave);color:#EEF0F4;padding-block:26px 30px;position:relative;isolation:isolate}
+header::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(40% 120% at 80% 0%,rgba(255,212,59,.14),transparent 70%)}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,#3E9A6B 0 20%,#8B63B5 20% 40%,#C8483F 40% 60%,#E9DDB8 60% 80%,#D987A7 80%)}
+.marca{display:flex;align-items:center;gap:8px;color:#B9BFCB;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none}
+.marca svg{width:26px;color:var(--luz)}
+h1{font:600 2.5rem/1.05 var(--display);margin:6px 0 0;color:#fff}
+header p{margin:6px 0 0;color:#B9BFCB}
+main{padding-block:24px 48px;display:flex;flex-direction:column;gap:22px}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.num{background:var(--sup);border:1px solid var(--linha);border-radius:14px;padding:14px 16px}
+.num b{display:block;font:600 2.4rem/1 var(--display);font-variant-numeric:tabular-nums}
+.num span{color:var(--suave);font-size:.88rem}
+.num.destaque{border-color:var(--ambar)}
+h2{font:600 1.6rem/1.1 var(--display);margin:0 0 10px}
+.cartao{background:var(--sup);border:1px solid var(--linha);border-radius:14px;padding:18px}
+.procurar{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.procurar li{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--linha);border-radius:10px}
+.procurar li b{display:block}
+.procurar small{color:var(--suave)}
+.motivo{font-size:.85rem;font-weight:700;color:var(--atencao)}
+.tabela{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--linha);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);font-weight:700}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+td small{color:var(--suave);display:block}
+.chip{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:2px 10px;border:1px solid currentColor}
+.chip.teste{color:var(--atencao)} .chip.ativa{color:var(--ok)} .chip.outra{color:var(--suave)}
+.sim{color:var(--ok);font-weight:700} .nao{color:var(--suave)}
+.st{color:var(--suave)} .st.err{color:var(--erro)}
+a{color:var(--ambar)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <a class="marca" href="./"><svg viewBox="0 0 160 90" aria-hidden="true"><g fill="currentColor"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>Telão Missa</a>
+  <h1>Painel das paróquias</h1>
+  <p id="sub">Carregando…</p>
+</div></header>
+<main class="in">
+  <p class="st" id="st" role="status"></p>
+  <div id="conteudo" hidden>
+    <section class="nums" id="nums" aria-label="Resumo"></section>
+    <section class="cartao" style="margin-top:22px"><h2>Quem procurar</h2><ul class="procurar" id="procurar"></ul></section>
+    <section class="cartao" style="margin-top:22px"><h2>Todas as paróquias</h2><div class="tabela"><table><thead><tr><th>Paróquia</th><th>Situação</th><th>Responsável</th><th>Equipe</th><th>Missas</th><th>Últimos 7 dias</th><th>Último domingo</th><th>Último uso</th><th>Envios dos músicos</th></tr></thead><tbody id="linhas"></tbody></table></div></section>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const sb = supabase.createClient("https://xbtrwvtkdsjptnpqsaom.supabase.co", "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5");
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dia = d => d ? new Date(String(d).length === 10 ? d + "T12:00" : d).toLocaleDateString("pt-BR", {day:"2-digit", month:"2-digit", year:"2-digit"}) : "—";
+const hojeISO = new Date().toLocaleDateString("sv-SE");
+const diasAte = d => Math.round((new Date(d + "T12:00") - new Date(hojeISO + "T12:00")) / 864e5);
+function quando(ts){
+  if (!ts) return "nunca";
+  const h = (Date.now() - new Date(ts)) / 36e5;
+  return h < 1 ? "agora há pouco" : h < 24 ? `há ${Math.round(h)} h` : `há ${Math.round(h/24)} dia${Math.round(h/24) > 1 ? "s" : ""}`;
+}
+function situacao(p){
+  if (p.status === "teste"){ const n = p.teste_ate ? diasAte(p.teste_ate) : null; return {cls:"teste", txt: n == null ? "em teste" : n < 0 ? "teste vencido" : `teste · ${n} dia${n===1?"":"s"}`}; }
+  if (p.plano === "fundadora") return {cls:"ativa", txt:"fundadora"};
+  if (p.status === "ativa") return {cls:"ativa", txt: p.plano ? "assinante · " + p.plano : "ativa"};
+  return {cls:"outra", txt: p.status || "—"};
+}
+(async function(){
+  const {data:{session}} = await sb.auth.getSession();
+  if (!session){ location.replace("entrar.html?volta=" + encodeURIComponent("/painel.html")); return; }
+  const {data, error} = await sb.rpc("painel_dono");
+  if (error){ $("sub").textContent = "Acesso restrito."; $("st").textContent = /permiss/i.test(error.message) ? "Esta página é só para quem administra o Telão Missa." : "Não consegui carregar os números. Confira a internet."; $("st").className = "st err"; return; }
+  const ps = data.paroquias || [];
+  $("sub").textContent = `Atualizado ${new Date(data.gerado).toLocaleString("pt-BR", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"})} · último domingo ${dia(data.ultimo_domingo)}`;
+  const emTeste = ps.filter(p => p.status === "teste"), pagantes = ps.filter(p => p.status === "ativa" && p.plano !== "fundadora");
+  const usaram = ps.filter(p => p.usou_domingo), acabando = emTeste.filter(p => p.teste_ate && diasAte(p.teste_ate) <= 7);
+  const num = (n, t, d) => `<div class="num${d ? " destaque" : ""}"><b>${n}</b><span>${t}</span></div>`;
+  $("nums").innerHTML = num(ps.length, "paróquias cadastradas") + num(emTeste.length, "em teste grátis") + num(pagantes.length, "assinantes") + num(usaram.length, "usaram no último domingo") + num(acabando.length, "teste acaba em até 7 dias", acabando.length > 0);
+  // quem procurar: teste acabando, teste sem uso, inativos
+  const proc = [];
+  for (const p of ps){
+    const motivos = [];
+    if (p.status === "teste" && p.teste_ate && diasAte(p.teste_ate) <= 7) motivos.push(diasAte(p.teste_ate) < 0 ? "teste vencido" : `teste acaba em ${diasAte(p.teste_ate)} dia${diasAte(p.teste_ate) === 1 ? "" : "s"}`);
+    if (p.status === "teste" && !p.usou_domingo) motivos.push("não usou no último domingo");
+    if (p.status === "teste" && p.missas === 0) motivos.push("ainda não montou nenhuma missa");
+    if (p.status === "ativa" && p.ultima_atividade && (Date.now() - new Date(p.ultima_atividade)) > 14 * 864e5) motivos.push("parado há mais de 2 semanas");
+    if (motivos.length) proc.push({p, motivos});
+  }
+  $("procurar").innerHTML = proc.length ? proc.map(({p, motivos}) => `<li><span><b>${esc(p.nome)}</b><small>${esc([p.cidade, p.uf].filter(Boolean).join("/"))} · ${esc(p.responsavel || "sem responsável")}</small></span><span class="motivo">${esc(motivos.join(" · "))}</span></li>`).join("") : `<li><span>Ninguém para procurar agora. Todas as paróquias estão usando.</span></li>`;
+  $("linhas").innerHTML = ps.map(p => { const s = situacao(p); return `<tr>
+    <td><b>${esc(p.nome)}</b><small>${esc([p.cidade, p.uf].filter(Boolean).join("/"))} · <a href="app/?p=${encodeURIComponent(p.slug)}">${esc(p.slug)}</a> · desde ${dia(p.criado)}</small></td>
+    <td><span class="chip ${s.cls}">${esc(s.txt)}</span></td>
+    <td>${esc(p.responsavel || "—")}</td>
+    <td class="n">${p.membros}</td><td class="n">${p.missas}</td><td class="n">${p.missas_7d}</td>
+    <td>${p.usou_domingo ? '<span class="sim">usou</span>' : '<span class="nao">não</span>'}</td>
+    <td>${esc(quando(p.ultima_atividade))}</td><td class="n">${p.envios_musicos}</td></tr>`; }).join("");
+  $("conteudo").hidden = false;
+})();
+</script>
+</body>
+</html>
