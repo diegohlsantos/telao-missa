@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="versao" content="2026-11-08-12">
+<meta name="versao" content="2026-11-08-13">
 <script>
   // links antigos do sistema (paróquia, telão, convite) seguem para o app
   (function(){
@@ -14,206 +14,297 @@
   })();
 </script>
 <title>Telão Missa</title>
-<meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão da sua paróquia. Teste grátis por 30 dias.">
-<meta property="og:title" content="Telão Missa — a missa pronta para o telão">
-<meta property="og:description" content="Leituras do dia automáticas, acervo de cantos, orações eucarísticas e controle remoto ao vivo. 30 dias grátis.">
+<meta name="description" content="Leituras do dia, cantos, orações eucarísticas e avisos num só roteiro, prontos para o telão da sua paróquia. Teste grátis por 30 dias.">
+<meta property="og:title" content="Telão Missa — a liturgia em luz">
+<meta property="og:description" content="A missa pronta para o telão em minutos: leituras automáticas, acervo de cantos, oração eucarística e controle remoto pelo celular.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#14161C">
+<meta property="og:url" content="https://telaomissa.com.br/">
+<meta name="theme-color" content="#0B0C10">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Cinzel:wght@500;600&display=swap">
 <style>
-/* Página: faixa escura do telão no topo, conteúdo em colunas largas, preços em cartões; cores e fontes do sistema de design Telão Missa */
+/* Conceito: a nave escura da igreja e a luz que se projeta. Arco gótico como moldura do telão, vitrais nas cores do tempo litúrgico, demonstrações ao vivo. */
 :root{
-  --fundo:#F4F5F7; --superficie:#FFFFFF; --tinta:#14161C; --tinta-suave:#545B68; --linha:#D9DCE2; --linha-forte:#7A8290;
-  --noite:#14161C; --noite-2:#1E2129; --luz:#FFD43B; --ambar:#8A5A00; --acao:#14161C; --sobre-acao:#FFFFFF;
-  --telao-destaque:#FFE500; --lit-verde:#2E6B4E; --lit-roxo:#5B3B7A; --lit-vermelho:#A3302A; --lit-branco:#8C6A1F; --ok:#1F7A4D;
+  --nave:#0B0C10; --nave-2:#12141A; --nave-3:#1A1D25; --pedra:#2A2E38; --pedra-2:#3A3F4C;
+  --luz:#FFD43B; --luz-2:#FFE58A; --ouro:#C9A646; --texto:#EEF0F4; --texto-2:#B9BFCB; --texto-3:#8B92A0;
+  --telao:#000; --telao-amarelo:#FFE500;
+  --verde:#3E9A6B; --roxo:#8B63B5; --vermelho:#C8483F; --branco:#E9DDB8; --rosa:#D987A7;
+  --claro:#F4F2EC; --claro-2:#FFFFFF; --tinta:#14161C; --tinta-2:#545B68; --linha-c:#DCD8CE;
   --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-titulo:"Cinzel", "Cormorant Garamond", Georgia, serif;
   --font-texto:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  --raio-p:6px; --raio-m:12px; --largura:1120px;
+  --raio:12px; --largura:1160px;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){ :root{
-  --fundo:#101218; --superficie:#191C24; --tinta:#EEF0F4; --tinta-suave:#A3AAB8; --linha:#2A2F3A; --linha-forte:#6B7385;
-  --ambar:#FFD43B; --acao:#FFD43B; --sobre-acao:#14161C; --lit-verde:#5FAE85; --lit-roxo:#A98BCB; --lit-vermelho:#E0756E; --lit-branco:#E3C77A; --ok:#6FCF97; color-scheme:dark; } }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--fundo);color:var(--tinta);font:17px/1.6 var(--font-texto);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--nave);color:var(--texto);font:17px/1.6 var(--font-texto);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit}
-img,svg{max-width:100%}
+img,svg,canvas{max-width:100%}
 .faixa{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 .miolo{max-width:var(--largura);margin:0 auto}
 h1,h2,h3{margin:0;text-wrap:balance}
-h2{font:600 clamp(34px,4.2vw,52px)/1.02 var(--font-display);letter-spacing:-.005em}
-.olho{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ambar);margin:0 0 14px}
-.lead{font-size:19px;color:var(--tinta-suave);max-width:58ch;margin:16px 0 0}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:700 16px var(--font-texto);text-decoration:none;border-radius:var(--raio-p);padding:14px 22px;border:1px solid transparent;cursor:pointer;white-space:nowrap}
-.btn-luz{background:var(--luz);color:#14161C}
-.btn-luz:hover{background:#FFE07A}
-.btn-acao{background:var(--acao);color:var(--sobre-acao)}
-.btn-contorno{border-color:currentColor;color:inherit;background:transparent}
-.btn:focus-visible,a:focus-visible{outline:3px solid var(--luz);outline-offset:3px}
+h2{font:600 clamp(36px,4.6vw,58px)/1 var(--font-display);letter-spacing:-.005em}
+.olho{font:600 13px/1 var(--font-titulo);letter-spacing:.22em;text-transform:uppercase;color:var(--ouro);margin:0 0 18px;display:flex;align-items:center;gap:12px}
+.olho::before{content:"";width:28px;height:1px;background:currentColor}
+.lead{font-size:19px;color:var(--texto-2);max-width:58ch;margin:18px 0 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:700 16px var(--font-texto);text-decoration:none;border-radius:999px;padding:15px 26px;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:transform .2s, box-shadow .3s, background .2s}
+.btn-luz{background:var(--luz);color:#14161C;box-shadow:0 0 0 0 rgba(255,212,59,.0)}
+.btn-luz:hover{transform:translateY(-1px);box-shadow:0 10px 40px -8px rgba(255,212,59,.55)}
+.btn-contorno{border-color:rgba(238,240,244,.35);color:var(--texto)}
+.btn-contorno:hover{border-color:var(--texto)}
+.btn:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid var(--luz);outline-offset:3px}
+.cruz-mini{width:10px;height:14px;display:inline-block;position:relative}
+.cruz-mini::before,.cruz-mini::after{content:"";position:absolute;background:currentColor}
+.cruz-mini::before{left:4px;top:0;width:2px;height:14px}
+.cruz-mini::after{left:0;top:4px;width:10px;height:2px}
+
+/* revelar ao rolar */
+.revela{opacity:0;transform:translateY(24px);transition:opacity .9s ease, transform .9s ease}
+.revela.vis{opacity:1;transform:none}
 
 /* topo */
-.topo{background:var(--noite);color:#EEF0F4;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;border-bottom:1px solid #262A33}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--noite)}
-.topo .miolo{display:flex;align-items:center;gap:24px;min-height:68px}
+.topo{position:fixed;inset:0 0 auto;z-index:40;transition:background .3s, border-color .3s;border-bottom:1px solid transparent;padding-top:env(safe-area-inset-top,0px)}
+.topo.solido{background:rgba(11,12,16,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-color:rgba(255,255,255,.07)}
+.topo .miolo{display:flex;align-items:center;gap:24px;min-height:72px}
 .marca{display:flex;align-items:center;gap:12px;text-decoration:none}
-.marca svg{width:44px;height:auto;flex:none}
+.marca svg{width:42px;height:auto;flex:none;filter:drop-shadow(0 0 10px rgba(255,212,59,.35))}
 .marca b{font:600 26px/1 var(--font-display)}
-.topo nav{display:flex;gap:22px;margin-left:auto;font-size:15px}
-.topo nav a{text-decoration:none;color:#C9CED8}
+.topo nav{display:flex;gap:26px;margin-left:auto;font-size:15px}
+.topo nav a{text-decoration:none;color:var(--texto-2)}
 .topo nav a:hover{color:#fff}
-.topo .acoes{display:flex;gap:10px;align-items:center}
-.topo .entrar{color:#EEF0F4;text-decoration:none;font-weight:700;font-size:15px;padding:10px 6px}
-.topo .btn{padding:10px 16px;font-size:15px}
-.continuar{background:#262A33;color:#EEF0F4;font-size:15px}
-.continuar .miolo{display:flex;gap:12px;align-items:center;justify-content:space-between;min-height:48px;flex-wrap:wrap;padding-block:8px}
+.topo .acoes{display:flex;gap:12px;align-items:center}
+.topo .entrar{color:var(--texto);text-decoration:none;font-weight:700;font-size:15px;padding:10px 6px}
+.topo .btn{padding:10px 18px;font-size:15px}
+.continuar{position:relative;z-index:30;margin-top:72px;background:var(--nave-3);color:var(--texto);font-size:15px;border-bottom:1px solid var(--pedra)}
+.continuar .miolo{display:flex;gap:12px;align-items:center;justify-content:space-between;min-height:46px;flex-wrap:wrap;padding-block:8px}
 .continuar a{color:var(--luz);font-weight:700;text-decoration:none}
 
-/* abertura */
-.abertura{background:var(--noite);color:#EEF0F4;padding-block:72px 96px;overflow:hidden}
-.abertura .miolo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:56px;align-items:center}
-.abertura h1{font:600 clamp(46px,6.2vw,84px)/.95 var(--font-display);letter-spacing:-.01em}
-.abertura h1 em{font-style:italic;color:var(--luz)}
-.abertura .lead{color:#C9CED8}
-.abertura .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
-.abertura .nota{margin-top:14px;font-size:14px;color:#A3AAB8}
+/* abertura: nave + arco */
+.abertura{position:relative;min-height:100svh;display:flex;align-items:center;padding-block:120px 80px;overflow:hidden;isolation:isolate}
+.abertura .fundo-luz{position:absolute;inset:-20% -10% auto;height:120%;z-index:-2;background:radial-gradient(60% 45% at 68% 38%, rgba(255,212,59,.16), transparent 70%), radial-gradient(40% 35% at 20% 80%, rgba(139,99,181,.12), transparent 70%)}
+#poeira{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.abertura .miolo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;width:100%}
+.abertura h1{font:600 clamp(48px,6vw,86px)/.94 var(--font-display);letter-spacing:-.01em}
+.abertura h1 .linha{display:block;overflow:hidden}
+.abertura h1 .linha span{display:inline-block;transform:translateY(105%);animation:sobe 1.1s cubic-bezier(.2,.8,.2,1) forwards}
+.abertura h1 .linha:nth-child(2) span{animation-delay:.12s}
+.abertura h1 .linha:nth-child(3) span{animation-delay:.24s}
+.abertura h1 em{font-style:italic;color:var(--luz);text-shadow:0 0 40px rgba(255,212,59,.35)}
+@keyframes sobe{to{transform:none}}
+.abertura .lead{opacity:0;animation:aparece 1s .5s forwards}
+.abertura .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px;opacity:0;animation:aparece 1s .7s forwards}
+.abertura .nota{margin-top:16px;font-size:14px;color:var(--texto-3);opacity:0;animation:aparece 1s .9s forwards}
+@keyframes aparece{to{opacity:1}}
 
-/* o telão (demonstração feita com o próprio visual do sistema) */
-.palco{position:relative}
-.tela{position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 0 0 1px #2A2F3A, 0 30px 80px rgba(0,0,0,.55);overflow:hidden;container-type:inline-size;font-family:var(--font-texto)}
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6cqw 7cqw;opacity:0;transition:opacity .6s}
+/* janela gótica com o telão dentro */
+.janela{position:relative;aspect-ratio:4/4.6;max-width:560px;margin-left:auto;width:100%}
+.janela svg.arco{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.raios{position:absolute;left:50%;top:-30%;width:180%;height:170%;transform:translateX(-50%);z-index:-1;pointer-events:none;
+  background:conic-gradient(from 180deg at 50% 0%, transparent 0deg, rgba(255,229,138,.10) 8deg, transparent 16deg, transparent 22deg, rgba(255,229,138,.07) 28deg, transparent 36deg, transparent 330deg, rgba(255,229,138,.08) 338deg, transparent 346deg);
+  -webkit-mask:radial-gradient(70% 60% at 50% 20%, #000 30%, transparent 75%);mask:radial-gradient(70% 60% at 50% 20%, #000 30%, transparent 75%);animation:raios 9s ease-in-out infinite alternate}
+@keyframes raios{from{transform:translateX(-50%) rotate(-4deg)}to{transform:translateX(-50%) rotate(4deg)}}
+.tela-wrap{position:absolute;left:11%;right:11%;top:46%;aspect-ratio:16/9}
+.tela{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden;container-type:inline-size;box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 0 80px -10px rgba(255,212,59,.35), 0 30px 60px rgba(0,0,0,.6);font-family:var(--font-texto)}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5cqw 7cqw;opacity:0;transition:opacity .7s}
 .slide.on{opacity:1}
-.slide .t{color:var(--telao-destaque);text-decoration:underline;text-underline-offset:.15em;text-transform:uppercase;font-size:5.2cqw;line-height:1.2}
-.slide .r{color:#fff;font-size:4.4cqw;line-height:1.3;margin-top:2.2cqw}
-.slide .y{color:var(--telao-destaque);font-weight:700;font-size:4.8cqw;line-height:1.25;margin-top:2.6cqw}
-.slide.oe{justify-content:flex-start;padding-top:3.4cqw}
-.slide.oe .t{font-size:2.9cqw}
+.slide .t{color:var(--telao-amarelo);text-decoration:underline;text-underline-offset:.15em;text-transform:uppercase;font-size:5cqw;line-height:1.2}
+.slide .r{color:#fff;font-size:4.2cqw;line-height:1.3;margin-top:2cqw}
+.slide .y{color:var(--telao-amarelo);font-weight:700;font-size:4.8cqw;line-height:1.25;margin-top:2.4cqw}
+.slide .w{color:#fff;font-size:4.4cqw;line-height:1.35;margin-top:2cqw}
+.slide.oe{justify-content:flex-start;padding-top:3.2cqw}
+.slide.oe .t{font-size:2.8cqw}
 .slide.oe .y{margin:auto 0;font-size:8cqw;font-weight:800}
-.controle{margin:-28px 18px 0;position:relative;background:var(--superficie);color:var(--tinta);border:1px solid var(--linha);border-radius:var(--raio-m);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.controle .onde{min-width:0;flex:1}
-.controle .onde b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.controle .onde span{font-size:12.5px;color:var(--tinta-suave)}
-.controle .bts{display:flex;gap:6px;flex:none}
-.controle .bts span{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:34px;padding:0 10px;border-radius:var(--raio-p);border:1px solid var(--linha-forte);font-size:13px;font-weight:700}
-.controle .bts .p{background:var(--acao);color:var(--sobre-acao);border-color:var(--acao)}
+.slide .capa-cel{font:600 7cqw/1.05 var(--font-display);color:#fff}
+.slide .capa-data{color:var(--telao-amarelo);font-size:2.6cqw;letter-spacing:.14em;text-transform:uppercase;margin-top:2cqw}
+.progresso{position:absolute;left:0;bottom:0;height:2px;background:var(--luz);width:0;transition:width linear}
+.ao-vivo{position:absolute;left:11%;top:calc(46% - 34px);display:flex;align-items:center;gap:8px;font:700 11px/1 var(--font-texto);letter-spacing:.16em;color:var(--texto-2);text-transform:uppercase}
+.ao-vivo i{width:8px;height:8px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 0 0 rgba(255,77,77,.6);animation:pulsa 1.6s infinite}
+@keyframes pulsa{70%{box-shadow:0 0 0 10px rgba(255,77,77,0)}100%{box-shadow:0 0 0 0 rgba(255,77,77,0)}}
 
-/* passos */
-.sec{padding-block:96px}
-.passos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:48px;counter-reset:p}
-.passo{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--raio-m);padding:26px;display:flex;flex-direction:column;gap:10px}
-.passo .n{font:600 44px/1 var(--font-display);color:var(--ambar)}
-.passo h3{font-size:20px;line-height:1.25}
-.passo p{margin:0;color:var(--tinta-suave);font-size:16px}
-.mini{margin-top:auto;padding-top:14px;border-top:1px dashed var(--linha);font-size:14px;display:flex;flex-direction:column;gap:6px}
-.mini .lin{display:flex;justify-content:space-between;gap:10px}
-.mini .lin span:first-child{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-suave);padding-top:2px}
-.mini .ok{color:var(--ok);font-weight:700}
+/* faixa da liturgia de hoje (dados reais) */
+.hoje{position:relative;border-block:1px solid var(--pedra);background:linear-gradient(90deg, var(--nave-2), var(--nave-3))}
+.hoje .miolo{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:28px;align-items:center;padding-block:26px}
+.hoje .cor-lit{width:54px;height:54px;border-radius:50%;background:var(--cor, var(--verde));box-shadow:0 0 30px -4px var(--cor, var(--verde)), inset 0 0 0 4px rgba(0,0,0,.25)}
+.hoje .rotulo{font:600 12px/1 var(--font-titulo);letter-spacing:.2em;text-transform:uppercase;color:var(--texto-3)}
+.hoje .cel{font:600 clamp(24px,2.6vw,32px)/1.1 var(--font-display);margin-top:6px}
+.hoje .refs{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;color:var(--texto-2);font-size:15px;font-variant-numeric:tabular-nums}
+.hoje .refs b{color:var(--texto);font-weight:700}
+.hoje .selo{font-size:13px;color:var(--texto-2);text-align:right;max-width:22ch}
+.hoje .selo b{display:block;color:var(--luz);font-size:15px}
 
-/* recursos */
-.recursos{background:var(--superficie);border-block:1px solid var(--linha)}
-.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:48px;border-top:1px solid var(--linha)}
-.rec{padding:28px 28px 30px 0;border-bottom:1px solid var(--linha)}
-.rec:not(:nth-child(3n+1)){padding-left:28px;border-left:1px solid var(--linha)}
-.rec h3{font-size:19px;line-height:1.3;margin-bottom:8px;display:flex;gap:10px;align-items:baseline}
-.rec h3 i{flex:none;width:12px;height:12px;border-radius:3px;background:var(--luz);transform:translateY(1px)}
-.rec p{margin:0;color:var(--tinta-suave);font-size:16px}
+/* roteiro da missa (rolagem guiada) */
+.roteiro{position:relative;padding-block:120px}
+.roteiro .miolo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:64px;align-items:start}
+.momentos{display:flex;flex-direction:column;gap:0;margin-top:40px;position:relative}
+.momentos::before{content:"";position:absolute;left:15px;top:8px;bottom:8px;width:1px;background:linear-gradient(var(--pedra-2), transparent)}
+.momento{position:relative;padding:22px 0 22px 52px;min-height:40vh;display:flex;flex-direction:column;justify-content:center}
+.momento .pt{position:absolute;left:6px;top:50%;width:19px;height:19px;margin-top:-9px;border-radius:50%;border:1px solid var(--pedra-2);background:var(--nave);transition:all .4s}
+.momento.ativo .pt{background:var(--luz);border-color:var(--luz);box-shadow:0 0 18px rgba(255,212,59,.7)}
+.momento .rito{font:600 12px/1 var(--font-titulo);letter-spacing:.2em;text-transform:uppercase;color:var(--texto-3);transition:color .4s}
+.momento.ativo .rito{color:var(--ouro)}
+.momento h3{font:600 clamp(28px,3vw,38px)/1.1 var(--font-display);margin-top:10px;color:var(--texto-3);transition:color .4s}
+.momento.ativo h3{color:var(--texto)}
+.momento p{margin:10px 0 0;color:var(--texto-3);max-width:44ch;transition:color .4s}
+.momento.ativo p{color:var(--texto-2)}
+.palco{position:sticky;top:110px}
+.palco .tela{border-radius:10px}
+.palco-legenda{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:14px;color:var(--texto-3)}
+.palco-legenda b{color:var(--texto-2)}
 
-/* tempos litúrgicos */
-.tempos{display:flex;gap:6px;margin-top:22px;flex-wrap:wrap}
-.tempos span{font-size:13px;font-weight:700;padding:4px 12px;border-radius:999px;border:1px solid currentColor}
+/* controle no celular (interativo) */
+.controle-sec{padding-block:110px;background:radial-gradient(60% 60% at 75% 50%, rgba(255,212,59,.08), transparent 70%), var(--nave-2);border-block:1px solid var(--pedra)}
+.controle-sec .miolo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:48px;align-items:center}
+.celular{width:250px;border-radius:38px;padding:12px;background:#05060A;box-shadow:0 0 0 1px #2A2E38, 0 40px 80px rgba(0,0,0,.6), inset 0 0 0 2px #1A1D25}
+.celular .scr{border-radius:28px;background:#101218;padding:18px 14px;display:flex;flex-direction:column;gap:10px;min-height:440px}
+.celular .mv-top{display:flex;justify-content:space-between;font-size:10px;color:var(--texto-3);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.celular .mv-ar{background:#000;border:1px solid #2A2F3A;border-radius:12px;padding:12px}
+.celular .mv-ar b{display:block;color:var(--telao-amarelo);font-size:15px;line-height:1.25}
+.celular .mv-ar span{font-size:11px;color:var(--texto-3)}
+.celular .mv-deixa{background:#191C24;border:1px solid #2A2F3A;border-radius:12px;padding:10px;font-size:11px;color:var(--texto-2);line-height:1.4}
+.celular .setas{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;flex:1}
+.celular button{font:700 13px var(--font-texto);border-radius:12px;border:1px solid #3A404D;background:#191C24;color:#EEF0F4;padding:10px;cursor:pointer}
+.celular .setas button{font-size:28px;min-height:110px}
+.celular .setas .prox{background:var(--luz);color:#14161C;border-color:var(--luz)}
+.celular .grade{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.celular button.lig{background:#EEF0F4;color:#14161C}
+.celular button:active{transform:scale(.97)}
+.dica-toque{font-size:13px;color:var(--texto-3);text-align:center;margin-top:14px}
+.sinal{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--texto-3);font-size:13px}
+.sinal i{display:block;width:60px;height:2px;background:repeating-linear-gradient(90deg, var(--luz) 0 6px, transparent 6px 12px);background-size:24px 2px;animation:viaja 1s linear infinite;opacity:.8}
+@keyframes viaja{to{background-position:24px 0}}
 
-/* origem */
+/* vitrais (recursos) */
+.recursos{padding-block:120px}
+.vitrais{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:52px}
+.vitral{position:relative;border-radius:999px 999px 14px 14px;padding:64px 26px 28px;background:linear-gradient(180deg, color-mix(in srgb, var(--c) 22%, var(--nave-2)) 0%, var(--nave-2) 55%);border:1px solid color-mix(in srgb, var(--c) 45%, transparent);overflow:hidden;transition:transform .4s, box-shadow .4s}
+.vitral::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.07) 45%, transparent 60%);transform:translateX(-100%);transition:transform 1.2s}
+.vitral:hover{transform:translateY(-4px);box-shadow:0 20px 50px -20px color-mix(in srgb, var(--c) 70%, transparent)}
+.vitral:hover::before{transform:translateX(100%)}
+.vitral .ic{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:30px;height:30px;color:var(--c)}
+.vitral h3{font:600 23px/1.15 var(--font-display);text-align:center}
+.vitral p{margin:10px 0 0;color:var(--texto-2);font-size:15.5px;text-align:center}
+
+/* ano litúrgico */
+.ano{padding-block:110px;background:var(--nave-2);border-block:1px solid var(--pedra)}
+.ano .miolo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+.roda{position:relative;max-width:440px;margin:0 auto;width:100%}
+.roda svg{width:100%;height:auto;display:block}
+.roda .centro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30%}
+.roda .centro small{font:600 11px/1.2 var(--font-titulo);letter-spacing:.18em;text-transform:uppercase;color:var(--texto-3)}
+.roda .centro b{font:600 26px/1.05 var(--font-display);margin-top:6px}
+.legenda-tempos{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.legenda-tempos span{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--texto-2);border:1px solid var(--pedra);border-radius:999px;padding:5px 12px}
+.legenda-tempos i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+
+/* parte clara */
+.claro{background:var(--claro);color:var(--tinta)}
+.claro .olho{color:#8A5A00}
+.claro .lead{color:var(--tinta-2)}
+.origem{padding-block:110px}
 .origem .miolo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px;align-items:center}
-.origem blockquote{margin:0;font:600 clamp(28px,3.2vw,40px)/1.12 var(--font-display)}
-.origem .quem{margin-top:18px;color:var(--tinta-suave);font-size:15px}
+.origem blockquote{margin:0;font:500 clamp(30px,3.4vw,44px)/1.12 var(--font-display);font-style:italic}
+.origem .quem{margin-top:20px;color:var(--tinta-2);font-size:15px;display:flex;gap:10px;align-items:center}
 .fatos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.fato{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--raio-m);padding:20px}
-.fato b{display:block;font:600 40px/1 var(--font-display);font-variant-numeric:tabular-nums}
-.fato span{color:var(--tinta-suave);font-size:15px}
+.fato{background:var(--claro-2);border:1px solid var(--linha-c);border-radius:var(--raio);padding:22px}
+.fato b{display:block;font:600 46px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.fato span{color:var(--tinta-2);font-size:15px}
 
 /* planos */
-.planos-sec{background:var(--noite);color:#EEF0F4}
-.planos-sec .lead{color:#C9CED8}
-.planos-sec .olho{color:var(--luz)}
-.alterna{display:inline-flex;margin-top:28px;background:#262A33;border-radius:999px;padding:4px}
-.alterna button{font:700 14px var(--font-texto);border:0;border-radius:999px;padding:8px 16px;background:transparent;color:#C9CED8;cursor:pointer}
+.planos-sec{padding-block:110px;background:var(--nave);position:relative;overflow:hidden}
+.planos-sec::before{content:"";position:absolute;left:50%;top:-200px;width:900px;height:500px;transform:translateX(-50%);background:radial-gradient(closest-side, rgba(255,212,59,.12), transparent);pointer-events:none}
+.alterna{display:inline-flex;margin-top:30px;background:var(--nave-3);border:1px solid var(--pedra);border-radius:999px;padding:4px}
+.alterna button{font:700 14px var(--font-texto);border:0;border-radius:999px;padding:8px 16px;background:transparent;color:var(--texto-2);cursor:pointer}
 .alterna button[aria-pressed="true"]{background:var(--luz);color:#14161C}
-.planos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px}
-.plano{background:var(--noite-2);border:1px solid #2F3440;border-radius:var(--raio-m);padding:28px;display:flex;flex-direction:column;gap:14px}
-.plano.destaque{border:2px solid var(--luz)}
-.plano .sel{align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--luz);color:#14161C;border-radius:999px;padding:3px 10px}
-.plano h3{font:600 30px/1.05 var(--font-display)}
-.plano .para{color:#A3AAB8;font-size:15px;margin:0}
+.planos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px;position:relative}
+.plano{background:var(--nave-2);border:1px solid var(--pedra);border-radius:22px 22px 14px 14px;padding:30px;display:flex;flex-direction:column;gap:14px}
+.plano.destaque{border:1.5px solid var(--luz);box-shadow:0 0 60px -20px rgba(255,212,59,.45)}
+.plano .sel{align-self:flex-start;font:600 11px/1 var(--font-titulo);letter-spacing:.14em;text-transform:uppercase;background:var(--luz);color:#14161C;border-radius:999px;padding:6px 12px}
+.plano h3{font:600 32px/1.05 var(--font-display)}
+.plano .para{color:var(--texto-3);font-size:15px;margin:0}
 .preco{display:flex;align-items:baseline;gap:6px}
-.preco b{font:600 54px/1 var(--font-display);font-variant-numeric:tabular-nums}
-.preco span{color:#A3AAB8;font-size:15px}
-.preco-ano{font-size:14px;color:#A3AAB8;min-height:1.4em;margin-top:-8px}
-.plano ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:15.5px;color:#DDE1E8}
-.plano li{display:flex;gap:10px}
-.plano li::before{content:"";flex:none;width:8px;height:8px;margin-top:9px;border-radius:2px;background:var(--luz)}
+.preco b{font:600 56px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.preco span{color:var(--texto-3);font-size:15px}
+.preco-ano{font-size:14px;color:var(--texto-3);min-height:1.4em;margin-top:-8px}
+.plano ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:15.5px;color:var(--texto-2)}
+.plano li{display:flex;gap:12px}
+.plano li .cruz-mini{color:var(--ouro);margin-top:5px;flex:none}
 .plano .btn{margin-top:auto}
-.piloto{margin-top:22px;border:1px dashed #4A5060;border-radius:var(--raio-m);padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;color:#DDE1E8}
+.piloto{margin-top:22px;border:1px dashed var(--pedra-2);border-radius:var(--raio);padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;color:var(--texto-2)}
 .piloto b{color:var(--luz)}
 
 /* perguntas */
+.faq-sec{padding-block:110px}
 .faq{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:56px}
-details{border-bottom:1px solid var(--linha);padding:18px 0}
-details:first-child{border-top:1px solid var(--linha)}
+details{border-bottom:1px solid var(--linha-c);padding:18px 0}
+details:first-child{border-top:1px solid var(--linha-c)}
 summary{cursor:pointer;font-weight:700;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:16px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";font:600 26px/1 var(--font-display);color:var(--ambar)}
-details[open] summary::after{content:"–"}
-details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
+summary::after{content:"+";font:600 28px/1 var(--font-display);color:#8A5A00;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:10px 0 0;color:var(--tinta-2);max-width:62ch}
+details a{color:#8A5A00;font-weight:700}
 
 /* final */
-.final{background:var(--luz);color:#14161C}
-.final .miolo{display:flex;gap:28px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:64px}
-.final h2{max-width:18ch}
-.contato-linha{margin:14px 0 0;font-size:16px}
-.contato-linha a{font-weight:700}
-.final-bts{display:flex;gap:10px;flex-wrap:wrap}
-.final .btn-contorno{color:#14161C}
-.rodape{background:var(--noite);color:#A3AAB8;font-size:14px}
+.final{position:relative;padding-block:120px;text-align:center;overflow:hidden;background:radial-gradient(50% 70% at 50% 0%, rgba(255,212,59,.18), transparent 70%), var(--nave)}
+.final .vers{font:500 italic clamp(26px,3vw,38px)/1.25 var(--font-display);max-width:28ch;margin:0 auto;color:var(--texto)}
+.final .vers small{display:block;margin-top:12px;font:600 12px/1 var(--font-titulo);letter-spacing:.2em;color:var(--ouro);font-style:normal}
+.final h2{margin-top:56px}
+.final .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.final .contato-linha{margin-top:22px;color:var(--texto-2);font-size:15px}
+.final .contato-linha a{color:var(--luz);font-weight:700;text-decoration:none}
+.rodape{background:#07080B;color:var(--texto-3);font-size:14px;border-top:1px solid var(--pedra)}
 .rodape .miolo{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;padding-block:28px}
-.rodape a{color:#EEF0F4;text-decoration:none;margin-left:18px}
+.rodape a{color:var(--texto-2);text-decoration:none;margin-left:18px}
+.rodape a:hover{color:#fff}
 
-@media (max-width:960px){
-  .abertura .miolo,.origem .miolo,.faq{grid-template-columns:1fr;gap:40px}
-  .passos,.planos{grid-template-columns:1fr}
-  .grade{grid-template-columns:1fr 1fr}
-  .rec:not(:nth-child(3n+1)){padding-left:0;border-left:0}
-  .rec:nth-child(even){padding-left:24px;border-left:1px solid var(--linha)}
+@media (max-width:980px){
+  .abertura .miolo,.roteiro .miolo,.ano .miolo,.origem .miolo,.faq{grid-template-columns:1fr;gap:44px}
+  .janela{margin:0 auto;max-width:460px}
+  .controle-sec .miolo{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .controle-sec .lead{margin-inline:auto}
+  .sinal{display:none}
+  .vitrais,.planos{grid-template-columns:1fr 1fr}
   .topo nav{display:none}
   .topo .acoes{margin-left:auto}
+  .palco{position:sticky;top:76px;z-index:2;background:var(--nave);padding-bottom:10px}
+  .roteiro .miolo{display:flex;flex-direction:column-reverse}
+  .momento{min-height:46vh}
+  .hoje .miolo{grid-template-columns:auto minmax(0,1fr)}
+  .hoje .selo{grid-column:1/-1;text-align:left;max-width:none}
 }
-@media (max-width:600px){
+@media (max-width:640px){
   body{font-size:16px}
-  .sec{padding-block:64px}
-  .abertura{padding-block:44px 72px}
-  .grade{grid-template-columns:1fr}
-  .rec,.rec:nth-child(even){padding:22px 0;border-left:0}
+  .vitrais,.planos{grid-template-columns:1fr}
   .fatos{grid-template-columns:1fr 1fr}
   .topo .entrar{display:none}
-  .controle .bts span:not(.p):not(:first-child){display:none}
+  .abertura{padding-block:100px 60px;min-height:auto}
+  .roteiro,.recursos,.ano,.origem,.planos-sec,.faq-sec,.final,.controle-sec{padding-block:72px}
 }
-@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .slide{transition:none} }
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .revela{opacity:1;transform:none}
+  .abertura h1 .linha span{transform:none}
+  .abertura .lead,.abertura .cta,.abertura .nota{opacity:1}
+}
 </style>
 </head>
 <body>
 
-<header class="topo faixa">
+<header class="topo faixa" id="topo">
   <div class="miolo">
     <a class="marca" href="#" aria-label="Telão Missa, início">
       <svg viewBox="0 0 160 90" aria-hidden="true"><g fill="#FFD43B"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>
       <b>Telão Missa</b>
     </a>
     <nav aria-label="Seções">
-      <a href="#como-funciona">Como funciona</a>
+      <a href="#roteiro">A missa</a>
+      <a href="#controle">Controle</a>
       <a href="#recursos">Recursos</a>
       <a href="#planos">Planos</a>
-      <a href="#perguntas">Perguntas</a>
       <a href="#contato">Contato</a>
     </nav>
     <div class="acoes">
@@ -223,167 +314,253 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
   </div>
 </header>
 <div class="continuar faixa" id="continuar" hidden>
-  <div class="miolo"><span>Você estava montando a missa da <b id="ult-nome"></b>.</span><a id="ult-link" href="app/">Continuar →</a></div>
+  <div class="miolo"><span>Você estava montando a missa da <b id="ult-nome"></b>.</span><a id="ult-link" href="entrar.html">Continuar →</a></div>
 </div>
 
 <main>
+  <!-- ===== Abertura ===== -->
   <section class="abertura faixa">
+    <div class="fundo-luz" aria-hidden="true"></div>
+    <canvas id="poeira" aria-hidden="true"></canvas>
     <div class="miolo">
       <div>
-        <p class="olho">Para equipes de liturgia e Pascom</p>
-        <h1>A missa pronta para o telão <em>em minutos</em>.</h1>
-        <p class="lead">Escolha a data e o horário: as leituras do dia entram sozinhas. Escreva o nome dos cantos: o acervo encontra a letra. Na hora da missa, conduza tudo por um controle remoto no notebook.</p>
+        <p class="olho">Para a liturgia e a Pascom</p>
+        <h1><span class="linha"><span>A liturgia</span></span><span class="linha"><span><em>em luz</em>, pronta</span></span><span class="linha"><span>em minutos.</span></span></h1>
+        <p class="lead">Escolha a data da missa e as leituras do dia entram sozinhas. Escreva o nome dos cantos e o acervo encontra a letra. Na celebração, conduza o telão pelo notebook ou pelo celular.</p>
         <div class="cta">
           <a class="btn btn-luz" href="cadastro.html">Começar 30 dias grátis</a>
-          <a class="btn btn-contorno" href="#como-funciona">Ver como funciona</a>
+          <a class="btn btn-contorno" href="#roteiro">Ver a missa no telão</a>
         </div>
-        <p class="nota">Sem cartão para começar. Funciona no navegador, sem instalar nada.</p>
+        <p class="nota">Sem cartão para começar · Funciona no navegador · Feito numa paróquia de verdade</p>
       </div>
-      <div class="palco" aria-label="Exemplo do telão e do controle remoto">
-        <div class="tela" aria-hidden="true">
-          <div class="slide on"><div class="t">Primeira leitura</div><div class="r">Leitura do Livro da Sabedoria</div><div class="y">Palavra do Senhor.<br>Graças a Deus.</div></div>
-          <div class="slide"><div class="t">Salmo responsorial</div><div class="y">A minha alma tem sede de vós<br>e vos deseja, ó Senhor.</div></div>
-          <div class="slide oe"><div class="t">Oração eucarística II</div><div class="y">Amém!</div></div>
-        </div>
-        <div class="controle" aria-hidden="true">
-          <div class="onde"><b id="demo-noar">No telão: Primeira leitura</b><span id="demo-onde">slide 4 de 38 · 1ª leitura</span></div>
-          <div class="bts"><span>◀</span><span class="p">▶</span><span>Tela preta</span><span>Capa</span></div>
+      <div class="janela" aria-label="Exemplo do telão com as leituras de hoje">
+        <div class="raios" aria-hidden="true"></div>
+        <svg class="arco" viewBox="0 0 400 460" aria-hidden="true">
+          <defs>
+            <linearGradient id="g-pedra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3F4C"/><stop offset="1" stop-color="#1A1D25"/></linearGradient>
+          </defs>
+          <!-- arco gótico -->
+          <path d="M20 460 V190 Q20 40 200 6 Q380 40 380 190 V460" fill="none" stroke="url(#g-pedra)" stroke-width="10"/>
+          <path d="M40 460 V196 Q40 62 200 30 Q360 62 360 196 V460" fill="none" stroke="#2A2E38" stroke-width="2"/>
+          <!-- vitral: rosácea -->
+          <g transform="translate(200 118)">
+            <circle r="62" fill="none" stroke="#2A2E38" stroke-width="3"/>
+            <g id="petalas" opacity=".9">
+              <path d="M0 0 L0 -56 A22 22 0 0 1 21 -48 Z" fill="#8B63B5"/>
+              <path d="M0 0 L21 -48 A22 22 0 0 1 40 -40 Z" fill="#3E9A6B" transform="rotate(0)"/>
+            </g>
+            <circle r="16" fill="#FFD43B"/>
+            <circle r="16" fill="none" stroke="#0B0C10" stroke-width="3"/>
+          </g>
+        </svg>
+        <span class="ao-vivo"><i></i><span id="ao-vivo-txt">Leituras de hoje</span></span>
+        <div class="tela-wrap">
+          <div class="tela" id="tela-hero" aria-live="off">
+            <div class="slide on"><div class="capa-cel" id="h-cel">Domingo do Tempo Comum</div><div class="capa-data" id="h-data">hoje</div></div>
+            <div class="slide"><div class="t">Primeira leitura</div><div class="r" id="h-l1">Leitura do Livro da Sabedoria</div><div class="y">Palavra do Senhor.<br>Graças a Deus.</div></div>
+            <div class="slide"><div class="t">Salmo responsorial</div><div class="y" id="h-sl">A minha alma tem sede de vós e vos deseja, ó Senhor.</div></div>
+            <div class="slide"><div class="t">Evangelho</div><div class="r" id="h-ev">Proclamação do Evangelho de Jesus Cristo</div></div>
+            <div class="slide oe"><div class="t">Oração eucarística II</div><div class="y">Amém!</div></div>
+            <div class="progresso" id="h-prog"></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="sec faixa" id="como-funciona">
+  <!-- ===== Liturgia de hoje (ao vivo) ===== -->
+  <section class="hoje faixa" aria-label="Liturgia de hoje" id="hoje" hidden>
     <div class="miolo">
-      <p class="olho">Como funciona</p>
-      <h2>Três passos, do roteiro ao telão.</h2>
-      <p class="lead">O que hoje toma a tarde de sábado copiando leituras e letras no PowerPoint vira uma conferência rápida.</p>
-      <div class="passos">
-        <article class="passo">
-          <span class="n">1</span>
-          <h3>Escolha a missa</h3>
-          <p>Data e horário. As leituras, o salmo e o Evangelho do dia chegam prontos, já divididos em slides do tamanho da sua tela.</p>
-          <div class="mini"><div class="lin"><span>Domingo · 9h</span><span>32º Domingo do Tempo Comum</span></div><div class="lin"><span>Leituras</span><span class="ok">carregadas</span></div></div>
-        </article>
-        <article class="passo">
-          <span class="n">2</span>
-          <h3>Escreva os cantos</h3>
-          <p>Digite o nome ou um trecho da letra. O acervo sugere, monta os slides e destaca o refrão em outra cor.</p>
-          <div class="mini"><div class="lin"><span>Entrada</span><span>“eis me”</span></div><div class="lin"><span>Encontrado</span><span class="ok">Eis-me aqui, Senhor</span></div></div>
-        </article>
-        <article class="passo">
-          <span class="n">3</span>
-          <h3>Projete e conduza</h3>
-          <p>O telão abre numa guia própria. Você avança pelo controle remoto, pelas setas do teclado ou por um passador de slides.</p>
-          <div class="mini"><div class="lin"><span>No telão</span><span>Salmo · slide 6 de 38</span></div><div class="lin"><span>Próximo</span><span>Segunda leitura</span></div></div>
-        </article>
+      <span class="cor-lit" id="hj-cor" aria-hidden="true"></span>
+      <div>
+        <div class="rotulo" id="hj-rot">Liturgia de hoje</div>
+        <div class="cel" id="hj-cel"></div>
+        <div class="refs" id="hj-refs"></div>
       </div>
+      <div class="selo"><b>Buscado agora, ao vivo</b>é assim que as leituras chegam ao seu roteiro, sem copiar e colar.</div>
     </div>
   </section>
 
-  <section class="sec faixa recursos" id="recursos">
-    <div class="miolo">
-      <p class="olho">Recursos</p>
-      <h2>Feito para o jeito da missa, não para apresentações de empresa.</h2>
-      <div class="grade">
-        <div class="rec"><h3><i></i>Leituras do dia automáticas</h3><p>Pela data e pelo horário, inclusive a missa de sábado à noite, que já usa as leituras de domingo.</p></div>
-        <div class="rec"><h3><i></i>Acervo com quase mil cantos</h3><p>Busca por título, autor ou trecho. Importe os PowerPoints de cantos que a paróquia já tem.</p></div>
-        <div class="rec"><h3><i></i>Refrão destacado</h3><p>O refrão aparece em outra cor e é repetido depois de cada estrofe, para a assembleia acompanhar.</p></div>
-        <div class="rec"><h3><i></i>Orações eucarísticas</h3><p>As aclamações do povo na hora certa, com o texto do padre na tela do operador para saber quando avançar.</p></div>
-        <div class="rec"><h3><i></i>Controle remoto ao vivo</h3><p>Tela preta, capa e congelar ficam ligados enquanto você prepara o próximo slide por trás.</p></div>
-        <div class="rec"><h3><i></i>Missa sem músicos</h3><p>Cole o link do YouTube ou suba um MP3: a música começa com a letra e termina suave no próximo momento.</p></div>
-        <div class="rec"><h3><i></i>Avisos com imagem</h3><p>Um banco de avisos para reutilizar, com validade e ordem de exibição em cada missa.</p></div>
-        <div class="rec"><h3><i></i>Layout da sua igreja</h3><p>Tamanho da letra, cores e margens ajustados à distância e ao tamanho do telão da sua igreja.</p></div>
-        <div class="rec"><h3><i></i>Equipe e histórico</h3><p>Coordenação, operadores e músicos com o acesso certo, convite por WhatsApp e o registro dos cantos de cada missa.</p></div>
-      </div>
-      <div class="tempos" aria-label="Cores dos tempos litúrgicos">
-        <span style="color:var(--lit-verde)">Tempo Comum</span><span style="color:var(--lit-roxo)">Advento · Quaresma</span><span style="color:var(--lit-branco)">Natal · Páscoa</span><span style="color:var(--lit-vermelho)">Pentecostes · Mártires</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec faixa origem">
+  <!-- ===== Roteiro da missa (rolagem guiada) ===== -->
+  <section class="roteiro faixa" id="roteiro">
     <div class="miolo">
       <div>
-        <p class="olho">De onde vem</p>
-        <blockquote>Nasceu na equipe de transmissão de uma paróquia, para resolver o domingo de quem opera o telão.</blockquote>
-        <p class="quem">Usado nas missas da Paróquia Nossa Senhora da Paz, em Londrina (PR).</p>
+        <p class="olho">Da entrada à bênção final</p>
+        <h2>Cada momento da missa, no tempo certo.</h2>
+        <p class="lead">Role a página e acompanhe uma celebração inteira como ela aparece no telão da igreja.</p>
+        <div class="momentos" id="momentos">
+          <article class="momento" data-s="0"><span class="pt"></span><span class="rito">Ritos iniciais</span><h3>Capa e canto de entrada</h3><p>A missa abre com a capa da celebração. Os cantos vêm do acervo pelo nome, já divididos em slides e com o refrão destacado.</p></article>
+          <article class="momento" data-s="1"><span class="pt"></span><span class="rito">Liturgia da Palavra</span><h3>Leituras do dia, automáticas</h3><p>Primeira leitura, salmo, segunda leitura e Evangelho chegam prontos pela data e horário. O Evangelho pode ir só com o título.</p></article>
+          <article class="momento" data-s="2"><span class="pt"></span><span class="rito">Liturgia da Palavra</span><h3>Preces da assembleia</h3><p>Cole as preces do folheto: cada uma vira um slide com o refrão do povo embaixo.</p></article>
+          <article class="momento" data-s="3"><span class="pt"></span><span class="rito">Liturgia Eucarística</span><h3>Oração eucarística</h3><p>As aclamações do povo aparecem na hora certa. Enquanto isso, o operador lê no controle a parte do padre que vem antes.</p></article>
+          <article class="momento" data-s="4"><span class="pt"></span><span class="rito">Ritos finais</span><h3>Avisos e canto final</h3><p>Avisos com imagem, guardados num banco para reutilizar. Entre um momento e outro, a capa vira papel de parede.</p></article>
+        </div>
       </div>
-      <div class="fatos">
-        <div class="fato"><b>972</b><span>cantos no acervo compartilhado</span></div>
-        <div class="fato"><b>4</b><span>missas por semana na paróquia fundadora</span></div>
-        <div class="fato"><b>0</b><span>programas para instalar</span></div>
-        <div class="fato"><b>30</b><span>dias grátis para testar</span></div>
+      <div class="palco" aria-hidden="true">
+        <div class="tela" id="tela-roteiro">
+          <div class="slide on"><div class="t">Canto de entrada</div><div class="w">Na tua casa, Senhor,<br>reunidos em oração</div><div class="y">Teu povo canta a tua glória</div></div>
+          <div class="slide"><div class="t">Evangelho</div><div class="r">(Mt 25,1-13)</div><div class="w">Proclamação do Evangelho de Jesus Cristo segundo Mateus</div></div>
+          <div class="slide"><div class="t">Preces da assembleia</div><div class="w">Pela Igreja, para que seja sinal de esperança no mundo, rezemos ao Senhor.</div><div class="y">Senhor, escutai a nossa prece!</div></div>
+          <div class="slide oe"><div class="t">Oração eucarística II</div><div class="y">Enviai o vosso Espírito Santo!</div></div>
+          <div class="slide"><div class="t">Avisos</div><div class="w">Festa de Cristo Rei: procissão no próximo domingo, às 8h30.</div></div>
+        </div>
+        <div class="palco-legenda"><span id="palco-mom"><b>Ritos iniciais</b> · canto de entrada</span><span id="palco-n">slide 3 de 38</span></div>
       </div>
     </div>
   </section>
 
-  <section class="sec faixa planos-sec" id="planos">
+  <!-- ===== Controle pelo celular ===== -->
+  <section class="controle-sec faixa" id="controle">
     <div class="miolo">
-      <p class="olho">Planos</p>
-      <h2>Um valor por paróquia, sem surpresa.</h2>
-      <p class="lead">Todos os planos começam com 30 dias grátis. Pague por Pix, cartão ou boleto e cancele quando quiser.</p>
-      <div class="alterna" role="group" aria-label="Período de pagamento">
-        <button type="button" id="b-mes" aria-pressed="true">Mensal</button>
-        <button type="button" id="b-ano" aria-pressed="false">Anual · 2 meses grátis</button>
+      <div class="revela">
+        <p class="olho">Controle na palma da mão</p>
+        <h2>O telão responde ao seu celular.</h2>
+        <p class="lead">Aponte a câmera para o código e o celular vira o controle remoto: avançar, tela preta, capa, congelar e as orações. Toque nos botões ao lado e veja.</p>
+      </div>
+      <div class="celular" aria-label="Demonstração do controle remoto no celular">
+        <div class="scr">
+          <div class="mv-top"><span>Controle remoto</span><span>conectado</span></div>
+          <div class="mv-ar"><b id="cel-noar">Primeira leitura</b><span id="cel-onde">slide 4 de 38</span></div>
+          <div class="mv-deixa" id="cel-deixa">Próximo: Salmo responsorial</div>
+          <div class="setas"><button type="button" id="cel-ant" aria-label="Voltar slide">◀</button><button type="button" class="prox" id="cel-prox" aria-label="Avançar slide">▶</button></div>
+          <div class="grade"><button type="button" id="cel-preta">Tela preta</button><button type="button" id="cel-capa">Capa</button></div>
+        </div>
+      </div>
+      <div>
+        <div class="sinal"><i></i><span>sem fio, pela internet</span></div>
+        <div class="tela" id="tela-cel" style="margin-top:16px" aria-hidden="true"></div>
+        <p class="dica-toque">Toque em ▶ no celular</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Recursos em vitrais ===== -->
+  <section class="recursos faixa" id="recursos">
+    <div class="miolo">
+      <div class="revela">
+        <p class="olho">Recursos</p>
+        <h2>Feito para o jeito da missa.</h2>
+        <p class="lead">Nada de apresentação de empresa adaptada: cada recurso nasceu de um domingo de verdade na cabine do telão.</p>
+      </div>
+      <div class="vitrais">
+        <article class="vitral revela" style="--c:var(--verde)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M12 7v6M9 10h6"/></svg><h3>Leituras automáticas</h3><p>Pela data e horário, inclusive a missa de sábado à noite com as leituras de domingo.</p></article>
+        <article class="vitral revela" style="--c:var(--luz)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><h3>Acervo com 972 cantos</h3><p>Busca por título, autor ou trecho. Importe os PowerPoints que a paróquia já tem.</p></article>
+        <article class="vitral revela" style="--c:var(--roxo)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M6 9h12"/></svg><h3>Oração eucarística</h3><p>Aclamações na hora certa e a deixa do padre na tela do operador.</p></article>
+        <article class="vitral revela" style="--c:var(--vermelho)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h3>Controle pelo celular</h3><p>Tela preta, capa e congelar ficam ligados enquanto você prepara o próximo slide.</p></article>
+        <article class="vitral revela" style="--c:var(--branco)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v4h3l5 4V6L6 10z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg><h3>Missa sem músicos</h3><p>YouTube ou MP3 que começa com a letra e termina suave no próximo momento.</p></article>
+        <article class="vitral revela" style="--c:var(--rosa)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M3 14l5-4 4 3 3-2 6 4"/></svg><h3>Avisos com imagem</h3><p>Banco de avisos com validade e ordem de exibição em cada missa.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Ano litúrgico ===== -->
+  <section class="ano faixa" aria-labelledby="ano-tit">
+    <div class="miolo">
+      <div class="roda revela" aria-hidden="true">
+        <svg viewBox="0 0 400 400" id="roda-svg"></svg>
+        <div class="centro"><small>Hoje a Igreja vive</small><b id="roda-tempo">o Tempo Comum</b></div>
+      </div>
+      <div class="revela">
+        <p class="olho">O ano litúrgico</p>
+        <h2 id="ano-tit">Acompanha o calendário da Igreja, domingo a domingo.</h2>
+        <p class="lead">Advento, Natal, Quaresma, Páscoa e Tempo Comum: a celebração de cada dia chega com o nome, a cor litúrgica e as leituras certas, para as missas da semana e de domingo.</p>
+        <div class="legenda-tempos">
+          <span style="--c:var(--roxo)"><i></i>Advento e Quaresma</span>
+          <span style="--c:var(--branco)"><i></i>Natal e Páscoa</span>
+          <span style="--c:var(--verde)"><i></i>Tempo Comum</span>
+          <span style="--c:var(--vermelho)"><i></i>Pentecostes e mártires</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Origem ===== -->
+  <section class="origem faixa claro">
+    <div class="miolo">
+      <div class="revela">
+        <p class="olho">De onde vem</p>
+        <blockquote>“Nasceu na cabine de transmissão de uma paróquia, para servir quem opera o telão no domingo.”</blockquote>
+        <p class="quem"><span class="cruz-mini" style="color:#8A5A00"></span>Usado nas missas da Paróquia Nossa Senhora da Paz, em Londrina (PR).</p>
+      </div>
+      <div class="fatos revela">
+        <div class="fato"><b data-conta="972">0</b><span>cantos no acervo compartilhado</span></div>
+        <div class="fato"><b data-conta="4">0</b><span>missas por semana na paróquia fundadora</span></div>
+        <div class="fato"><b data-conta="11">0</b><span>orações eucarísticas com aclamações</span></div>
+        <div class="fato"><b data-conta="30">0</b><span>dias grátis para testar</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Planos ===== -->
+  <section class="planos-sec faixa" id="planos">
+    <div class="miolo">
+      <div class="revela">
+        <p class="olho">Planos</p>
+        <h2>Um valor por paróquia, sem surpresa.</h2>
+        <p class="lead">Todos os planos começam com 30 dias grátis. Pague por Pix, cartão ou boleto e cancele quando quiser.</p>
+        <div class="alterna" role="group" aria-label="Período de pagamento">
+          <button type="button" id="b-mes" aria-pressed="true">Mensal</button>
+          <button type="button" id="b-ano" aria-pressed="false">Anual · 2 meses grátis</button>
+        </div>
       </div>
       <div class="planos">
-        <article class="plano">
+        <article class="plano revela">
           <h3>Comunidade</h3>
           <p class="para">Capela ou paróquia pequena, até 3 missas por semana.</p>
           <div class="preco"><b data-mes="39" data-ano="390">R$ 39</b><span data-unid>/mês</span></div>
           <div class="preco-ano" data-nota></div>
           <ul>
-            <li>Leituras automáticas e acervo de cantos</li>
-            <li>Orações eucarísticas e controle remoto</li>
-            <li>Avisos e layout da sua igreja</li>
-            <li>Até 3 pessoas na equipe</li>
+            <li><span class="cruz-mini"></span>Leituras automáticas e acervo de cantos</li>
+            <li><span class="cruz-mini"></span>Orações eucarísticas e controle remoto</li>
+            <li><span class="cruz-mini"></span>Avisos e layout da sua igreja</li>
+            <li><span class="cruz-mini"></span>Até 3 pessoas na equipe</li>
           </ul>
           <a class="btn btn-contorno" href="cadastro.html">Começar grátis</a>
         </article>
-        <article class="plano destaque">
+        <article class="plano destaque revela">
           <span class="sel">Mais escolhido</span>
           <h3>Paróquia</h3>
           <p class="para">Várias missas por semana e equipes que se revezam.</p>
           <div class="preco"><b data-mes="79" data-ano="790">R$ 79</b><span data-unid>/mês</span></div>
           <div class="preco-ano" data-nota></div>
           <ul>
-            <li>Tudo do plano Comunidade</li>
-            <li>Equipe sem limite, com papéis e convites</li>
-            <li>Gravações para missa sem músicos</li>
-            <li>Banco de avisos com imagem e histórico</li>
+            <li><span class="cruz-mini"></span>Tudo do plano Comunidade</li>
+            <li><span class="cruz-mini"></span>Equipe sem limite, com papéis e convites</li>
+            <li><span class="cruz-mini"></span>Gravações para missa sem músicos</li>
+            <li><span class="cruz-mini"></span>Banco de avisos com imagem e histórico</li>
           </ul>
           <a class="btn btn-luz" href="cadastro.html">Começar grátis</a>
         </article>
-        <article class="plano">
+        <article class="plano revela">
           <h3>Paróquia + comunidades</h3>
           <p class="para">Matriz com capelas que projetam em horários próprios.</p>
           <div class="preco"><b data-mes="129" data-ano="1290">R$ 129</b><span data-unid>/mês</span></div>
           <div class="preco-ano" data-nota></div>
           <ul>
-            <li>Tudo do plano Paróquia</li>
-            <li>Até 5 comunidades com telão e horários próprios</li>
-            <li>Suporte por WhatsApp</li>
-            <li>Ajuda para importar o acervo da paróquia</li>
+            <li><span class="cruz-mini"></span>Tudo do plano Paróquia</li>
+            <li><span class="cruz-mini"></span>Até 5 comunidades com telão e horários próprios</li>
+            <li><span class="cruz-mini"></span>Suporte por WhatsApp</li>
+            <li><span class="cruz-mini"></span>Ajuda para importar o acervo da paróquia</li>
           </ul>
           <a class="btn btn-contorno" href="cadastro.html">Começar grátis</a>
         </article>
       </div>
-      <div class="piloto">
+      <div class="piloto revela">
         <span><b>Paróquias piloto em dezembro:</b> quem começar agora mantém o preço de fundador, congelado.</span>
         <a class="btn btn-luz" href="cadastro.html">Quero ser piloto</a>
       </div>
     </div>
   </section>
 
-  <section class="sec faixa" id="perguntas">
+  <!-- ===== Perguntas ===== -->
+  <section class="faq-sec faixa claro" id="perguntas">
     <div class="miolo faq">
-      <div>
+      <div class="revela">
         <p class="olho">Perguntas</p>
         <h2>O que as equipes costumam perguntar.</h2>
       </div>
-      <div>
-        <details><summary>Preciso instalar alguma coisa?</summary><p>Não. Funciona no navegador do notebook que vai ligado ao projetor ou à TV. O telão abre numa guia separada, que você leva para a tela da igreja.</p></details>
+      <div class="revela">
+        <details><summary>Preciso instalar alguma coisa?</summary><p>Não. Funciona no navegador do notebook ligado ao projetor ou à TV. O telão abre numa guia separada, que você leva para a tela da igreja.</p></details>
         <details><summary>Funciona sem internet?</summary><p>Ainda não: o notebook precisa de internet para abrir a missa. Abra o telão alguns minutos antes da celebração e confira a conexão da igreja.</p></details>
         <details><summary>Serve para qualquer projetor ou TV?</summary><p>Sim. No Layout você escolhe o formato da tela (16:9, 16:10 ou 4:3), o tamanho da letra e as margens, conforme a distância da assembleia.</p></details>
         <details><summary>Dá para usar os cantos que a paróquia já tem?</summary><p>Dá. Importe os arquivos de PowerPoint (.pptx) dos seus cantos ou cole a letra de um site: o sistema formata sozinho, separa as estrofes e reconhece o refrão.</p></details>
@@ -394,62 +571,200 @@ details p{margin:10px 0 0;color:var(--tinta-suave);max-width:62ch}
     </div>
   </section>
 
+  <!-- ===== Final ===== -->
   <section class="final faixa" id="contato">
     <div class="miolo">
-      <div>
-        <h2>O próximo domingo já pode ser mais tranquilo.</h2>
-        <p class="contato-linha">Dúvidas? Fale com a gente: <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener">WhatsApp (43) 99155-0595</a> · <a href="mailto:contato@telaomissa.com.br">contato@telaomissa.com.br</a></p>
-      </div>
-      <div class="final-bts">
-        <a class="btn btn-acao" href="cadastro.html" style="background:#14161C;color:#fff">Cadastrar minha paróquia</a>
+      <p class="vers revela">Vossa palavra é uma luz para os meus passos, é uma lâmpada em meu caminho.<small>Salmo 118(119),105</small></p>
+      <h2 class="revela">O próximo domingo já pode ser mais sereno.</h2>
+      <div class="cta revela">
+        <a class="btn btn-luz" href="cadastro.html">Cadastrar minha paróquia</a>
         <a class="btn btn-contorno" href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener">Falar no WhatsApp</a>
       </div>
+      <p class="contato-linha">WhatsApp <a href="https://wa.me/5543991550595" target="_blank" rel="noopener">(43) 99155-0595</a> · <a href="mailto:contato@telaomissa.com.br">contato@telaomissa.com.br</a></p>
     </div>
   </section>
 </main>
 
 <footer class="rodape faixa">
   <div class="miolo">
-    <span>© 2026 Telão Missa · <a href="mailto:contato@telaomissa.com.br" style="margin:0">contato@telaomissa.com.br</a> · <a href="https://wa.me/5543991550595?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tel%C3%A3o%20Missa." target="_blank" rel="noopener" style="margin:0">WhatsApp (43) 99155-0595</a></span>
+    <span>© 2026 Telão Missa · Londrina (PR)</span>
     <span><a href="entrar.html">Entrar</a><a href="cadastro.html">Cadastrar paróquia</a><a href="#planos">Planos</a></span>
   </div>
 </footer>
 
 <script>
 (function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var SUPA = "https://xbtrwvtkdsjptnpqsaom.supabase.co", KEY = "sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5";
+  var esc = function(t){ return String(t||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+
+  // topo sólido ao rolar
+  var topo = $("topo");
+  var aoRolar = function(){ topo.classList.toggle("solido", scrollY > 30); };
+  addEventListener("scroll", aoRolar, {passive:true}); aoRolar();
+
   // última paróquia usada neste navegador
   try{
     var u = JSON.parse(localStorage.getItem("telao-ultima-paroquia") || "null");
     if (u && u.slug){
-      document.getElementById("ult-nome").textContent = u.nome || u.slug;
-      document.getElementById("ult-link").href = "app/?p=" + encodeURIComponent(u.slug);
-      document.getElementById("continuar").hidden = false;
+      $("ult-nome").textContent = u.nome || u.slug;
+      $("ult-link").href = "app/?p=" + encodeURIComponent(u.slug);
+      $("continuar").hidden = false;
     }
   }catch(e){}
 
+  // revelar ao rolar
+  var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }); }, {threshold:.15});
+  document.querySelectorAll(".revela").forEach(function(el){ io.observe(el); });
+
+  // contadores
+  var io2 = new IntersectionObserver(function(es){ es.forEach(function(e){
+    if (!e.isIntersecting) return; io2.unobserve(e.target);
+    var alvo = +e.target.dataset.conta, t0 = performance.now(), dur = calmo ? 1 : 1400;
+    (function passo(t){ var k = Math.min(1, (t - t0) / dur); e.target.textContent = Math.round(alvo * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(passo); })(t0);
+  }); }, {threshold:.6});
+  document.querySelectorAll("[data-conta]").forEach(function(el){ io2.observe(el); });
+
+  // poeira de luz na abertura
+  var cv = $("poeira");
+  if (cv && !calmo){
+    var ctx = cv.getContext("2d"), pts = [], W = 0, H = 0, dpr = Math.min(2, devicePixelRatio || 1);
+    var redim = function(){ var r = cv.parentElement.getBoundingClientRect(); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; ctx.setTransform(dpr,0,0,dpr,0,0); };
+    redim(); addEventListener("resize", redim);
+    for (var i = 0; i < 70; i++) pts.push({x:Math.random(), y:Math.random(), r:Math.random()*1.6+.3, v:Math.random()*.00025+.00008, f:Math.random()*Math.PI*2});
+    var vivo = true;
+    new IntersectionObserver(function(es){ vivo = es[0].isIntersecting; if (vivo) requestAnimationFrame(desenha); }).observe(cv);
+    function desenha(t){
+      if (!vivo) return;
+      ctx.clearRect(0,0,W,H);
+      pts.forEach(function(p){
+        p.y -= p.v; if (p.y < -0.02){ p.y = 1.02; p.x = Math.random(); }
+        var x = (p.x + Math.sin(t/4000 + p.f) * .01) * W, y = p.y * H;
+        var foco = Math.max(0, 1 - Math.hypot(x/W - .68, y/H - .4) * 1.6);
+        ctx.globalAlpha = .15 + foco * .6; ctx.fillStyle = "#FFE58A";
+        ctx.beginPath(); ctx.arc(x, y, p.r, 0, Math.PI*2); ctx.fill();
+      });
+      requestAnimationFrame(desenha);
+    }
+    requestAnimationFrame(desenha);
+  }
+
+  // rosácea: pétalas nas cores litúrgicas
+  (function(){
+    var g = $("petalas"); if (!g) return;
+    var cores = ["#8B63B5","#E9DDB8","#3E9A6B","#C8483F","#8B63B5","#E9DDB8","#3E9A6B","#D987A7","#8B63B5","#E9DDB8","#3E9A6B","#C8483F"], h = "";
+    for (var i = 0; i < 12; i++){ var a = i * 30;
+      h += '<path d="M0 -20 L-11 -56 Q0 -66 11 -56 Z" fill="' + cores[i] + '" transform="rotate(' + a + ')" opacity=".88"/>';
+      h += '<line x1="0" y1="-18" x2="0" y2="-60" stroke="#0B0C10" stroke-width="2" transform="rotate(' + (a + 15) + ')"/>'; }
+    g.innerHTML = h;
+  })();
+
+  // telão da abertura: gira os slides
+  function rodarTela(tela, ms, aoTrocar){
+    var sl = tela.querySelectorAll(".slide"), prog = tela.querySelector(".progresso"), i = 0;
+    var vai = function(){
+      sl[i].classList.remove("on"); i = (i + 1) % sl.length; sl[i].classList.add("on");
+      if (aoTrocar) aoTrocar(i);
+      if (prog){ prog.style.transition = "none"; prog.style.width = "0"; void prog.offsetWidth; prog.style.transition = "width " + ms + "ms linear"; prog.style.width = "100%"; }
+    };
+    if (prog){ prog.style.transition = "width " + ms + "ms linear"; requestAnimationFrame(function(){ prog.style.width = "100%"; }); }
+    if (!calmo) setInterval(vai, ms);
+  }
+  rodarTela($("tela-hero"), 3800);
+
+  // liturgia de hoje, ao vivo (a mesma busca que o sistema usa)
+  var CORES = {verde:"var(--verde)", roxo:"var(--roxo)", vermelho:"var(--vermelho)", branco:"var(--branco)", rosa:"var(--rosa)", dourado:"var(--branco)"};
+  var hoje = new Date(); var iso = new Date(hoje.getTime() - hoje.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  fetch(SUPA + "/functions/v1/liturgia?data=" + iso, {headers:{apikey:KEY}}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    var d = j && j.dados; if (!d || !d.celebracao) return;
+    var cor = String(d.cor||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").split(" ")[0];
+    $("hoje").hidden = false; $("hoje").style.setProperty("--cor", CORES[cor] || "var(--verde)");
+    $("hj-rot").textContent = "Liturgia de hoje · " + hoje.toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
+    $("hj-cel").textContent = d.celebracao;
+    var refs = [["1ª leitura", d.primeira && d.primeira.ref], ["Salmo", d.salmo && d.salmo.ref], ["2ª leitura", d.segunda && d.segunda.ref], ["Evangelho", d.evangelho && d.evangelho.ref]].filter(function(x){ return x[1]; });
+    $("hj-refs").innerHTML = refs.map(function(x){ return "<span>" + esc(x[0]) + " <b>" + esc(x[1]) + "</b></span>"; }).join("");
+    // o telão da abertura passa a mostrar as leituras reais de hoje
+    $("h-cel").textContent = d.celebracao;
+    $("h-data").textContent = hoje.toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
+    if (d.primeira && d.primeira.titulo) $("h-l1").textContent = d.primeira.titulo;
+    if (d.salmo && d.salmo.refrao) $("h-sl").textContent = d.salmo.refrao;
+    if (d.evangelho && d.evangelho.ref) $("h-ev").textContent = "Proclamação do Evangelho · " + d.evangelho.ref;
+    $("ao-vivo-txt").textContent = "Leituras de hoje, ao vivo";
+  }).catch(function(){});
+
+  // roteiro: o telão acompanha a rolagem
+  var telaR = $("tela-roteiro"), slR = telaR.querySelectorAll(".slide");
+  var legendas = [["Ritos iniciais","canto de entrada","slide 3 de 38"],["Liturgia da Palavra","Evangelho","slide 14 de 38"],["Liturgia da Palavra","preces","slide 18 de 38"],["Liturgia Eucarística","oração eucarística","slide 26 de 38"],["Ritos finais","avisos","slide 35 de 38"]];
+  var moms = document.querySelectorAll(".momento");
+  var ativa = function(n){
+    moms.forEach(function(m){ m.classList.toggle("ativo", +m.dataset.s === n); });
+    slR.forEach(function(s, i){ s.classList.toggle("on", i === n); });
+    $("palco-mom").innerHTML = "<b>" + legendas[n][0] + "</b> · " + legendas[n][1]; $("palco-n").textContent = legendas[n][2];
+  };
+  var io3 = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) ativa(+e.target.dataset.s); }); }, {rootMargin:"-45% 0px -45% 0px"});
+  moms.forEach(function(m){ io3.observe(m); }); ativa(0);
+
+  // controle no celular (demonstração)
+  var telaC = $("tela-cel");
+  telaC.innerHTML = telaR.innerHTML.replace(/ on"/, '"') + '<div class="slide" data-preta style="background:#000"></div>';
+  var slC = telaC.querySelectorAll(".slide:not([data-preta])"), preta = telaC.querySelector("[data-preta]");
+  var nomes = ["Canto de entrada","Evangelho","Preces da assembleia","Oração eucarística II","Avisos"], idx = 0, estPreta = false, estCapa = false;
+  var desenhaC = function(){
+    slC.forEach(function(s, i){ s.classList.toggle("on", i === idx && !estPreta); });
+    preta.classList.toggle("on", estPreta);
+    $("cel-noar").textContent = estPreta ? "Tela preta" : nomes[idx];
+    $("cel-onde").textContent = "slide " + [3,14,18,26,35][idx] + " de 38";
+    $("cel-deixa").textContent = idx === 3 ? "Padre: “…santificai estes dons, derramando sobre eles o vosso Espírito”" : "Próximo: " + nomes[(idx + 1) % nomes.length];
+    $("cel-preta").classList.toggle("lig", estPreta);
+  };
+  $("cel-prox").onclick = function(){ idx = (idx + 1) % slC.length; desenhaC(); };
+  $("cel-ant").onclick = function(){ idx = (idx + slC.length - 1) % slC.length; desenhaC(); };
+  $("cel-preta").onclick = function(){ estPreta = !estPreta; desenhaC(); };
+  $("cel-capa").onclick = function(){ estPreta = false; idx = 0; desenhaC(); };
+  desenhaC();
+
+  // roda do ano litúrgico (calculada para a data de hoje)
+  (function(){
+    var Y = hoje.getFullYear();
+    var pascoa = function(y){ var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1; return new Date(y, mes-1, dia); };
+    var advento = function(y){ var n = new Date(y, 11, 25), d = n.getDay() || 7; return new Date(y, 11, 25 - d - 21); };
+    var dias = function(a, b){ return (b - a) / 864e5; };
+    var mais = function(d, n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); };
+    var ini = advento(Y) <= hoje ? advento(Y) : advento(Y - 1), fim = advento(ini.getFullYear() + 1), Ya = ini.getFullYear() + 1;
+    var nat = new Date(Ya - 1, 11, 25), bat = (function(){ var e = new Date(Ya, 0, 6); var dd = e.getDay(); return mais(e, dd === 0 ? 7 : 7 - dd); })();
+    var P = pascoa(Ya), cinzas = mais(P, -46), pent = mais(P, 49);
+    var tempos = [
+      {n:"o Advento", c:"#8B63B5", a:ini, b:nat}, {n:"o Natal", c:"#E9DDB8", a:nat, b:mais(bat,1)},
+      {n:"o Tempo Comum", c:"#3E9A6B", a:mais(bat,1), b:cinzas}, {n:"a Quaresma", c:"#8B63B5", a:cinzas, b:P},
+      {n:"o Tempo Pascal", c:"#E9DDB8", a:P, b:mais(pent,1)}, {n:"o Tempo Comum", c:"#3E9A6B", a:mais(pent,1), b:fim}];
+    var total = dias(ini, fim), cx = 200, cy = 200, R = 170, r = 128, svg = "";
+    var pt = function(ang, rr){ var t = (ang - 90) * Math.PI/180; return [cx + rr*Math.cos(t), cy + rr*Math.sin(t)]; };
+    var atual = tempos[0];
+    tempos.forEach(function(tp){
+      var a0 = dias(ini, tp.a)/total*360, a1 = dias(ini, tp.b)/total*360, big = a1 - a0 > 180 ? 1 : 0;
+      var p1 = pt(a0, R), p2 = pt(a1, R), p3 = pt(a1, r), p4 = pt(a0, r);
+      svg += '<path d="M'+p1+' A'+R+' '+R+' 0 '+big+' 1 '+p2+' L'+p3+' A'+r+' '+r+' 0 '+big+' 0 '+p4+' Z" fill="'+tp.c+'" opacity=".85" stroke="#12141A" stroke-width="3"/>';
+      if (hoje >= tp.a && hoje < tp.b) atual = tp;
+    });
+    var ah = dias(ini, hoje)/total*360, m1 = pt(ah, R + 14), m2 = pt(ah, r - 10);
+    svg += '<circle cx="200" cy="200" r="'+(r-14)+'" fill="none" stroke="#2A2E38" stroke-dasharray="2 6"/>';
+    svg += '<line x1="'+m1[0]+'" y1="'+m1[1]+'" x2="'+m2[0]+'" y2="'+m2[1]+'" stroke="#FFD43B" stroke-width="4" stroke-linecap="round"/>';
+    svg += '<circle cx="'+m1[0]+'" cy="'+m1[1]+'" r="8" fill="#FFD43B"><animate attributeName="r" values="8;11;8" dur="2.4s" repeatCount="indefinite"/></circle>';
+    $("roda-svg").innerHTML = svg;
+    $("roda-tempo").textContent = atual.n;
+  })();
+
   // mensal / anual
-  var bm = document.getElementById("b-mes"), ba = document.getElementById("b-ano");
+  var bm = $("b-mes"), ba = $("b-ano");
   function periodo(anual){
     bm.setAttribute("aria-pressed", String(!anual)); ba.setAttribute("aria-pressed", String(anual));
-    document.querySelectorAll(".preco b").forEach(function(b){ b.textContent = "R$ " + (anual ? b.dataset.ano : b.dataset.mes); });
+    var bs = document.querySelectorAll(".preco b");
+    bs.forEach(function(b){ b.textContent = "R$ " + (anual ? b.dataset.ano : b.dataset.mes); });
     document.querySelectorAll("[data-unid]").forEach(function(s){ s.textContent = anual ? "/ano" : "/mês"; });
-    document.querySelectorAll("[data-nota]").forEach(function(n, i){
-      var b = document.querySelectorAll(".preco b")[i];
-      n.textContent = anual ? "equivale a R$ " + (b.dataset.ano / 12).toFixed(2).replace(".", ",") + " por mês" : "";
-    });
+    document.querySelectorAll("[data-nota]").forEach(function(n, i){ n.textContent = anual ? "equivale a R$ " + (bs[i].dataset.ano / 12).toFixed(2).replace(".", ",") + " por mês" : ""; });
   }
   bm.onclick = function(){ periodo(false); }; ba.onclick = function(){ periodo(true); };
-
-  // demonstração do telão
-  var slides = document.querySelectorAll(".slide"), i = 0;
-  var info = [["Primeira leitura","slide 4 de 38 · 1ª leitura"],["Salmo responsorial","slide 6 de 38 · Salmo"],["Amém!","slide 31 de 38 · Oração eucarística"]];
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches){
-    setInterval(function(){
-      slides[i].classList.remove("on"); i = (i + 1) % slides.length; slides[i].classList.add("on");
-      document.getElementById("demo-noar").textContent = "No telão: " + info[i][0];
-      document.getElementById("demo-onde").textContent = info[i][1];
-    }, 3600);
-  }
 })();
 </script>
 </body>
