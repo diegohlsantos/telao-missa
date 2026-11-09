@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-08-15">
+<meta name="versao" content="2026-11-08-16">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,7 +29,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 .pmus{border:1px solid var(--linha,#E3E5EA);border-radius:12px;padding:14px 16px;margin:12px 0 4px;display:grid;gap:10px}
-.pmus b{display:block}.pmus .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pmus b,.pmus .hint{display:block}.pmus .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .pmus input[readonly]{flex:1 1 260px;min-width:0}
 .pmus .env{border-left:3px solid var(--ok,#2E7D4F);padding-left:10px}
 .musicos{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:14px 0 4px}
@@ -451,12 +451,12 @@ ol.roteiro li[data-first]{cursor:pointer}
         <select id="c-musicos" style="width:auto"><option value="sim">Sim — os músicos tocam</option><option value="nao">Não — tocar gravações (YouTube ou MP3)</option></select>
         <span class="hint" id="mus-hint" hidden>Cole o link de cada canto no roteiro ao lado. A música começa sozinha no controle remoto quando o slide do canto entra, e termina suave ao passar para outro momento.</span>
       </div>
-      <div class="pmus" id="pm-box" hidden>
-        <div><b>Pedir os cantos aos músicos</b><span class="hint" id="pm-dica">Mande o link desta missa no grupo dos músicos. Eles escolhem os cantos pelo acervo, sem precisar de login, e tudo entra aqui no roteiro.</span></div>
-        <div class="env" id="pm-env" hidden></div>
-        <div class="row" id="pm-acoes"><button class="btn" type="button" id="pm-gerar">Gerar link para os músicos</button></div>
-        <div class="row" id="pm-link" hidden><input type="text" id="pm-url" readonly aria-label="Link para os músicos"><button class="btn" type="button" id="pm-copiar">Copiar link</button><a class="btn primary" id="pm-wa" target="_blank" rel="noopener">Enviar no WhatsApp</a></div>
-        <span class="status" id="pm-st"></span>
+      <div class="pmus" id="mu-box" hidden>
+        <div><b>Pedir os cantos aos músicos</b><span class="hint" id="mu-dica">Mande o link desta missa no grupo dos músicos. Eles escolhem os cantos pelo acervo, sem precisar de login, e tudo entra aqui no roteiro.</span></div>
+        <div class="env" id="mu-env" hidden></div>
+        <div class="row" id="mu-acoes"><button class="btn" type="button" id="mu-gerar">Gerar link para os músicos</button></div>
+        <div class="row" id="mu-link" hidden><input type="text" id="mu-url" readonly aria-label="Link para os músicos"><button class="btn" type="button" id="mu-copiar">Copiar link</button><a class="btn primary" id="mu-wa" target="_blank" rel="noopener">Enviar no WhatsApp</a></div>
+        <span class="status" id="mu-st"></span>
       </div>
       <details class="leit" id="det-cantos" open>
         <summary>Cantos da celebração <span class="hint" id="cantos-resumo" style="font-weight:400"></span></summary>
@@ -1299,31 +1299,31 @@ function escreverCampos(c){
 /* ---------------- Pedido de cantos aos músicos ---------------- */
 let pmChave = "";
 function mostrarEnvioMusicos(env){
-  const box = $("pm-env"); if (!box) return;
+  const box = $("mu-env"); if (!box) return;
   if (!env || !env.em){ box.hidden = true; return; }
   const quando = new Date(env.em).toLocaleString("pt-BR",{weekday:"short", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"});
   box.innerHTML = `<b>Os músicos enviaram os cantos</b><span class="hint">${esc(quando)}${env.nome ? " · " + esc(env.nome) : ""}. Confira abaixo; você pode trocar qualquer canto.</span>${env.obs ? `<span class="hint">Recado: ${esc(env.obs)}</span>` : ""}`;
   box.hidden = false;
 }
 function prepararPedidoMusicos(){
-  const box = $("pm-box"); if (!box) return;
+  const box = $("mu-box"); if (!box) return;
   box.hidden = !S.editor;
   const chave = PAR.id + S.date + S.hora;
-  if (chave !== pmChave){ pmChave = chave; $("pm-link").hidden = true; $("pm-acoes").hidden = false; setSt("pm-st",""); }
+  if (chave !== pmChave){ pmChave = chave; $("mu-link").hidden = true; $("mu-acoes").hidden = false; setSt("mu-st",""); }
 }
 function linkMusicos(codigo){ return location.origin + location.pathname.replace(/app\/(index\.html)?$/, "") + "musicos.html?c=" + codigo; }
-$("pm-gerar").onclick = async ()=>{
-  setSt("pm-st","Gerando o link…","");
+$("mu-gerar").onclick = async ()=>{
+  setSt("mu-st","Gerando o link…","");
   const {data, error} = await sb.rpc("pedido_cantos_criar", {p_paroquia: PAR.id, p_data: S.date, p_horario: S.hora, p_data_lit: S.dataLit || S.date});
-  if (error){ setSt("pm-st", erroAmigavel(error), "err"); return; }
+  if (error){ setSt("mu-st", erroAmigavel(error), "err"); return; }
   const url = linkMusicos(data), quando = fmtMissa(S.date, S.hora);
-  $("pm-url").value = url;
+  $("mu-url").value = url;
   const msg = `Paz e bem! Para a missa de ${quando} (${PAR.nome}), escolham os cantos por este link. O que vocês enviarem já entra no telão:\n${url}`;
-  $("pm-wa").href = "https://wa.me/?text=" + encodeURIComponent(msg);
-  $("pm-link").hidden = false; $("pm-acoes").hidden = true;
-  setSt("pm-st","Link pronto. Ele vale até o horário da missa e pode ser usado mais de uma vez — o último envio vale.","ok");
+  $("mu-wa").href = "https://wa.me/?text=" + encodeURIComponent(msg);
+  $("mu-link").hidden = false; $("mu-acoes").hidden = true;
+  setSt("mu-st","Link pronto. Ele vale até o horário da missa e pode ser usado mais de uma vez — o último envio vale.","ok");
 };
-$("pm-copiar").onclick = async ()=>{ try{ await navigator.clipboard.writeText($("pm-url").value); setSt("pm-st","Link copiado.","ok"); }catch{ $("pm-url").select(); setSt("pm-st","Selecionei o link: copie com Ctrl+C.",""); } };
+$("mu-copiar").onclick = async ()=>{ try{ await navigator.clipboard.writeText($("mu-url").value); setSt("mu-st","Link copiado.","ok"); }catch{ $("mu-url").select(); setSt("mu-st","Selecionei o link: copie com Ctrl+C.",""); } };
 
 function desenharOracoesRoteiro(){
   if (!$("orr-lista")) return;
