@@ -5,3 +5,6 @@
 -- pedido_cantos_ler agora devolve 'vivo' (código do canal) e 'ao_vivo_ate' (horário da missa + 3 h).
 -- musicas.cifra (texto livre, só para o celular dos músicos).
 -- private.donos + private.eh_dono() + rpc painel_dono() (números de todas as paróquias, só para o dono).
+-- limites_dos_planos: private.plano_completo(paroquia) = status 'teste' ou plano <> 'comunidade'.
+--   Trigger membros_limite_plano: Comunidade (assinante) até 3 pessoas. pedido_cantos_criar e canal_vivo exigem plano completo.
+--   Erros de limite usam errcode P0001 com hint 'limite_plano' (o app mostra a mensagem do banco).

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Telão Missa</title>
-<meta name="versao" content="2026-11-09-02">
+<meta name="versao" content="2026-11-09-03">
 <meta name="description" content="Leituras do dia, cantos e avisos da missa num só roteiro, prontos para o telão.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161C'/%3E%3Cg fill='%23FFD43B'%3E%3Crect x='9' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='35' y='14' width='20' height='10' rx='2.5'/%3E%3Crect x='9' y='29' width='20' height='21' rx='2.5'/%3E%3Crect x='35' y='29' width='20' height='21' rx='2.5'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -715,6 +715,7 @@ header.top .btn:hover{border-color:var(--luz)}
       </div>
       <div class="panel">
         <h2>Relatório do mês</h2>
+        <p class="hint plano-paroquia" hidden style="margin:0">O relatório mensal de cantos faz parte do plano Paróquia.</p>
         <p class="hint" style="margin:0">Cantos executados em cada mês, com quantas vezes e em quais missas. Serve para a prestação de contas de direitos autorais (ECAD) e para a coordenação de música.</p>
         <div class="row"><label class="hint" for="rel-mes">Mês</label><input type="month" id="rel-mes" style="width:auto"></div>
         <p class="hint" id="rel-resumo" style="margin:0"></p>
@@ -868,6 +869,7 @@ header.top .btn:hover{border-color:var(--luz)}
     </div>
     <div class="panel">
       <h2>Equipe com acesso</h2>
+      <p class="hint" id="eq-limite" hidden style="margin:0"></p>
       <ul class="lista-eq" id="equipe"></ul>
       <div id="convite-box" hidden style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
         <h3 style="margin:0">Convidar alguém</h3>
@@ -1437,6 +1439,18 @@ function escreverCampos(c){
   $("mus-hint").hidden = c.musicos!=="nao";
   mostrarEnvioMusicos(c.musicos_envio);
 }
+/* ---------------- Recursos de cada plano ---------------- */
+// Comunidade (assinante): sem pedido de cantos, ao vivo, legenda, gravações e relatório. Teste e demais planos: tudo.
+function aplicarPlano(){
+  const ok = PAR.completo !== false;
+  document.querySelectorAll(".plano-paroquia").forEach(el=>el.hidden = ok);
+  const nao = document.querySelector('#c-musicos option[value="nao"]');
+  if (nao){ nao.disabled = !ok; nao.textContent = ok ? "Não — tocar gravações (YouTube ou MP3)" : "Não — gravações (plano Paróquia)"; }
+  $("btn-live").hidden = !ok;
+  ["rel-csv","rel-imprimir"].forEach(id=>{ if ($(id)) $(id).disabled = !ok; });
+  const mb = $("mu-box");
+  if (mb && !ok){ $("mu-acoes").hidden = true; $("mu-link").hidden = true; $("mu-dica").textContent = "Mandar o link para os músicos escolherem os cantos, e a letra ao vivo no celular deles, fazem parte do plano Paróquia."; }
+}
 /* ---------------- Pedido de cantos aos músicos ---------------- */
 let pmChave = "";
 function mostrarEnvioMusicos(env){
@@ -1450,7 +1464,7 @@ function prepararPedidoMusicos(){
   const box = $("mu-box"); if (!box) return;
   box.hidden = !S.editor;
   const chave = PAR.id + S.date + S.hora;
-  if (chave !== pmChave){ pmChave = chave; $("mu-link").hidden = true; $("mu-acoes").hidden = false; setSt("mu-st",""); }
+  if (chave !== pmChave){ pmChave = chave; $("mu-link").hidden = true; $("mu-acoes").hidden = PAR.completo === false; setSt("mu-st",""); }
 }
 function linkMusicos(codigo){ return location.origin + location.pathname.replace(/app\/(index\.html)?$/, "") + "musicos.html?c=" + codigo; }
 $("mu-gerar").onclick = async ()=>{
@@ -1779,7 +1793,7 @@ async function carregarInicio(){
 /* Pedido semanal de cantos: uma mensagem só com os links das missas da semana */
 let semanaMus = [];
 function desenharSemanaMusicos(lista, M){
-  const box = $("sem-mus"); if (!S.editor){ box.hidden = true; return; }
+  const box = $("sem-mus"); if (!S.editor || PAR.completo === false){ box.hidden = true; return; }
   semanaMus = lista.filter(x=>(M.get(x.date+" "+x.hora)||{}).musicos !== "nao");
   if (!semanaMus.length){ box.hidden = true; return; }
   const dow = new Date().getDay(), destaque = dow >= 4 || dow === 0;
@@ -2363,7 +2377,7 @@ if (MODO_TELAO) setInterval(avisarPosicao, 4000);
 /* ---------------- Ao vivo: músicos e transmissão acompanham o telão ---------------- */
 let canalVivo = null, vivoOk = false, vivoUltimo = "";
 async function conectarVivo(){
-  if (!MODO_TELAO || !S.editor || canalVivo) return;
+  if (!MODO_TELAO || !S.editor || canalVivo || PAR.completo === false) return;
   const {data:cod, error} = await sb.rpc("canal_vivo", {p_paroquia: PAR.id});
   if (error || !cod) return;
   canalVivo = sb.channel("vivo:" + cod, {config:{private:true, broadcast:{self:false}}});
@@ -2641,6 +2655,7 @@ S.editor = false; S.user = null;
 function setSt(id, t, cls){ $(id).textContent=t; $(id).className="status "+(cls||""); }
 function erroAmigavel(e){
   const c = e?.code || "";
+  if (e?.hint === "limite_plano") return e.message;
   if (c === "42501" || /row-level security/i.test(e?.message||"")) return "Sua conta ainda não tem permissão para editar.";
   if (/fetch|network/i.test(e?.message||"")) return "Sem conexão com o servidor. Confira a internet.";
   return "Não consegui salvar agora. Tente de novo em instantes.";
@@ -2961,7 +2976,7 @@ async function verificarConta(){
     if (conv && !S.editor){
       const {error} = await sb.rpc("aceitar_convite", {p_codigo: conv});
       if (!error){ history.replaceState(null, "", location.pathname + "?p=" + PAR.slug + location.hash); return verificarConta(); }
-      mostrarAviso("Este convite não vale mais. Peça um novo link a quem cuida da paróquia.");
+      mostrarAviso(error.hint === "limite_plano" ? error.message + " Avise quem cuida da paróquia." : "Este convite não vale mais. Peça um novo link a quem cuida da paróquia.");
     }
     if (!S.editor){
       const {data:ped} = await sb.from("pedidos").select("user_id").eq("paroquia_id", PAR.id).eq("user_id", S.user.id).maybeSingle();
@@ -3003,6 +3018,8 @@ async function carregarEquipe(){
   (p.data||[]).forEach(r=>{ const li=document.createElement("li"); li.innerHTML=`<span>${esc(r.email)}<br><span class="hint">pediu em ${new Date(r.criado).toLocaleDateString("pt-BR")}</span></span><span class="row"><button class="btn" type="button" data-rec="${esc(r.user_id)}">Recusar</button><button class="btn primary" type="button" data-lib="${esc(r.user_id)}" data-email="${esc(r.email)}">Liberar</button></span>`; ped.appendChild(li); });
   if (!p.data?.length) ped.innerHTML=`<li><span class="hint">Nenhum pedido no momento. Peça para a pessoa abrir o link, criar conta e tocar em “Pedir acesso”.</span></li>`;
   const eq=$("equipe"); eq.innerHTML="";
+  { const n = (q.data||[]).length, lim = $("eq-limite"); lim.hidden = PAR.completo !== false;
+    lim.textContent = `Plano Comunidade: ${n} de 3 pessoas na equipe.${n >= 3 ? " Para incluir mais gente, mude para o plano Paróquia." : ""}`; }
   const NOMES = {responsavel:"Responsável", coordenador:"Coordenação", operador:"Operador do telão", musico:"Músico (só leitura)"};
   const souResp = S.papel === "responsavel";
   (q.data||[]).forEach(r=>{ const li=document.createElement("li"); const eu=r.user_id===S.user.id;
@@ -3450,6 +3467,8 @@ async function carregarParoquia(){
   const {data} = await q.maybeSingle();
   if (!data) return false;
   Object.assign(PAR, data); PAR.curadora = data.id === "00000000-0000-4000-8000-000000000001";
+  PAR.completo = data.status === "teste" || data.plano !== "comunidade";
+  aplicarPlano();
   try{ localStorage.setItem("telao-ultima-paroquia", JSON.stringify({slug:data.slug, nome:data.nome})); }catch{}
   $("par-nome").textContent = data.nome; document.title = MODO_TELAO ? "Telão — " + data.nome : data.nome + " · Telão Missa";
   return true;
