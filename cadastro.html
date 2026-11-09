@@ -11,7 +11,7 @@
 <style>
 :root{
   --fundo:#F4F5F7; --superficie:#FFFFFF; --tinta:#14161C; --tinta-suave:#545B68; --linha:#D9DCE2; --linha-forte:#7A8290;
-  --noite:#14161C; --luz:#FFD43B; --ambar:#8A5A00; --acao:#14161C; --sobre-acao:#FFFFFF; --ok:#1F7A4D; --erro:#B3261E;
+  --noite:#14161C; --luz:#FFD43B; --ambar:#8A5A00; --acao:#14161C; --sobre-acao:#FFD43B; --ok:#1F7A4D; --erro:#B3261E;
   --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
   --font-texto:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --raio-p:6px; --raio-m:12px;
@@ -60,17 +60,49 @@ button:disabled{opacity:.55;cursor:default}
 [hidden]{display:none!important}
 @media (max-width:820px){ .pagina{grid-template-columns:1fr} .lado{padding-block:28px} .lado ul{display:none} .form{padding:28px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))} .dias{grid-template-columns:repeat(4,minmax(0,1fr))} }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== Nave e luz (igual ao site) ===== */
+:root{--faixa:linear-gradient(180deg,#3E9A6B 0 20%,#8B63B5 20% 40%,#C8483F 40% 60%,#E9DDB8 60% 80%,#D987A7 80%)}
+.lado{position:relative;isolation:isolate;overflow:hidden;background:#0E0F14}
+.lado::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(55% 45% at 78% 30%,rgba(255,212,59,.16),transparent 70%),radial-gradient(45% 40% at 10% 90%,rgba(139,99,181,.14),transparent 70%)}
+.lado::after{content:"";position:absolute;top:0;bottom:0;right:0;width:4px;background:var(--faixa);transition:background .6s}
+.lado > *{position:relative;z-index:1}
+.lado .janela{position:absolute;z-index:-1;right:-14%;bottom:-10%;width:min(56%,380px);aspect-ratio:400/460;pointer-events:none;opacity:.9}
+.lado .janela svg{width:100%;height:100%;overflow:visible}
+.lado .raios{position:absolute;left:50%;top:-10%;width:160%;height:140%;transform:translateX(-50%);background:conic-gradient(from 180deg at 50% 0%,transparent 160deg,rgba(255,212,59,.10) 172deg,transparent 178deg,rgba(255,212,59,.07) 186deg,transparent 194deg,rgba(255,212,59,.09) 200deg,transparent 210deg);animation:raios 9s ease-in-out infinite alternate;mask:linear-gradient(#000 40%,transparent)}
+@keyframes raios{from{transform:translateX(-50%) rotate(-4deg)}to{transform:translateX(-50%) rotate(4deg)}}
+.lado .gira{transform-box:fill-box;transform-origin:center;animation:gira 160s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.lado h1{font-size:clamp(40px,4.8vw,64px);text-shadow:0 0 50px rgba(0,0,0,.6)}
+.lado h1 em{font-style:italic;text-shadow:0 0 40px rgba(255,212,59,.35)}
+.hoje-lit{display:inline-flex;align-items:center;gap:10px;margin-top:22px;padding:8px 14px 8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:14px;color:#C9CED8;max-width:100%}
+.hoje-lit i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--cor-hoje,#3E9A6B);box-shadow:0 0 14px var(--cor-hoje,#3E9A6B)}
+.hoje-lit b{color:#fff;font-weight:700}
+.form{position:relative}
+.form::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(40% 30% at 50% 0%,rgba(255,212,59,.08),transparent 70%)}
+.cartao h2{font-size:40px}
+button.principal{box-shadow:0 10px 30px -12px rgba(255,212,59,.55)}
+@media (max-width:820px){.lado .janela{width:200px;right:-40px;bottom:-60px;opacity:.5}.lado::after{top:auto;left:0;width:auto;height:4px;background:linear-gradient(90deg,#3E9A6B 0 20%,#8B63B5 20% 40%,#C8483F 40% 60%,#E9DDB8 60% 80%,#D987A7 80%)}.lado.com-cor::after{background:var(--cor-hoje)}}
+@media (prefers-reduced-motion:reduce){.lado .raios,.lado .gira{animation:none}}
 </style>
 </head>
 <body>
 <div class="pagina">
   <aside class="lado">
+    <div class="janela" aria-hidden="true"><div class="raios"></div>
+      <svg viewBox="0 0 400 460"><defs><linearGradient id="g-pedra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3F4C"/><stop offset="1" stop-color="#1A1D25"/></linearGradient></defs>
+        <path d="M20 470 V190 Q20 40 200 6 Q380 40 380 190 V470" fill="none" stroke="url(#g-pedra)" stroke-width="10"/>
+        <path d="M40 470 V196 Q40 62 200 30 Q360 62 360 196 V470" fill="none" stroke="#2A2E38" stroke-width="2"/>
+        <g transform="translate(200 128)"><circle r="64" fill="none" stroke="#2A2E38" stroke-width="3"/><g class="gira" id="petalas"></g><circle r="16" fill="#FFD43B"/><circle r="16" fill="none" stroke="#0B0C10" stroke-width="3"/></g>
+      </svg></div>
+    
     <div class="marca" aria-label="Telão Missa">
       <svg viewBox="0 0 160 90" aria-hidden="true"><g fill="#FFD43B"><rect x="0" y="0" width="73" height="26" rx="6"/><rect x="87" y="0" width="73" height="26" rx="6"/><rect x="0" y="38" width="73" height="52" rx="6"/><rect x="87" y="38" width="73" height="52" rx="6"/></g></svg>
       <b>Telão Missa</b>
     </div>
     <div>
       <h1>A missa de domingo pronta para o telão <em>em minutos</em>.</h1>
+      <span class="hoje-lit" id="hoje-lit" hidden><i></i><span>Hoje · <b></b></span></span>
       <ul>
         <li>Leituras do dia entram sozinhas, pela data e horário de cada missa.</li>
         <li>Cantos encontrados pelo nome, com o refrão destacado.</li>
@@ -226,6 +258,23 @@ $("f-hor").addEventListener("submit", async e=>{
 $("b-abrir").onclick = ()=>{ location.href = BASE + "?p=" + criada.slug; };
 
 sb.auth.getSession().then(({data:{session}})=>{ if (session?.user) irParaParoquia(session.user); });
+</script>
+<script>
+(function(){
+  var g = document.getElementById("petalas"); if (g){
+    var c = ["#8B63B5","#E9DDB8","#3E9A6B","#C8483F","#8B63B5","#E9DDB8","#3E9A6B","#D987A7","#8B63B5","#E9DDB8","#3E9A6B","#C8483F"], h = "";
+    for (var i = 0; i < 12; i++){ h += '<path d="M0 -20 L-11 -56 Q0 -66 11 -56 Z" fill="'+c[i]+'" opacity=".88" transform="rotate('+(i*30)+')"/><line x1="0" y1="-18" x2="0" y2="-60" stroke="#0B0C10" stroke-width="2" transform="rotate('+(i*30+15)+')"/>'; }
+    g.innerHTML = h; }
+  var CORES = {verde:"#3E9A6B", roxo:"#8B63B5", vermelho:"#C8483F", branco:"#E9DDB8", dourado:"#E9DDB8", rosa:"#D987A7"};
+  var hoje = new Date(), iso = new Date(hoje.getTime() - hoje.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  fetch("https://xbtrwvtkdsjptnpqsaom.supabase.co/functions/v1/liturgia?data=" + iso, {headers:{apikey:"sb_publishable_Gsph6x0BxehHvbHoWfxANQ_aPJDv8o5"}})
+    .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      var d = j && j.dados; if (!d || !d.celebracao) return;
+      var cor = CORES[String(d.cor||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").split(" ")[0]];
+      var el = document.getElementById("hoje-lit"); el.querySelector("b").textContent = d.celebracao; el.hidden = false;
+      if (cor){ var lado = document.querySelector(".lado"); lado.style.setProperty("--cor-hoje", cor); lado.style.setProperty("--faixa", cor); lado.classList.add("com-cor"); }
+    }).catch(function(){});
+})();
 </script>
 </body>
 </html>
