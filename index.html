@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="versao" content="2026-11-09-01">
+<meta name="versao" content="2026-11-09-02">
 <script>
   // links antigos do sistema (paróquia, telão, convite) seguem para o app
   (function(){
@@ -14,9 +14,9 @@
   })();
 </script>
 <title>Telão Missa</title>
-<meta name="description" content="Leituras do dia, cantos, orações eucarísticas e avisos num só roteiro, prontos para o telão da sua paróquia. Teste grátis por 30 dias.">
+<meta name="description" content="Leituras do dia, cantos, orações eucarísticas, intenções e avisos num só roteiro, prontos para o telão da sua paróquia. Músicos conectados pelo celular e telão que segue mesmo sem internet. Teste grátis por 30 dias.">
 <meta property="og:title" content="Telão Missa — a liturgia em luz">
-<meta property="og:description" content="A missa pronta para o telão em minutos: leituras automáticas, acervo de cantos, oração eucarística e controle remoto pelo celular.">
+<meta property="og:description" content="A missa pronta para o telão em minutos: leituras automáticas, cantos enviados pelos músicos, intenções da missa, controle pelo celular e legenda para a transmissão ao vivo.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://telaomissa.com.br/">
 <meta name="theme-color" content="#0B0C10">
@@ -326,7 +326,7 @@ details a{color:#8A5A00;font-weight:700}
       <div>
         <p class="olho">Para a liturgia e a Pascom</p>
         <h1><span class="linha"><span>A liturgia</span></span><span class="linha"><span><em>em luz</em>, pronta</span></span><span class="linha"><span>em minutos.</span></span></h1>
-        <p class="lead">Escolha a data da missa e as leituras do dia entram sozinhas. Escreva o nome dos cantos e o acervo encontra a letra. Na celebração, conduza o telão pelo notebook ou pelo celular.</p>
+        <p class="lead">Escolha a data da missa e as leituras do dia entram sozinhas. Os músicos mandam os cantos pelo celular e a secretaria anota as intenções. Na celebração, conduza o telão pelo notebook ou pelo celular, mesmo se a internet cair.</p>
         <div class="cta">
           <a class="btn btn-luz" href="cadastro.html">Começar 30 dias grátis</a>
           <a class="btn btn-contorno" href="#roteiro">Ver a missa no telão</a>
@@ -389,7 +389,7 @@ details a{color:#8A5A00;font-weight:700}
         <h2>Cada momento da missa, no tempo certo.</h2>
         <p class="lead">Role a página e acompanhe uma celebração inteira como ela aparece no telão da igreja.</p>
         <div class="momentos" id="momentos">
-          <article class="momento" data-s="0"><span class="pt"></span><span class="rito">Ritos iniciais</span><h3>Capa e canto de entrada</h3><p>A missa abre com a capa da celebração. Os cantos vêm do acervo pelo nome, já divididos em slides e com o refrão destacado.</p></article>
+          <article class="momento" data-s="0"><span class="pt"></span><span class="rito">Ritos iniciais</span><h3>Capa, intenções e canto de entrada</h3><p>A missa abre com a capa da celebração e as intenções que a secretaria anotou durante a semana. Os cantos, escolhidos pelos músicos num link, vêm do acervo já divididos em slides e com o refrão destacado.</p></article>
           <article class="momento" data-s="1"><span class="pt"></span><span class="rito">Liturgia da Palavra</span><h3>Leituras do dia, automáticas</h3><p>Primeira leitura, salmo, segunda leitura e Evangelho chegam prontos pela data e horário. O Evangelho pode ir só com o título.</p></article>
           <article class="momento" data-s="2"><span class="pt"></span><span class="rito">Liturgia da Palavra</span><h3>Preces da assembleia</h3><p>Cole as preces do folheto: cada uma vira um slide com o refrão do povo embaixo.</p></article>
           <article class="momento" data-s="3"><span class="pt"></span><span class="rito">Liturgia Eucarística</span><h3>Oração eucarística</h3><p>As aclamações do povo aparecem na hora certa. Enquanto isso, o operador lê no controle a parte do padre que vem antes.</p></article>
@@ -415,7 +415,7 @@ details a{color:#8A5A00;font-weight:700}
       <div class="revela">
         <p class="olho">Controle na palma da mão</p>
         <h2>O telão responde ao seu celular.</h2>
-        <p class="lead">Aponte a câmera para o código e o celular vira o controle remoto: avançar, tela preta, capa, congelar e as orações. Toque nos botões ao lado e veja.</p>
+        <p class="lead">Aponte a câmera para o código e o celular vira o controle remoto: avançar, tela preta, capa, congelar e as orações. Enquanto isso, os músicos acompanham a letra e a cifra no celular deles, no mesmo compasso do telão. Toque nos botões ao lado e veja.</p>
       </div>
       <div class="celular" aria-label="Demonstração do controle remoto no celular">
         <div class="scr">
@@ -444,11 +444,14 @@ details a{color:#8A5A00;font-weight:700}
       </div>
       <div class="vitrais">
         <article class="vitral revela" style="--c:var(--verde)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M12 7v6M9 10h6"/></svg><h3>Leituras automáticas</h3><p>Pela data e horário, inclusive a missa de sábado à noite com as leituras de domingo.</p></article>
-        <article class="vitral revela" style="--c:var(--luz)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><h3>Acervo com 972 cantos</h3><p>Busca por título, autor ou trecho. Importe os PowerPoints que a paróquia já tem.</p></article>
+        <article class="vitral revela" style="--c:var(--luz)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><h3>Acervo com 972 cantos</h3><p>Busca por título, autor ou trecho, sugestões do que já foi cantado na mesma celebração e relatório mensal para o ECAD.</p></article>
         <article class="vitral revela" style="--c:var(--roxo)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M6 9h12"/></svg><h3>Oração eucarística</h3><p>Aclamações na hora certa e a deixa do padre na tela do operador.</p></article>
         <article class="vitral revela" style="--c:var(--vermelho)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h3>Controle pelo celular</h3><p>Tela preta, capa e congelar ficam ligados enquanto você prepara o próximo slide.</p></article>
-        <article class="vitral revela" style="--c:var(--branco)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v4h3l5 4V6L6 10z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg><h3>Missa sem músicos</h3><p>YouTube ou MP3 que começa com a letra e termina suave no próximo momento.</p></article>
-        <article class="vitral revela" style="--c:var(--rosa)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M3 14l5-4 4 3 3-2 6 4"/></svg><h3>Avisos com imagem</h3><p>Banco de avisos com validade e ordem de exibição em cada missa.</p></article>
+        <article class="vitral revela" style="--c:var(--branco)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><path d="M15 20h6M18 17v6"/></svg><h3>Músicos conectados</h3><p>Escolhem os cantos por um link, sem login. Na missa, acompanham a letra e a cifra no celular, junto com o telão.</p></article>
+        <article class="vitral revela" style="--c:var(--rosa)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg><h3>Intenções e avisos</h3><p>A secretaria anota as intenções na semana e elas entram no telão e na lista do padre. Avisos com imagem, num banco para reutilizar.</p></article>
+        <article class="vitral revela" style="--c:var(--verde)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.6 5M5.5 12.5a10 10 0 0 1 3-1.8M18.5 12.5a10 10 0 0 0-2.4-1.6M8.5 16a5 5 0 0 1 7 0"/><path d="M12 20h.01M3 3l18 18"/></svg><h3>Sem internet, sem susto</h3><p>Ao abrir, o telão guarda a missa inteira no computador. Se o Wi-Fi da igreja cair, a celebração continua.</p></article>
+        <article class="vitral revela" style="--c:var(--vermelho)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3"/><path d="M5 14h8"/></svg><h3>Legenda na transmissão</h3><p>Cantos, respostas e leituras por cima da câmera na live do YouTube ou do Instagram, pelo OBS.</p></article>
+        <article class="vitral revela" style="--c:var(--roxo)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v4h3l5 4V6L6 10z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg><h3>Missa sem músicos</h3><p>YouTube ou MP3 que começa com a letra e termina suave no próximo momento.</p></article>
       </div>
     </div>
   </section>
@@ -512,7 +515,8 @@ details a{color:#8A5A00;font-weight:700}
           <ul>
             <li><span class="cruz-mini"></span>Leituras automáticas e acervo de cantos</li>
             <li><span class="cruz-mini"></span>Orações eucarísticas e controle remoto</li>
-            <li><span class="cruz-mini"></span>Avisos e layout da sua igreja</li>
+            <li><span class="cruz-mini"></span>Avisos, intenções e layout da sua igreja</li>
+            <li><span class="cruz-mini"></span>Telão que segue sem internet</li>
             <li><span class="cruz-mini"></span>Até 3 pessoas na equipe</li>
           </ul>
           <a class="btn btn-contorno" href="cadastro.html">Começar grátis</a>
@@ -526,8 +530,10 @@ details a{color:#8A5A00;font-weight:700}
           <ul>
             <li><span class="cruz-mini"></span>Tudo do plano Comunidade</li>
             <li><span class="cruz-mini"></span>Equipe sem limite, com papéis e convites</li>
+            <li><span class="cruz-mini"></span>Músicos escolhem os cantos e acompanham letra e cifra ao vivo</li>
+            <li><span class="cruz-mini"></span>Legenda para a transmissão ao vivo</li>
             <li><span class="cruz-mini"></span>Gravações para missa sem músicos</li>
-            <li><span class="cruz-mini"></span>Banco de avisos com imagem e histórico</li>
+            <li><span class="cruz-mini"></span>Histórico, sugestões e relatório mensal de cantos</li>
           </ul>
           <a class="btn btn-luz" href="cadastro.html">Começar grátis</a>
         </article>
@@ -561,7 +567,10 @@ details a{color:#8A5A00;font-weight:700}
       </div>
       <div class="revela">
         <details><summary>Preciso instalar alguma coisa?</summary><p>Não. Funciona no navegador do notebook ligado ao projetor ou à TV. O telão abre numa guia separada, que você leva para a tela da igreja.</p></details>
-        <details><summary>Funciona sem internet?</summary><p>Ainda não: o notebook precisa de internet para abrir a missa. Abra o telão alguns minutos antes da celebração e confira a conexão da igreja.</p></details>
+        <details><summary>Funciona sem internet?</summary><p>Funciona. Ao abrir o telão, o sistema guarda a missa inteira no computador, com as imagens. Se a internet cair durante a celebração, o telão continua até o fim. Para montar a missa e salvar mudanças, e para tocar gravações do YouTube, é preciso conexão.</p></details>
+        <details><summary>Os músicos precisam de conta?</summary><p>Não. A coordenação manda um link por missa no grupo do WhatsApp. Os músicos escolhem os cantos pelo acervo, e o que eles enviam já entra no roteiro. No dia, o mesmo link mostra a letra e a cifra no celular, acompanhando o telão.</p></details>
+        <details><summary>Dá para usar na transmissão ao vivo?</summary><p>Dá. O sistema gera um link para colocar no OBS como fonte de navegador. A legenda, com fundo transparente, mostra o canto, a resposta ou a leitura que está no telão, por cima da imagem da câmera.</p></details>
+        <details><summary>Onde ficam as intenções da missa?</summary><p>Na aba Intenções. A secretaria anota os nomes durante a semana, por tipo (falecidos, aniversariantes, ação de graças…). Eles entram no telão no momento que a paróquia escolher e numa lista para o padre imprimir.</p></details>
         <details><summary>Serve para qualquer projetor ou TV?</summary><p>Sim. No Layout você escolhe o formato da tela (16:9, 16:10 ou 4:3), o tamanho da letra e as margens, conforme a distância da assembleia.</p></details>
         <details><summary>Dá para usar os cantos que a paróquia já tem?</summary><p>Dá. Importe os arquivos de PowerPoint (.pptx) dos seus cantos ou cole a letra de um site: o sistema formata sozinho, separa as estrofes e reconhece o refrão.</p></details>
         <details><summary>Quantas pessoas podem usar?</summary><p>No plano Comunidade, até 3 pessoas na equipe. Nos planos Paróquia e Paróquia + comunidades, quantas a paróquia precisar, cada uma com o seu papel.</p></details>
