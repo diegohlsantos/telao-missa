@@ -43,7 +43,7 @@ th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--linha);vert
 th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);font-weight:700}
 td.n{text-align:right;font-variant-numeric:tabular-nums}
 td small{color:var(--suave);display:block}
-.chip{display:inline-block;font-size:.78rem;font-weight:700;border-radius:999px;padding:2px 10px;border:1px solid currentColor}
+.chip{display:inline-block;white-space:nowrap;font-size:.78rem;font-weight:700;border-radius:999px;padding:2px 10px;border:1px solid currentColor}
 .chip.teste{color:var(--atencao)} .chip.ativa{color:var(--ok)} .chip.outra{color:var(--suave)}
 .sim{color:var(--ok);font-weight:700} .nao{color:var(--suave)}
 .st{color:var(--suave)} .st.err{color:var(--erro)}
@@ -58,7 +58,7 @@ a{color:var(--ambar)}
   <p id="sub">Carregando…</p>
 </div></header>
 <main class="in">
-  <p class="st" id="st" role="status"></p>
+  <p class="st" id="st" role="status" style="margin:0"></p>
   <div id="conteudo" hidden>
     <section class="nums" id="nums" aria-label="Resumo"></section>
     <section class="cartao" style="margin-top:22px"><h2>Quem procurar</h2><ul class="procurar" id="procurar"></ul></section>
