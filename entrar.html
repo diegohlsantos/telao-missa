@@ -165,7 +165,7 @@ $("f-entrar").addEventListener("submit", async e=>{
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st("st","Escreva o seu e-mail.","err"); return; }
   if (senha.length < 6){ st("st","A senha tem pelo menos 6 caracteres.","err"); return; }
   $("b-entrar").disabled = true; st("st", modo === "criar" ? "Criando sua conta…" : "Entrando…");
-  const r = modo === "criar" ? await sb.auth.signUp({email, password:senha}) : await sb.auth.signInWithPassword({email, password:senha});
+  const r = modo === "criar" ? await sb.auth.signUp({email, password:senha, options:{emailRedirectTo: location.href.split('#')[0]}}) : await sb.auth.signInWithPassword({email, password:senha});
   $("b-entrar").disabled = false;
   if (r.error){
     const m = r.error.message || "";

@@ -169,7 +169,7 @@ $("f-conta").addEventListener("submit", async e=>{
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st("st-conta","Escreva um e-mail válido.","err"); return; }
   if (senha.length < 6){ st("st-conta","A senha precisa ter pelo menos 6 caracteres.","err"); return; }
   $("b-conta").disabled = true; st("st-conta", modoEntrar ? "Entrando…" : "Criando sua conta…");
-  const r = modoEntrar ? await sb.auth.signInWithPassword({email, password:senha}) : await sb.auth.signUp({email, password:senha});
+  const r = modoEntrar ? await sb.auth.signInWithPassword({email, password:senha}) : await sb.auth.signUp({email, password:senha, options:{emailRedirectTo: location.href.split('#')[0]}});
   $("b-conta").disabled = false;
   if (r.error){
     const m = r.error.message || "";
