@@ -1,0 +1,6 @@
+Confirm signup	confirmar-cadastro.html	Confirme seu e-mail para começar no Telão Missa
+Reset password	recuperar-senha.html	Crie uma nova senha no Telão Missa
+Magic link	link-de-acesso.html	Seu link para entrar no Telão Missa
+Invite user	convite.html	Você foi convidado para a equipe do telão
+Change email address	trocar-email.html	Confirme o novo e-mail da sua conta
+Reauthentication	reautenticacao.html	Código de confirmação do Telão Missa
